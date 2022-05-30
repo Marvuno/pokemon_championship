@@ -1,0 +1,55 @@
+Typing
+0 Normal, 1 Fire, 2 Water, 3 Electric, 4 Grass, 5 Ice, 6 Fighting, 7 Poison, 8 Ground,
+9 Flying, 10 Psychic, 11 Bug, 12 Rock, 13 Ghost, 14 Dragon, 15 Dark, 16 Steel, 17 Fairy
+
+Move Type
+0 Physical | 1 Special | 2 Status
+
+Modifier
+0 HP | 1 Attack | 2 Defense | 3 SpA | 4 SpDef | 5 Speed | 6 Evasion | 7 Accuracy | 8 Crit
+
+Status Condition
+0 Normal | 1 Poison | 2 BadPoison | 3 Paralysis | 4 Burn | 5 Sleep | 6 Freeze | 7 Fainted
+
+Weather Effect
+0 Clear | 1 Harsh Sunlight | 2 Rain | 3 Sandstorm | 4 Hail
+
+Battle Stats
+0 Attack | 1 Defense | 2 SpA | 3 SpDef | 4 Speed
+
+Entry Hazard
+0 Stealth Rock | 1 Spikes | 2 Toxic Spikes | 3 Sticky Web
+
+Multi-Strike Move
+False = Fixed | True = Variable
+
+Move Special Effect
+0 no_effect | 1 target_non_volatile | 2 target_volatile | 9 user_volatile | 3 opponent_modifier | 4 self_modifier | 5 self_heal | 6 weather_effect | 7 entry_hazard
+8 hp_draining | 9 reset_user_modifier | 10 reset_target_modifier | 11 clear_entry_hazard | 12 charging (including charging, semi-invulnerable, frenzy) | 13 switching
+14 user_protection | 15 countering | 16 self_team_buff | 17 field_effect | 18 after_hand | 19 hp_split | 20 target_disable | 21 modifier_dependent | 22 remove_team_buff | 23 swap_barrier
+
+Ability Phase
+1 Start (Beginning/Switched)
+2 After Move Select (User Side)
+3 After Move Select (Target Side)
+4 After Calculating Move Damage (User Side)
+5 After Calculating Move Damage (Target Side)
+6 After Successful Hit & Trigger Move Effect (User Side)
+7 After Successful Hit & Trigger Move Effect (Target Side)
+8 End (End of Turn)
+9 Switched Out
+
+Move Flags
+a - contact
+b - moves that cannot be protected
+c - thaw out frozen moves
+d - biting move (powered up by the ability Strong Jaw)
+e - punching move (powered up by the ability Iron Fist)
+f - sound-based move (ability Soundproof is immune)
+g - powder-based move (Grass-type Pokémon are immune to them)
+h - pulse-based move (powered up by the ability Mega Launcher)
+i - ball or bomb-based move (resisted by the ability Bulletproof)
+j - first-turn priority move (e.g. fake out)
+
+Protective Moves
+0 None | 1 Protect | 2 King's Shield | 3 Baneful Bunker

@@ -1,0 +1,39 @@
+Design:
+Marvin Hui
+
+Development:
+Marvin Hui
+
+Story:
+Marvin Hui
+
+Coding:
+Marvin Hui
+
+Reference:
+Pokemon by Gamefreak
+
+Music:
+start1.wav - Tavern Loop One by Alexander Nakarada
+start2.wav - Medieval Loop One by Alexander Nakarada
+start3.wav - Marked by Alexander Nakarada
+start4.wav - Bonfire by Alexander Nakarada
+ace.mp3 - Pokemon BW Music - Gym Leader (Last Pokemon)
+advanced.mp3 - Pokemon Wally Music
+conan_ace.mp3 - Detective Conan (Unknown)
+conan_battle.mp3 - Detective Conan Black Organization Theme
+credits.mp3 - Pokemon X&Y Credits
+cynthia_battle.mp3 - Pokemon Cynthia Battle Music
+cynthia_ace.mp3 - Pokemon Arceus Music
+intermediate.mp3 - Pokemon B2&W2 Gym Leader Music
+lost.mp3 - Eastward Defeat Music
+low.mp3 - ORAS Rival Battle Music
+marvin_ace.mp3 - Hollow Knight Boss Music
+marvin_battle.mp3 - Octopath Traveler "They Who Govern Reason"
+marvuno_battle.wav - All Hail The Emperor by Lion's Heart Productions
+marvuno_ace.mp3 - 3-gatsu no Lion "On The Way Home"
+muzan_ace.mp3 - Demon Slayer: Gurenge by Samuel Kim Music
+muzan_battle.mp3 - Demon Slayer: Rengoku Theme by Samuel Kim Music
+victory.mp3 - Pokemon SM Champion Title Defense Victory Music
+
+Marvin Hui || © 2022 || Pokemon Championship
