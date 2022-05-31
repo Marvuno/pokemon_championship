@@ -130,7 +130,6 @@ def team_generation(participant):
     for tier in tier_list:
         pokemon_availability_list = [pokemon for pokemon in list(list_of_pokemon) if
                                      pokemon not in (participant.team + nominal_team) and list_of_pokemon[pokemon].tier == tier]
-        # pokemon_availability_list = list(set(pokemon_availability_list) - set(nominal_team))
         nominal_team.append(random.choice(pokemon_availability_list))
 
     print(tier_list)  # debug
@@ -288,8 +287,7 @@ def elo_rating():
             rating_change += int((list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] - expected_score) *
                                  (10 if rating_diff <= 10 else 20 if rating_diff <= 30 else 30))
 
-            print(
-                f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'}{CEND}")
+            print(f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'}{CEND}")
 
     print(f"You have {'gained' if rating_change > 0 else 'lost'} {abs(rating_change)} ratings.")
     list_of_competitors['Protagonist'].strength = max(list_of_competitors['Protagonist'].strength + rating_change, 1)
@@ -297,5 +295,6 @@ def elo_rating():
 
 def restart():
     # restart
+    # this will break in powershell, but not in exe
     print("Loading......")
     os.execl(sys.executable, '"{}"'.format(sys.executable), *sys.argv)

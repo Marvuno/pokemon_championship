@@ -18,52 +18,23 @@
     8. debug mode
     9. show super-effective moves (done)
     10. obtain pokemon based on rating (aka strength) and increase iv based on rating (done)
-    11. match history vs each opponent (done) --> add comprehensive match history for every opponent
+    11. match history vs each opponent (done) --> add comprehensive match history for every opponent (done)
     12. when ended, go back to initial page instead of ending (done)
+    13. auto battle (with dumb ai)
+    14. renew music (uniformity and preferably royalty-free) (partial done)
+    15. swiss system tournament (done)
 - add prize money to exchange for ability & pokemon
-- single elimination --> swiss (done)
 - character ability
 - redevelop and update ai
 - organize print text
 - organize files into folders
 
 bugs to fix:
-- scrappy (fixed)
-- pain split (fixed)
-- disguise (fixed)
-- use switching moves (e.g. u-turn) and won the battle (fixed)
-- disable did not activate (fixed)
-- yawn in one turn (fixed)
-- stealth rock kill pokemon should count as one turn (fixed)
-- protean switch in for next battle (fixed)
-- metronome (fixed)
-- fake out moves when switched in (fixed)
-- skill link (not working as it is then replaced) (fixed)
-- sturdy & charging move (fixed)
-- add max(1) for whatever hp decreasing moves as lower bound
-- u-turn enemy attack previous pokemon (fixed)
-- sandaconda fainted issue (due to shed skin) (fixed)
-- repeated pokemon (fixed)
-- 6-6 score victory bug (fixed)
-- continue without savefile will break (fixed)
-- blaziken fainted issue (unknown)
+- fainted status not updated literally (unknown)
+- duplicated pokemon (fixed)
+- without save file, when check history --> new game, it will pop out history and override the new game (fixed)
 
 play_test needed:
-- marshadow spectral thief (success)
-- test out sturdy (success)
-- ingrain & leech seed (success)
-- perish song cause faint? (success)
-- skull bash buff def once? (success)
-- acupressure (success)
-- infiltrator (success)
-- shield dust (success)
-- magnet rise (success)
-- screen cleaner (success)
-- trace (success)
-- fluffy (success)
-- queenly majesty (success)
-- lock-on & zap cannon (success)
-- no guard (success)
-- does weather really affect some moves?
+- weather_affecting moves
 
 

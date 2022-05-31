@@ -123,11 +123,13 @@ def check_type_effectiveness(target_side, target, move):
 
     effectiveness_description = {
         0: "The move has no effect!",
-        0.25: "Extremely not effective...",
+        0.125: "Extraordinarily ineffective...",
+        0.25: "Extremely ineffective...",
         0.5: "Not very effective...",
         1: "Effective.",
         2: "Super effective!",
-        4: "Extraordinarily effective!"
+        4: "Extremely effective!",
+        8: "Extraordinarily effective!!"
     }
     # remove barrier before calculating actual damage
     if move.effect_type == "remove_team_buff" and type_effectiveness != 0:

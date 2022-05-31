@@ -1,5 +1,5 @@
 ID,Name,Strength,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,Color,Quote
-0,Protagonist,1,,Protagonist,Metagross,,,,,,,,Green,
+0,Protagonist,1,,Protagonist,,,,,,,,,Green,
 1,Clown Marcus,9,"Marcus is a mentally-challenged trainer who somehow goes into the Playoffs stage since his opponents in the Preliminary stage are
 either sick or have forfeited their match. Truly the luckiest person ever.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I am such an idiot.
 2,Trasher,1,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
@@ -61,37 +61,37 @@ fuhrer. He is also the main antagonist in Fullmetal Alchemist.",Advanced,Marshad
 32,Adolf Hitler,61,"Adolf Hitler is widely known as the Fuhrer who persuded Nazism. He was the main cause of the Second World War. To these days,
 there are people that like him and also those that despise him.",Advanced,Genesect,,,,,,music/advanced.mp3,music/ace.mp3,,Anyone can deal with victory. Only the mighty can bear defeat.
 33,Elementalist,100,"One of the Lower Elite Four. Elementalist is a balanced and versatile player who devotes to build a pokemon team that is
-balanced in typings and versatile in attack and defense. However, his steadfastness may also be his crucial weakness.",Elite,,,,,,,music/advanced.mp3,music/ace.mp3,DarkRed,Life is a cycle. Moderation is key.
+balanced in typings and versatile in attack and defense. However, his steadfastness may also be his crucial weakness.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,Life is a cycle. Moderation is key.
 34,Faker,108,"One of the Lower Elite Four. Faker is known as the most mechanical player in League of Legends. He seeks
-speed and attack as pivotal attributes for his pokemon. He seeks excitement in assassinating and outplaying opponent in pokemon battle.",Elite,,,,,,,music/advanced.mp3,music/ace.mp3,DarkRed,Even solo killing me once puts a player in the limelight.
+speed and attack as pivotal attributes for his pokemon. He seeks excitement in assassinating and outplaying opponent in pokemon battle.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,Even solo killing me once puts a player in the limelight.
 35,Homunculus,117,"One of the Lower Elite Four. Homunculus is a scary-looking artificial intelligent creature seeking to dominate the humankind
-to develop its own beings. It participates in the Championship to show off its wisdom and gain support from the race of its creator.",Elite,,,,,,,music/advanced.mp3,music/ace.mp3,DarkRed,"Humankind is really foolish, ugly and disgusting. You don't know who you are messing with."
+to develop its own beings. It participates in the Championship to show off its wisdom and gain support from the race of its creator.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Humankind is really foolish, ugly and disgusting. You don't know who you are messing with."
 36,Mivy Wenceslas,125,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland. 
 He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings.
-After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,,,,,,,music/advanced.mp3,music/ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.
+After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.
 37,Reaper Conan,156,"One of the Upper Elite Four. Conan was once a prominent detective who solved many cases. Soon, he realised his ability to never get old
 and his ability to bring death to people around. Slowly he descended into the dark side of his mind. He held the title of 
 Grim Reaper. He will usually display childlike and naive smile in front of the public, but mercilessly murdered people without
-hesitation.",Elite,Zoroark,Apoptoxitic,Sylveon,Arcanine,Darkrai,Kogoshaka,music/conan_battle.mp3,music/conan_ace.mp3,DarkRed,"Is this the life of an Antagonist? Is this the fate of a Grim Reaper?
+hesitation.",Elite,Zoroark,Apoptoxitic,Sylveon,Arcanine,Darkrai,Kogoshaka,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Is this the life of an Antagonist? Is this the fate of a Grim Reaper?
 NO! I still can fight! I still got my Plot Armor! I will reap your soul and your spirit!"
 38,Specialist Cynthia,178,"One of the Upper Elite Four. Cynthia held the title of Pokemon Expert. She is the Champion of the Sinnoh region and is praised to be one
 of the strongest Champions among many regions. She came in with a very comprehensive team and her intelligence and experience in
-Pokemon Battle could easily win anyone.",Elite,Spiritomb,Roserade,Togekiss,Milotic,Lucario,Garchomp,music/cynthia_battle.mp3,music/cynthia_ace.mp3,DarkRed,"Once a Champion, always a Champion.
+Pokemon Battle could easily win anyone.",Elite,Spiritomb,Roserade,Togekiss,Milotic,Lucario,Garchomp,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Once a Champion, always a Champion.
 You may have defeated me. But you will never go above me."
 39,Demon Muzan,197,"One of the Upper Elite Four. Muzan held the title of Demon King. He is the leader of the demons. Ruthless and bloodthirsty, he granted
 his Pokemon his Blood Moon magic to be extremely aggressive, strong and fierce. Muzan's game-changing trait could easily win
-anyone in the Playoffs.",Elite,Gyutaro,Gyokko,Hantengu,Akaza,Douma,Kokushibo,music/muzan_battle.mp3,music/muzan_ace.mp3,DarkRed,"Head down and kneel. Prostrate before me.
+anyone in the Playoffs.",Elite,Gyutaro,Gyokko,Hantengu,Akaza,Douma,Kokushibo,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Head down and kneel. Prostrate before me.
 You are merely a worthless lowlife longing to achieve immortality.
 If you are willing to be my slave, I might consider sparing some of my blood to you."
 40,Emperor Marvuno,212,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient.
 Unlike Muzan and Reaper Conan, Marvuno appears to be very kind and friendly. As such, he easily boosts the morale of his Pokemon
-every battle, so that they usually overperform and thus win out every battle.",Elite,Azumarill,Blastoise,Dracovish,Cloyster,Tanjiro,Poseidon,music/marvuno_battle.wav,music/marvuno_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so."
+every battle, so that they usually overperform and thus win out every battle.",Elite,Azumarill,Blastoise,Dracovish,Cloyster,Tanjiro,Poseidon,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so."
 41,World Champion Marvin,800,"Marvin is the first official World Champion. His strength has not been known by anybody. He is legendary, mystical and sophisticated.
 After observing his games, all people recognize that he could easily secure multiple World Champion Title in the
 Pokemon World Championship. It is believed that nobody can even match half of his strength. In fact, in the First World Championship,
 World Champion Marvin effortlessly won 6-1 against his opponent, Demon Muzan, who is one of the Elite Four, in the Grand Final.
 The most amazing thing is that he never reveal any more pokemon. But rumours is that he is the trainer to one of the strongest
-pokemon in the Universe, one that nobody would have ever seen or heard of.",Champion,Galvantula,Scizor,Blaziken,Gliscor,Victini,Metagross,music/marvin_battle.mp3,music/marvin_ace.mp3,Yellow,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic.
+pokemon in the Universe, one that nobody would have ever seen or heard of.",Champion,Galvantula,Swampert,Blaziken,Scizor,Armadragdon,Memoraider,music/champion_battle.mp3,music/elite_ace.mp3,Yellow,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic.
 This is going to be one of the most spectacular Pokemon battle in history.
 Unfortunate for you, the history only remembers the victor, and that will be me as always.
 "

@@ -1,25 +1,20 @@
 import random
-import math
-from contextlib import suppress
-from text_color import *
-from weather import *
 from pokemon import *
-from abilities import *
-from battlefield import *
-from entry_hazard import *
-from volatile_status_condition import *
-from type_chart import *
 from moves import *
+from battlefield import *
+from copy import deepcopy
+from type_chart import *
+from text_color import *
+from battle_cycle import *
+from music import *
+from art import *
 from start_interface import *
 from competitors import *
-from damage_calculation import *
-from move_additional_effect import *
 from game_procedure import *
-from ai import *
-from music import *
-from game_system import *
-from copy import deepcopy
-
+from abilities import *
+import pickle
+import os
+import sys
 
 GameSystem.stage = 5
 repeat = 1
@@ -28,8 +23,8 @@ side1_victory, side2_victory = 0, 0
 side1_score, side2_score = 0, 0
 
 for i in range(repeat):
-    side1 = deepcopy(list_of_competitors["Vardy"])
-    side2 = deepcopy(list_of_competitors["Bojji"])
+    side1 = deepcopy(list_of_competitors["World Champion Marvin"])
+    side2 = deepcopy(list_of_competitors["Demon Muzan"])
     side1.team = team_generation(side1)
     side2.team = team_generation(side2)
     battleground = Battleground()

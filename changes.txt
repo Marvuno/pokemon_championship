@@ -25,6 +25,11 @@ Weakness: none
 Weakness: none
 - Brambleblood
 - Memoraider
+Weakness: none
+Strategy: it is impossible to win using attacking moves. However, weather effects, Perish Song, Destiny Bond, Bad Poison etc. can beat this final boss.
+- Armadragdon
+Weakness: none
+Strategy: Again, it has very high defense that is almost unbeatable. destiny bond, perish song etc. might help but not poison since it is a steel type.
 
 2. Some existing pokemon are tweaked, including:
 - Alolan Exeggutor: ability changes to Long Reach
@@ -74,6 +79,11 @@ Moves
 - Battle Axe (Rock): 80 power, physical, drain 25% HP
 - Thunderclap (Electric): 80 power, physical, 20% paralysis
 - Chaotic Shockwave (Electric): 80 power, physical, 30% flinch, sound-based move, can breakthrough protection
+- History Rewritten (Normal): status, encore, reset opponent stat stages and 60% confuse
+- Soul Harvest (Dark): 50 power, special, priority move, binding, drain 50% dmg
+- Reign of Terror (Ghost): 100 power, special, reduce target DEF, SpDef, Spd by 1 stage, 50% frighten
+- Empyrean Glory (Flying): status, buff user DEF, SpDef, evasion by 1 stage, heal team status condition problem, heal 25%, clear weather
+- Draconic Blade (Dragon): 100 power, physical, reduce target Spd and Acc by 1 stage, 30% frighten
 
 Ability
 1. Some custom abilities are added, including:

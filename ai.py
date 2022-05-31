@@ -215,7 +215,7 @@ def smart_ai_select_move(battleground, protagonist, ai):
             # recovery moves
             elif "self_heal" in move.effect_type:
                 if math.floor(ai_pokemon.hp * move.special_effect > max(protagonist_move_score)):
-                    move_score[index] += 0 if battleground.verbose else 50  # avoid recursionerror in ai simulation
+                    move_score[index] += 50  # avoid recursionerror in ai simulation
             # team buff moves
             if "self_team_buff" in move.effect_type:
                 if ai.in_battle_effects[move.name] <= 0:

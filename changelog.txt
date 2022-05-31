@@ -1,0 +1,16 @@
+alpha v1.0.1
+
+Added
+- comprehensive match history available at home screen
+- restart the game when ended
+- added proper team for World Champion Marvin
+
+Changed
+- replaced with royalty-free music
+- organized csv file
+
+Fixed
+- duplicated Pokemon upon selection
+- bug involving History and New Game (due to recursion)
+- AI simulation issue
+

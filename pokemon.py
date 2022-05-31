@@ -24,6 +24,7 @@ class Pokemon:
             "NonVolatile": 0,
             "Flinched": 0,
             "Confused": 0,
+            "Frighten": 0,
             "Curse": 0,
             "Destiny Bond": 0,
             "Perish Song": 0,
@@ -55,7 +56,10 @@ with open('csv/pokemon.csv', encoding="ISO-8859-1") as f:
     list_of_pokemon = {}
     for row in reader:
         base_stats = [int(row['HP']), int(row['Atk']), int(row['Def']), int(row['SpA']), int(row['SpDef']), int(row['Spd'])]
-        typing = [row['Type']] if row['SType'] == '' else [row['Type'], row['SType']]
+        typing = []
+        for i in range(1, 4):
+            if row[f'Type{i}'] != '':
+                typing.append(row[f'Type{i}'])
         abilities = [row['Ability']] if row['SAbility'] == '' else [row['Ability'], row['SAbility']]
         moveset = []
         for i in range(1, 7):

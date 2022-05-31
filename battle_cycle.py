@@ -1,22 +1,7 @@
-import math
-import operator
-import random
-from contextlib import suppress
-from copy import deepcopy
-from pokemon import *
-from moves import *
-from weather import *
-from abilities import *
-from battlefield import *
-from type_chart import *
-from text_color import *
-from constants import *
 from battle_checklist import *
-from battle_win_condition import *
 from battle_initialization import *
+from battle_win_condition import *
 from game_procedure import *
-from ai import *
-from switching import *
 from music import *
 
 
@@ -57,7 +42,7 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
         opponent.battle_stats = [opponent.battle_stats[0]] + \
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
-        print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect.id)}[{battleground.weather_effect.__class__.__name__}]\n{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
+        print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect.id)} [{battleground.weather_effect.__class__.__name__}]\n{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
 
         print(CGREEN2 + CBOLD +
               player.name, player.type, player.ability,
@@ -90,7 +75,9 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
 
         # for ai simulation
         if battleground.verbose:
-            player_move, opponent_move = smart_ai_select_move(battleground, competitor, protagonist), smart_ai_select_move(battleground, protagonist, competitor)
+            player_move = smart_ai_select_move(battleground, competitor, protagonist)
+            opponent_move = smart_ai_select_move(battleground, protagonist, competitor)
+
         # player vs ai
         else:
             player_move, opponent_move = select_move(player, opponent), smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 10 \

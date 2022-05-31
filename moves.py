@@ -1125,7 +1125,7 @@ list_of_moves = {
 
     'Sweet Dreams': Move(name="Sweet Dreams", power=0, attack_type="Status", type="Fairy", accuracy=GUARANTEE_ACCURACY, pp=15,
                             crit=0, priority=0, custom=True, flags='b',
-                            effect_type="target_non_volatile", special_effect=Sleep, effect_accuracy=0.6),
+                            effect_type="target_non_volatile", special_effect=Sleep, effect_accuracy=0.7),
 
     'Wild Charge': Move(name="Wild Charge", power=90, attack_type="Physical", type="Electric", accuracy=1, pp=15,
                         crit=0, priority=0, recoil=1 / 4, flags='a'),
@@ -1278,4 +1278,21 @@ list_of_moves = {
                     effect_type='target_volatile', special_effect=TakeAim),
 
     'Metronome': Move(name="Metronome", power=0, attack_type="Status", type="Normal", accuracy=1, pp=30),
+
+    'History Rewritten': Move(name="History Rewritten", power=0, attack_type="Status", type="Normal", accuracy=1, pp=10, custom=True,
+                 effect_type=["target_disable", "reset_target_modifier", "target_volatile"], special_effect=["Encore", "", Confused], effect_accuracy=0.6),
+
+    'Soul Harvest': Move(name="Soul Harvest", power=50, attack_type="Special", type="Dark", accuracy=1, pp=10,
+                              crit=0, priority=2, custom=True,
+                              effect_type=["target_volatile", "hp_draining"], special_effect=[Binding, 0.5]),
+
+    'Reign of Terror': Move(name="Reign of Terror", power=100, attack_type="Special", type="Ghost", accuracy=1, pp=5,
+                         crit=0, priority=0, custom=True,
+                         effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, -1, 0, -1, -1, 0, 0, 0], Frighten], effect_accuracy=0.5),
+
+    'Empyrean Glory': Move(name="Empyrean Glory", power=0, attack_type="Status", type="Flying", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b', custom=True,
+                              effect_type=["user_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 1, 0, 0], "",0.25, Clear]),
+
+    'Draconic Blade': Move(name="Draconic Blade", power=100, attack_type="Physical", type="Dragon", accuracy=1, pp=10, flags='a', custom=True,
+                           effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, 0, -1, 0], Frighten], effect_accuracy=0.3),
 }

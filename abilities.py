@@ -476,6 +476,14 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         if not move.super_effective:
             move.damage = 0
 
+    def divinepower(user_side, target_side, user, target, battleground, move, abilityphase):
+        if not move.super_effective:
+            move.damage *= 2
+
+    def divineaegis(user_side, target_side, user, target, battleground, move, abilityphase):
+        if not move.super_effective:
+            move.damage //= 2
+
     def solidrock(user_side, target_side, user, target, battleground, move, abilityphase):
         if move.super_effective:
             move.damage *= 0.75
@@ -535,7 +543,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             if not user.transform:
                 user.disguise = True
         elif abilityphase == 5:
-            if move.attack_type != "Status":
+            if move.attack_type != "Status" and move.damage > 0:
                 if user.disguise:
                     move.damage = 0
                     user.disguise, user.transform = False, True
@@ -572,6 +580,8 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                                   'Light Metal', 'Magic Bounce', 'Multiscale', 'Sap Sipper', 'Telepathy', 'Wonder Skin', 'Aroma Veil', 'Bulletproof',
                                   'Flower Veil', 'Fur Coat', 'Overcoat', 'Sweet Veil', 'Dazzling', 'Disguise', 'Fluffy', 'Queenly Majesty', 'Water Bubble',
                                   'Mirror Armor', 'Punk Rock', 'Ice Scales', 'Ice Face', 'Pastel Veil']
+        # custom abilities
+        ignorable_ability_list += ['Divine Aegis']
         if target.ability in ignorable_ability_list:
             move.ignoreAbility = True
 
@@ -734,6 +744,8 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Thick Fat': (3, thickfat),
         'White Smoke': (7, whitesmoke),
         'Wonder Guard': (5, wonderguard),
+        'Divine Power': (4, divinepower, "Custom"),
+        'Divine Aegis': (5, divineaegis, "Custom"),
         'Solid Rock': (5, solidrock),
         'Anger Point': (5, angerpoint),
         'Hydration': (8, hydration),

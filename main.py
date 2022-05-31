@@ -16,36 +16,41 @@ import pickle
 import os
 import sys
 
-# beta test: set opponent hp to 1, gamesystem.stage = 5 and constant round limit to 1
-os.system('cls')
-start_game()
 
-while True:
-    music(audio=f'music/start{random.randint(1, 4)}.wav', loop=True)
+def main():
+    os.system('cls')
+    start_game()
 
-    # win the tournament
-    if list_of_competitors['Protagonist'].stage == 6:
-        print("Congratulations! You have won the Pokemon World Championship!!!")
-        print(f"You have obtained {list_of_competitors['Protagonist'].championship + 1} World Champion Title(s) in your career!\n")
-        music(audio='music/credits.mp3', loop=False)
-        with open('credits.txt', 'r') as f:
-            for line in f:
-                print(line.rstrip())
-        input("\nPress any key to continue.")
+    while True:
+        music(audio=f'music/start{random.randint(1, 4)}.wav', loop=True)
 
-    # game end
-    if GameSystem.stage == 6:
-        break
+        # win the tournament
+        if list_of_competitors['Protagonist'].stage == 6:
+            print("Congratulations! You have won the Pokemon World Championship!!!")
+            print(f"You have obtained {list_of_competitors['Protagonist'].championship + 1} World Champion Title(s) in your career!\n")
+            music(audio='music/credits.mp3', loop=False)
+            with open('credits.txt', 'r') as f:
+                for line in f:
+                    print(line.rstrip())
+            input("\nPress any key to continue.")
 
-    opponent = next_battle()
-    before_battle_option(list_of_competitors['Protagonist'], opponent)
+        # game end
+        if GameSystem.stage == 6:
+            break
 
-    battleground = Battleground()
-    battle_setup(list_of_competitors['Protagonist'], opponent, list_of_competitors['Protagonist'].team, opponent.team, battleground)
+        opponent = next_battle()
+        before_battle_option(list_of_competitors['Protagonist'], opponent)
 
-scoreboard()
-elo_rating()
-save_game()
-input("Press any key to confirm the results and exit the game.")
-restart()
+        battleground = Battleground()
+        battle_setup(list_of_competitors['Protagonist'], opponent, list_of_competitors['Protagonist'].team, opponent.team, battleground)
+
+    scoreboard()
+    elo_rating()
+    save_game()
+    input("Press any key to confirm the results.")
+    restart()
+
+
+if __name__ == "__main__":
+    main()
 

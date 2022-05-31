@@ -10,6 +10,10 @@ def Confused(effect_accuracy):
     return ["Confused", random.randint(2, 5)] if random.random() <= effect_accuracy else ["", 0]
 
 
+def Frighten(effect_accuracy):
+    return ["Frighten", 3] if random.random() <= effect_accuracy else ["", 0]
+
+
 def Poison(effect_accuracy):
     return ["Poison", 0] if random.random() <= effect_accuracy else ["Normal", 0]
 

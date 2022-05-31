@@ -36,7 +36,6 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         if protagonist.strength > competitor.strength:
             print("Opponent emerges victorious. You have lost.")
             competitor.stage += 1
-            music(audio='music/lost.mp3', loop=False)
         else:
             protagonist.stage += 1
             print("Congratulations! You have won.")
@@ -45,7 +44,6 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         battleground.battle_continuation = False
         print("Opponent emerges victorious. You have lost.")
         competitor.stage += 1
-        music(audio='music/lost.mp3', loop=False)
     elif opponent_side:
         battleground.battle_continuation = False
         print("Congratulations! You have won.")
@@ -88,69 +86,65 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
 
 def choose_pokemon(protagonist, opponent, battleground):
     choice, obtained_pokemon, thrown_pokemon = None, -1, -1
-    if protagonist.stage > opponent.stage:
-        print(f"{CGREEN2}{CBOLD}Your Team: {[pokemon.name.removesuffix(' (Fainted)') for pokemon in protagonist.team]}\n"
-              f"{CRED2}Opponent Team: {[pokemon.name.removesuffix(' (Fainted)') for pokemon in opponent.team]}{CEND}")
-        # not yet full team, can get extra pokemon
-        if len(protagonist.team) != MAX_POKEMON:
-            while choice != "Y" and choice != "N":
-                if battleground.verbose:
-                    choice = "N"
-                else:
+    current_pokemon = [pokemon.name.removesuffix(' (Fainted)') for pokemon in protagonist.team]
+    if not battleground.verbose:
+        if protagonist.stage > opponent.stage:
+            print(f"{CGREEN2}{CBOLD}Your Team: {[pokemon.name.removesuffix(' (Fainted)') for pokemon in protagonist.team]}\n"
+                  f"{CRED2}Opponent Team: {[pokemon.name.removesuffix(' (Fainted)') for pokemon in opponent.team]}{CEND}")
+            # not yet full team, can get extra pokemon
+            if len(protagonist.team) != MAX_POKEMON:
+                while choice != "Y" and choice != "N":
                     choice = input(f"Input Y if you want to take from the opponent, and N to get a random pokemon from the organizer (No going back when "
                                    f"you have chosen). ").upper()
 
-                if choice == "Y":
-                    while not (0 <= obtained_pokemon < len(opponent.team)):
-                        with suppress(IndexError, ValueError):
-                            obtained_pokemon = int(input(f"You may take one pokemon from the opponent:\n"
-                                                         f"{CRED2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
-                                                         f"--> "))
-                            protagonist.team.append(opponent.team[obtained_pokemon])
-                elif choice == "N":
-                    defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Custom'}
-                    pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
-                                                 list_of_pokemon[pokemon].tier == defeating_tier_list[opponent.level] and pokemon not in protagonist.team]
-                    obtained_pokemon = random.choice(pokemon_availability_list)
-                    obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
-                    obtained_pokemon.iv = [random.randint(0, 31) for _ in range(6)]
-                    obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
-                    obtained_pokemon.ability = random.choice(obtained_pokemon.ability)
-                    obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
-                    obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
-                    print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
-                    protagonist.team.append(obtained_pokemon)
-        else:
-            # when full team
-            while choice != "Y" and choice != "N":
-                if battleground.verbose:
-                    choice = "N"
-                else:
+                    if choice == "Y":
+                        while not (0 <= obtained_pokemon < len(opponent.team)):
+                            with suppress(IndexError, ValueError):
+                                obtained_pokemon = int(input(f"You may take one pokemon from the opponent:\n"
+                                                             f"{CRED2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
+                                                             f"--> "))
+                                protagonist.team.append(opponent.team[obtained_pokemon])
+                    elif choice == "N":
+                        defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Custom'}
+                        pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
+                                                     list_of_pokemon[pokemon].tier == defeating_tier_list[opponent.level] and pokemon not in current_pokemon]
+                        obtained_pokemon = random.choice(pokemon_availability_list)
+                        obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
+                        obtained_pokemon.iv = [random.randint(0, 31) for _ in range(6)]
+                        obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
+                        obtained_pokemon.ability = random.choice(obtained_pokemon.ability)
+                        obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
+                        obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
+                        print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
+                        protagonist.team.append(obtained_pokemon)
+            else:
+                # when full team
+                while choice != "Y" and choice != "N":
                     choice = input(f"Input Y if you want to swap, and N otherwise (No going back when you have chosen). ").upper()
 
-                if choice == "Y":
-                    while not (0 <= obtained_pokemon < len(opponent.team) and (0 <= thrown_pokemon < len(protagonist.team))):
-                        with suppress(IndexError, ValueError):
-                            thrown_pokemon = int(input(f"Choose the pokemon you don't want on your team:\n"
-                                                       f"{CGREEN2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(protagonist.team)]}{CEND}\n"
-                                                       f"--> "))
-                            obtained_pokemon = int(input(f"Take the pokemon you want on the other team:\n"
-                                                         f"{CRED2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
-                                                         f"--> "))
-                            protagonist.team[thrown_pokemon] = opponent.team[obtained_pokemon]
-    else:
-        # when lost
-        if len(protagonist.team) != MAX_POKEMON:
-            pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
-                                         list_of_pokemon[pokemon].tier in ['Very Low', 'Low', 'Medium'] and pokemon not in protagonist.team]
-            obtained_pokemon = random.choice(pokemon_availability_list)
-            obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
-            obtained_pokemon.iv = [random.randint(0, 31) for _ in range(6)]
-            obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
-            obtained_pokemon.ability = random.choice(obtained_pokemon.ability)
-            obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
-            obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
-            print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
-            protagonist.team.append(obtained_pokemon)
-    input("Press any key to continue.")
-    os.system('cls')
+                    if choice == "Y":
+                        while not (0 <= obtained_pokemon < len(opponent.team) and (0 <= thrown_pokemon < len(protagonist.team))):
+                            with suppress(IndexError, ValueError):
+                                thrown_pokemon = int(input(f"Choose the pokemon you don't want on your team:\n"
+                                                           f"{CGREEN2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(protagonist.team)]}{CEND}\n"
+                                                           f"--> "))
+                                obtained_pokemon = int(input(f"Take the pokemon you want on the other team:\n"
+                                                             f"{CRED2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
+                                                             f"--> "))
+                                protagonist.team[thrown_pokemon] = opponent.team[obtained_pokemon]
+        else:
+            # when lost
+            if len(protagonist.team) != MAX_POKEMON:
+                pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
+                                             list_of_pokemon[pokemon].tier in ['Very Low', 'Low', 'Medium'] and pokemon not in current_pokemon]
+                obtained_pokemon = random.choice(pokemon_availability_list)
+                obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
+                obtained_pokemon.iv = [random.randint(0, 31) for _ in range(6)]
+                obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
+                obtained_pokemon.ability = random.choice(obtained_pokemon.ability)
+                obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
+                obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
+                print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
+                protagonist.team.append(obtained_pokemon)
+        input("Press any key to continue.")
+        os.system('cls')

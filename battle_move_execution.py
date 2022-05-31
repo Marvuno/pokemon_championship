@@ -28,7 +28,7 @@ import os
 
 def user_turn_in_battle_stats(user_side, user):
     # decrease with turns
-    diminishing_volatile_status = ['Confused', 'Destiny Bond', 'Torment', 'Binding', 'Yawn']
+    diminishing_volatile_status = ['Confused', 'Frighten', 'Destiny Bond', 'Torment', 'Binding', 'Yawn']
     # increase with turns
     increment_volatile_status = []
     for status in diminishing_volatile_status:
@@ -173,6 +173,8 @@ def move_fail_checklist_during_execution(user, target, move, target_move):
 def other_effect_when_use_move(user, target, battleground, move):
     if user.volatile_status['Torment'] > 0:
         user.disabled_moves[move.name] = 1
+    if user.volatile_status['Frighten'] > 0:
+        move.damage //= 2
     if move.name == "Spectral Thief":
         user.applied_modifier = [modifier if modifier > 0 else 0 for modifier in target.modifier]
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
