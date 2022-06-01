@@ -145,7 +145,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         move.power *= 1.5 if move.power <= 60 else 1
 
     def levitate(user_side, target_side, user, target, battleground, move, abilityphase):
-        user.volatile_status['Ungrounded'] = 1
+        user.volatile_status['Grounded'] = 0
 
     def flashfire(user_side, target_side, user, target, battleground, move, abilityphase):
         if abilityphase == 3:

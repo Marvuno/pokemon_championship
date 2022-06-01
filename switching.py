@@ -91,12 +91,6 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
 
     switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
 
-    # # check if the pokemon removes entry hazard
-    # if "Flying" not in user_team[0].type and user_team[0].ability != "Levitate":
-    #     user_team[0].volatile_status['Grounded'] = 1
-    # # triggering abilities when switched in
-    # UseAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=1)
-
     if user.main:
         sound(audio="music/confirm.mp3")
     elif not user.main:

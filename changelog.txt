@@ -1,3 +1,13 @@
+alpha v1.0.3
+
+Added
+- added team selection feature when player has more Pokemon than the round requires
+- as of above, World Champ can now keep full team, high achievers (4PTS) can keep 4 Pokemon, otherwise can keep 3 Pokemon (BUFF)
+
+Fixed
+- fixed levitate & ungrounded bug
+
+
 alpha v1.0.2
 
 Added
@@ -23,7 +33,7 @@ Added
 - added proper team for World Champion Marvin
 
 Changed
-- replaced with royalty-free music
+- replaced with royalty-free music (partially)
 - organized csv file
 
 Fixed

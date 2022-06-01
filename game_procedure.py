@@ -102,6 +102,28 @@ def quit_game(protagonist, opponent):
     sys.exit()
 
 
+def team_selection(protagonist):
+    # exclusive to player
+    # select pokemon when there is too many
+    unused_list = set()
+    print(f"You have more Pokemon than needed for this round! Select {len(protagonist.team) - ROUND_LIMIT[GameSystem.stage]} "
+          f"Pokemon you DO NOT need this round:")
+    for pokemon in protagonist.team:
+        print(f"\n{CBOLD}{pokemon.name}:")
+        print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}({pokemon.iv[x]})" for x in range(6)])
+        print(f"Ability: {pokemon.ability} || Moveset: {pokemon.moveset}{CEND}")
+    while len(unused_list) != len(protagonist.team) - ROUND_LIMIT[GameSystem.stage]:
+        print(f"\n{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}")
+        with suppress(KeyError, ValueError, IndexError):
+            unused = int(input(f"Select the Pokemon you DO NOT need this round: "))
+            unused_list.add(unused)
+    unused_list = sorted(unused_list, reverse=True)
+    for index in unused_list:
+        protagonist.unused_team.append(protagonist.team[index])
+        del protagonist.team[index]
+    return protagonist.team
+
+
 def next_battle():
     round_begin()
     opponent = ""
@@ -153,8 +175,10 @@ def team_generation(participant):
             pokemon.nominal_base_stats = list(map(operator.add, pokemon.base_stats, pokemon.iv))
             participant.team[i] = pokemon
     # the order of the team matters
-    if len(participant.team) > ROUND_LIMIT[GameSystem.stage]:
-        participant.team = participant.team[len(participant.team) - ROUND_LIMIT[GameSystem.stage]:len(participant.team)]
+    # player can keep 6 pokemon
+    if not participant.main:
+        if len(participant.team) > ROUND_LIMIT[GameSystem.stage]:
+            participant.team = participant.team[len(participant.team) - ROUND_LIMIT[GameSystem.stage]:len(participant.team)]
 
     return participant.team
 
@@ -243,7 +267,9 @@ def save_game():
         print(f"\n{[(index, pokemon.name) for index, pokemon in enumerate(list_of_competitors['Protagonist'].team)]}")
         with suppress(KeyError, ValueError):
             acceptable_values = list(range(0, len(list_of_competitors['Protagonist'].team)))
-            keep_number = KEEP_POKEMON_WIN if list_of_competitors['Protagonist'].stage == 6 else KEEP_POKEMON_LOST
+            keep_number = KEEP_POKEMON_WIN if list_of_competitors['Protagonist'].stage == 6 else \
+                KEEP_POKEMON_SEMI if list_of_competitors['Protagonist'].stage == 5 else \
+                    KEEP_POKEMON_LOST
             if len(keep_list) == keep_number:
                 break
             keep = int(input(f"You can keep at most {keep_number} Pokemon for your next run. Select 9 when you are done: "))
@@ -286,7 +312,8 @@ def elo_rating():
             rating_change += int((list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] - expected_score) *
                                  (10 if rating_diff <= 10 else 20 if rating_diff <= 30 else 30))
 
-            print(f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'}{CEND}")
+            print(
+                f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'}{CEND}")
 
     print(f"You have {'gained' if rating_change > 0 else 'lost'} {abs(rating_change)} ratings.")
     list_of_competitors['Protagonist'].strength = max(list_of_competitors['Protagonist'].strength + rating_change, 1)

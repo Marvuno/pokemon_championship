@@ -22,6 +22,7 @@ class Competitor:
         self.color = color
         self.quote = quote
         self.team = []
+        self.unused_team = []
         self.in_battle_effects = {"Reflect": 0,
                                   "Light Screen": 0,
                                   "Aurora Veil": 0,

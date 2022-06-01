@@ -40,7 +40,7 @@ def main():
 
         opponent = next_battle()
         before_battle_option(list_of_competitors['Protagonist'], opponent)
-
+        list_of_competitors['Protagonist'].team = team_selection(list_of_competitors['Protagonist'])
         battleground = Battleground()
         battle_setup(list_of_competitors['Protagonist'], opponent, list_of_competitors['Protagonist'].team, opponent.team, battleground)
 

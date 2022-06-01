@@ -1,5 +1,8 @@
 ID,Name,Strength,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,Color,Quote
-0,Protagonist,1,,Protagonist,,,,,,,,,Green,
+0,Protagonist,1,"Currently 10 years old. This talented prodigy has recently won the U15 Pokemon Amateur Tournament,
+being the youngest winner of the tournament in the history. Rumours said that the prodigy is so good at
+reading others' mind, especially at the clutch moment, as there are often comebacks and luck involved in
+the prodigy's pokemon battle.",Protagonist,,,,,,,,,Green,
 1,Clown Marcus,9,"Marcus is a mentally-challenged trainer who somehow goes into the Playoffs stage since his opponents in the Preliminary stage are
 either sick or have forfeited their match. Truly the luckiest person ever.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I am such an idiot.
 2,Trasher,1,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
