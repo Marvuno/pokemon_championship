@@ -16,9 +16,9 @@ print("")
 for index, tier in TIER.items():
     number = sum([1 for pokemon in list_of_pokemon if tier == list_of_pokemon[pokemon].tier])
     print(f"{CGREEN2}{tier}: {number}{CEND}")
-print(f"\n{CBOLD}Custom: {sum([1 for pokemon in list_of_pokemon if list_of_pokemon[pokemon].tier == 'Custom'])}{CEND}")
+print(f"\n{CBOLD}Custom: {sum([1 for pokemon in list_of_pokemon if list_of_pokemon[pokemon].custom])}{CEND}")
 for mon in list_of_pokemon.values():
-    if mon.tier == "Custom":
+    if mon.custom:
         print(f"{CYELLOW2}{mon.name} {mon.type}{CEND}")
 
 print(f"\n{CBOLD}Total Number of Moves: {len(list_of_moves)}{CEND}")
@@ -29,7 +29,7 @@ print(f"\n{CBOLD}By Attack Types:{CEND}")
 for index, type in ATTACK_TYPE.items():
     number = sum([1 for moves in list_of_moves if list_of_moves[moves].attack_type == type])
     print(f"{CGREEN2}{type}: {number}{CEND}")
-print(f"\n{CBOLD}Custom: {sum([1 for moves in list_of_moves if list_of_moves[moves].custom == True])}{CEND}")
+print(f"\n{CBOLD}Custom: {sum([1 for moves in list_of_moves if list_of_moves[moves].custom])}{CEND}")
 for move in list_of_moves.values():
     if move.custom:
         print(f"{CYELLOW2}{move.name} ({move.type}): {move.power} power, {move.attack_type}{CEND}")

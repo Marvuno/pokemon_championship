@@ -47,7 +47,7 @@ def speed_adjustment(user_side, user, battleground):
     return user.battle_stats[5]
 
 
-def select_move(pokemon, target):
+def select_move(pokemon, target, battleground):
     # comprehensive type effectiveness indicator
     move_effectiveness = []
     for move in pokemon.moveset:
@@ -86,8 +86,8 @@ def select_move(pokemon, target):
         pokemon_move = pokemon.charging[0]
 
     # very clumsily indicate move type and effect for noobs
+    print(CBOLD, end='')
     for index, move in enumerate(pokemon.moveset):
-        print(CBOLD, end='')
         if move == "Switching":
             print(f"{index}: {move}")
         else:
@@ -96,12 +96,18 @@ def select_move(pokemon, target):
                       f"[{'No Effect' if move_effectiveness[index] == 0 else '' if move_effectiveness[index] == 1 else 'Super Effective' if move_effectiveness[index] > 1 else 'Not Effective'}]")
             except TypeError:
                 print(f"{index}: {move} ({list_of_moves[move].type}) [Status]")
-        print(CEND, end='')
+    print("100: Turn on/off Auto Battle")
+    print(CEND, end='')
 
     while pokemon_move not in pokemon.moveset:  # avoid making a non-move option
         with suppress(ValueError, IndexError):
             while True:
-                move_choice = int(input(f"What is the move for {pokemon.name}? "))
+                move_choice = int(input(f"What is the move for {pokemon.name}?\n--> "))
+
+                if move_choice == 100:
+                    battleground.auto_battle = True if not battleground.auto_battle else False
+                    print(f"Auto battle is", end=' ')
+                    print('activated.\nNote: You still have to make a move on this turn. You will NOT be able to switch it off until the end of this battle.' if battleground.auto_battle else 'deactivated.')
                 try:
                     if pokemon.disabled_moves[pokemon.moveset[move_choice]] <= 0:
                         pokemon_move = pokemon.moveset[move_choice]
@@ -282,7 +288,8 @@ def check_modifier_limit(pokemon):
 def switch_fainted_pokemon_at_end_of_turn(user, opponent, user_team, opponent_team, battleground):
     if user_team[0].status == "Fainted" and battleground.battle_continuation:  # fainted
         if user.main:  # human
-            user_team[0] = switching_criteria(user, opponent, user_team, opponent_team, battleground)
+            user_team[0] = switching_criteria(user, opponent, user_team, opponent_team, battleground) if not battleground.auto_battle else \
+                switching_mechanism(user, opponent, battleground, user_team, opponent_team, ai_switching_mechanism(opponent, user, battleground), False)
         else:  # ai
             user_team[0] = switching_mechanism(user, opponent, battleground, user_team, opponent_team,
                            ai_switching_mechanism(opponent, user, battleground), False)

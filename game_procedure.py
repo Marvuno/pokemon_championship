@@ -118,26 +118,25 @@ def team_generation(participant):
     # pokemon is divided to 6 tier (very low, low, medium, high, very high, custom)
     # should be selected based on strength
     nominal_team = []
-    random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, participant.strength // 120 * 31)}
+    random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, int(participant.strength / 120 * 31))}
     custom_team(participant)
+    # weights formula
+    very_low = max(0, 40 - participant.strength * 2)
+    low = 60 - participant.strength if participant.strength <= 15 else max(0, 75 - participant.strength * 2)
+    medium = min(40, 3 + participant.strength) if participant.strength <= 37 else max(0, 78 - participant.strength)
+    high = min(max(0, participant.strength - 20), 50) if participant.strength <= 70 else max(0, 120 - participant.strength)
+    very_high = min(max(0, participant.strength - 60), 50)
     # new version
-    tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High", "Custom"],
-                               weights=[max(20 - participant.strength * 2, 0), max(60 - participant.strength * 2, 0),
-                                        max(38 + (participant.strength - 30) if participant.strength <= 30 else (30 - participant.strength), 0),
-                                        min(max(-20 + participant.strength, 0), 50),
-                                        min(max(-40 + participant.strength, 0), 50), min(max(-30 + participant.strength, 0), 10)],
+    # at strength 120, always get very high tier pokemon
+    tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High"],
+                               weights=[very_low, low, medium, high, very_high],
                                k=ROUND_LIMIT[GameSystem.stage] - len(participant.team))
     for tier in tier_list:
         pokemon_availability_list = [pokemon for pokemon in list(list_of_pokemon) if
                                      pokemon not in (participant.team + nominal_team) and list_of_pokemon[pokemon].tier == tier]
         nominal_team.append(random.choice(pokemon_availability_list))
-
     print(tier_list)  # debug
-    # # old version
-    # pokemon_availability_list = [pokemon for pokemon in list(list_of_pokemon) if pokemon not in participant.team]
-    # for _ in range(ROUND_LIMIT[GameSystem.stage] - len(participant.team)):
-    #     nominal_team.append(random.choice(pokemon_availability_list))
-    #     pokemon_availability_list = list(set(pokemon_availability_list) - set(nominal_team))
+
     with suppress(ValueError):
         # ace pokemon are put at the last (but the ai can still take it out when he wants)
         participant.team = nominal_team + participant.team

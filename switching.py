@@ -35,23 +35,25 @@ def switching_criteria(protagonist, competitor, user_team, opponent_team, battle
     position_change = 0
     while not (1 <= position_change < len(user_team)):
         for index, pokemon in enumerate(user_team):
-            print(f"{CBOLD}{index}: {pokemon.name}{CEND}")
+            print(f"{CWHITE2}{index}: {pokemon.name}{CEND}")
         with suppress(ValueError, IndexError):
-            position_change = int(input(f'Which pokemon would you like to switch in? View your pokemon with 8 and Go back with 9. '))
+            position_change = int(input(f'Which pokemon would you like to switch in?\n8: View your pokemon\n9: Return to battle\n--> '))
             if not forced_switch and position_change == 9:
                 if user_team[0].status == "Fainted":
                     print("The pokemon in battle has fainted. Choose one.")
                 else:
                     return user_team[0]
             elif position_change == 8:
-                for pokemon in user_team:
-                    print(f"{CBOLD}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
+                for i, pokemon in enumerate(user_team):
+                    if i % 2 == 0:
+                        print(CBEIGE, end='')
+                    print(f"ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
                     print(f"Ability: {pokemon.ability}")
                     print("Battle Stats:", [f"{STATISTICS[x]}: {pokemon.battle_stats[x]}" for x in range(len(pokemon.battle_stats))])
                     print("Status:", pokemon.status)
                     print(f"Moveset: {pokemon.moveset}{CEND}\n")
-                print("Entry Hazard on Field:", protagonist.entry_hazard)
-                print("Team Buff on Field:", protagonist.in_battle_effects, "\n")
+                print(CBOLD + "Entry Hazard on Field:", protagonist.entry_hazard)
+                print("Team Buff on Field:", protagonist.in_battle_effects, "\n" + CEND)
 
             elif user_team[position_change].status == "Fainted":
                 print("The pokemon you select has fainted. Choose another one.")

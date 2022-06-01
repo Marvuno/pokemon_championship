@@ -1,3 +1,20 @@
+alpha v1.0.2
+
+Added
+- added Auto Battle feature (automating battle with Dumb AI upon player's wish)
+
+Changed
+- nerfed Goredrinker ability to drain only 1/3 HP now
+- formula for received pokemon according to strength is changed
+- divided custom pokemon to several tiers, removed custom tier and added Boss tier (cannot be obtained)
+- QOL update for readability
+
+Fixed
+- fixed incorrect win rate
+- fixed incorrect IV distribution
+- compatible smart AI with multiple move effects
+
+
 alpha v1.0.1
 
 Added

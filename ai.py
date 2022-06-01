@@ -204,66 +204,72 @@ def smart_ai_select_move(battleground, protagonist, ai):
                 move_score[index] += (10 * (min(protagonist_pokemon.battle_stats[0], move_damage[index]) / protagonist_pokemon.hp) ** 2) * move.accuracy
                 move_score[index] += 2 if move_damage[index] == max(move_damage) else 0
 
-
     # if it takes more turns for ai to defeat protagonist, then ai should switch unless there are better moves
     #  e.g. considering additional effects or status moves
     elif least_defeating_turns >= surviving_turns:
         for index, move in enumerate(makeshift_moveset):
-            # always protect
-            if "user_protection" in move.effect_type and ai_pokemon.protection[1] <= 0:
-                move_score[index] += 50
-            # recovery moves
-            elif "self_heal" in move.effect_type:
-                if math.floor(ai_pokemon.hp * move.special_effect > max(protagonist_move_score)):
-                    move_score[index] += 50  # avoid recursionerror in ai simulation
-            # team buff moves
-            if "self_team_buff" in move.effect_type:
-                if ai.in_battle_effects[move.name] <= 0:
-                    move_score[index] += 10 * sum(1 for pokemon in protagonist.team if pokemon.status != "Fainted")
-            # entry hazard
-            elif "entry_hazard" in move.effect_type:
-                if protagonist.entry_hazard[move.special_effect] < entry_hazard_maximum_usage[move.special_effect]:
-                    move_score[index] += 10 * sum(1 for pokemon in protagonist.team if pokemon.status != "Fainted")  # max 50
-            # clear entry hazard
-            elif "clear_entry_hazard" in move.effect_type:
-                move_score[index] += 20 * sum(1 for hazard in ai.entry_hazard.values() if hazard > 0)  # max 50
-            # status condition move
-            elif "target_non_volatile" in move.effect_type and protagonist_pokemon.status == "Normal":
-                # ground and electric type immune to paralysis status moves
-                if move.special_effect == Paralysis:
-                    if not ("Ground" in protagonist_pokemon.type or "Electric" in protagonist_pokemon.type):
+            vartype = type(move.effect_type)
+            # only one effect
+            if vartype is str:
+                effect_type, special_effect = [move.effect_type], [move.special_effect]
+            # multiple effect
+            elif vartype is list:
+                effect_type, special_effect = move.effect_type, move.special_effect
+
+            for i in range(len(effect_type)):
+                # always protect
+                if "user_protection" in effect_type[i] and ai_pokemon.protection[1] <= 0:
+                    move_score[index] += 50
+                # recovery moves
+                elif "self_heal" in effect_type[i]:
+                    if math.floor(ai_pokemon.hp * special_effect[i] > max(protagonist_move_score)):
+                        move_score[index] += 50
+                # team buff moves
+                if "self_team_buff" in effect_type[i]:
+                    if ai.in_battle_effects[move.name] <= 0:
+                        move_score[index] += 10 * sum(1 for pokemon in protagonist.team if pokemon.status != "Fainted")
+                # entry hazard
+                elif "apply_entry_hazard" in effect_type[i]:
+                    if protagonist.entry_hazard[special_effect[i]] < entry_hazard_maximum_usage[special_effect[i]]:
+                        move_score[index] += 10 * sum(1 for pokemon in protagonist.team if pokemon.status != "Fainted")  # max 50
+                # clear entry hazard
+                elif "clear_entry_hazard" in effect_type[i]:
+                    move_score[index] += 20 * sum(1 for hazard in ai.entry_hazard.values() if hazard > 0)  # max 50
+                # status condition move
+                elif "target_non_volatile" in effect_type[i] and protagonist_pokemon.status == "Normal":
+                    # ground and electric type immune to paralysis status moves
+                    if special_effect[i] == Paralysis:
+                        if not ("Ground" in protagonist_pokemon.type or "Electric" in protagonist_pokemon.type):
+                            move_score[index] += 10 * move.effect_accuracy * move.accuracy
+                    # poison and steel type immune to poison
+                    elif special_effect[i] == Poison or special_effect[i] == BadPoison:
+                        if not ("Poison" in protagonist_pokemon.type or "Steel" in protagonist_pokemon.type):
+                            move_score[index] += 10 * move.effect_accuracy * move.accuracy
+                    elif special_effect[i] == Burn:
+                        move_score[index] += 5 * move.effect_accuracy if sum(
+                            1 for moves in protagonist_pokemon.moveset if list_of_moves[moves].attack_type == "Physical") >= \
+                                                                         sum(1 for moves in protagonist_pokemon.moveset if
+                                                                             list_of_moves[moves].attack_type == "Special") \
+                            else 2 * move.effect_accuracy
+                    else:
+                        move_score[index] += 20 * move.effect_accuracy * move.accuracy
+                # volatile condition move
+                elif "target_volatile" in effect_type[i]:
+                    if special_effect[i] == Confused:
+                        if protagonist_pokemon.volatile_status["Confused"] != 0:
+                            move_score[index] += 10 * move.effect_accuracy * move.accuracy
+                    elif special_effect[i] == Flinch:
+                        move_score[index] += 20 * move.effect_accuracy * move.accuracy if ai_speed > protagonist_speed else 0
+                    else:
                         move_score[index] += 10 * move.effect_accuracy * move.accuracy
-                # poison and steel type immune to poison
-                elif move.special_effect == Poison or move.special_effect == BadPoison:
-                    if not ("Poison" in protagonist_pokemon.type or "Steel" in protagonist_pokemon.type):
-                        move_score[index] += 10 * move.effect_accuracy * move.accuracy
-                elif move.special_effect == Burn:
-                    move_score[index] += 5 * move.effect_accuracy if sum(
-                        1 for moves in protagonist_pokemon.moveset if list_of_moves[moves].attack_type == "Physical") >= \
-                                                                     sum(1 for moves in protagonist_pokemon.moveset if
-                                                                         list_of_moves[moves].attack_type == "Special") \
-                        else 2 * move.effect_accuracy
-                else:
-                    move_score[index] += 20 * move.effect_accuracy * move.accuracy
-            # volatile condition move
-            elif "target_volatile" in move.effect_type:
-                if move.special_effect == Confused:
-                    if protagonist_pokemon.volatile_status["Confused"] != 0:
-                        move_score[index] += 10 * move.effect_accuracy * move.accuracy
-                elif move.special_effect == Flinch:
-                    move_score[index] += 20 * move.effect_accuracy * move.accuracy if ai_speed > protagonist_speed else 0
-                else:
-                    move_score[index] += 10 * move.effect_accuracy * move.accuracy
-            # self buff move
-            elif "self_modifier" in move.effect_type:
-                special_effect = move.special_effect[move.effect_type.index("self_modifier")] if type(move.effect_type) is list else move.special_effect
-                for i in range(len(ai_pokemon.modifier)):
-                    move_score[index] += (6 - ai_pokemon.modifier[i]) * special_effect[i] * (1 / 2 if special_effect[i] > 0 else 1 / 6) \
-                                         * move.effect_accuracy * move.accuracy
-            # debuff move
-            elif "opponent_modifier" in move.effect_type:
-                special_effect = move.special_effect[move.effect_type.index("opponent_modifier")] if type(move.effect_type) is list else move.special_effect
-                move_score[index] += sum(special_effect) * -5 * move.effect_accuracy * move.accuracy
+                # self buff move
+                elif "self_modifier" in effect_type[i]:
+                    for j in range(len(ai_pokemon.modifier)):
+                        move_score[index] += (6 - ai_pokemon.modifier[j]) * special_effect[i][j] * (1 / 2 if sum(special_effect[i]) > 0 else 1 / 6) \
+                                             * move.effect_accuracy * move.accuracy
+                # debuff move
+                elif "opponent_modifier" in effect_type[i]:
+                    move_score[index] += sum(special_effect[i]) * -3 * move.effect_accuracy * move.accuracy
 
             # damage calculation
             move_score[index] += pow(7 * min(1, min(protagonist_pokemon.battle_stats[0], move_damage[index]) / protagonist_pokemon.hp), 1.7) * move.accuracy

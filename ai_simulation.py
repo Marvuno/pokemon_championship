@@ -17,14 +17,14 @@ import os
 import sys
 
 GameSystem.stage = 5
-repeat = 1
+repeat = 10
 
 side1_victory, side2_victory = 0, 0
 side1_score, side2_score = 0, 0
 
 for i in range(repeat):
     side1 = deepcopy(list_of_competitors["World Champion Marvin"])
-    side2 = deepcopy(list_of_competitors["Demon Muzan"])
+    side2 = deepcopy(list_of_competitors["Mivy Wenceslas"])
     side1.team = team_generation(side1)
     side2.team = team_generation(side2)
     battleground = Battleground()

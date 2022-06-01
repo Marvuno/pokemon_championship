@@ -42,7 +42,8 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
         opponent.battle_stats = [opponent.battle_stats[0]] + \
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
-        print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect.id)} [{battleground.weather_effect.__class__.__name__}]\n{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
+        print(
+            f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect.id)} [{battleground.weather_effect.__class__.__name__}]\n{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
 
         print(CGREEN2 + CBOLD +
               player.name, player.type, player.ability,
@@ -80,7 +81,8 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
 
         # player vs ai
         else:
-            player_move, opponent_move = select_move(player, opponent), smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 10 \
+            player_move = select_move(player, opponent, battleground) if not battleground.auto_battle else dumb_ai_select_move(battleground, competitor, protagonist)
+            opponent_move = smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 10 \
                 else dumb_ai_select_move(battleground, protagonist, competitor)
             # player_move, opponent_move = select_move(player), select_move(opponent)
 
@@ -91,17 +93,21 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
 
         # switching
         # activate for AI simulation
-        if battleground.verbose:
-            if player_move.name == "Switching":
+        if player_move.name == "Switching":
+            if battleground.verbose:
                 player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team, protagonist.position_change, False)
                 player_team = protagonist.team
-        # player vs ai
-        else:
-            current_player = player
-            while player == current_player and player_move.name == "Switching":
-                player = switching_criteria(protagonist, competitor, player_team, opponent_team, battleground)
-                if player == current_player:
-                    player_move = select_move(player, opponent)
+            # player vs ai
+            else:
+                if not battleground.auto_battle:
+                    current_player = player
+                    while player == current_player and player_move.name == "Switching":
+                        player = switching_criteria(protagonist, competitor, player_team, opponent_team, battleground)
+                        if player == current_player:
+                            player_move = select_move(player, opponent, battleground)
+                else:
+                    player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team, ai_switching_mechanism(opponent, protagonist, battleground), False)
+                    player_team = protagonist.team
 
         if opponent_move.name == "Switching":
             # opponent = switching_criteria(competitor, protagonist, opponent_team, player_team, battleground)
@@ -136,7 +142,8 @@ def compare_speed(protagonist, competitor, player_team, opponent_team, player, o
         else:
             move_execution(competitor, protagonist, opponent_team, player_team, opponent, player, battleground, opponent_move, player_move)
     else:
-        move_execution(competitor, protagonist, opponent_team, player_team, opponent, player, battleground, opponent_move, player_move)  # enemy out-speed player
+        move_execution(competitor, protagonist, opponent_team, player_team, opponent, player, battleground, opponent_move,
+                       player_move)  # enemy out-speed player
     end_of_turn(protagonist, competitor, player_team, opponent_team, player_team[0], opponent_team[0], battleground, player_move, opponent_move)
 
 
@@ -241,7 +248,8 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
         # applied_modifier
         player.applied_modifier, opponent.applied_modifier = [0] * 9, [0] * 9
 
-        player.battle_stats[0], opponent.battle_stats[0] = hp_decreasing_modifier(player, opponent, battleground), hp_decreasing_modifier(opponent, player, battleground)
+        player.battle_stats[0], opponent.battle_stats[0] = hp_decreasing_modifier(player, opponent, battleground), hp_decreasing_modifier(opponent, player,
+                                                                                                                                          battleground)
         battleground.weather_effect = check_weather_persist(battleground)
         player.modifier, opponent.modifier = check_modifier_limit(player), check_modifier_limit(opponent)
 

@@ -6,7 +6,7 @@ import csv
 
 
 class Pokemon:
-    def __init__(self, id, name, base_stats, type, ability, moveset, tier):
+    def __init__(self, id, name, base_stats, type, ability, moveset, tier, custom=False):
         self.id = id
         self.name = name
         self.type = type
@@ -19,6 +19,7 @@ class Pokemon:
         self.moveset = moveset
         # tier list for pokemon selection
         self.tier = tier
+        self.custom = custom
         self.ability = ability
         self.volatile_status = {
             "NonVolatile": 0,
@@ -65,4 +66,5 @@ with open('csv/pokemon.csv', encoding="ISO-8859-1") as f:
         for i in range(1, 7):
             if row[f'Move{i}'] != '':
                 moveset.append(row[f'Move{i}'])
-        list_of_pokemon[row['Name']] = Pokemon(row['ID'], row['Name'], base_stats, typing, abilities, moveset, row['Tier'])
+        custom = True if row['Custom'] == 'Y' else False
+        list_of_pokemon[row['Name']] = Pokemon(row['ID'], row['Name'], base_stats, typing, abilities, moveset, row['Tier'], custom)

@@ -114,13 +114,13 @@ def main_screen():
                             print(f"Pokemon Championship #{parti + 1}: Rank {hist[1]}")
                         print(f"\n{op.name}'s match history against individuals:\n")
                         print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 2}WR{' ' * 2}{CEND}")
-                        for opponent, record in op.opponent_history.items():
+                        for i, (opponent, record) in enumerate(op.opponent_history.items()):
                             if opponent != op.name:
                                 win_rate = "N/A"
                                 with suppress(ZeroDivisionError):
-                                    win_rate = str(record[0] // (record[0] + record[1]) * 100) + '%'
-                                print(
-                                    f"{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate}")
+                                    win_rate = str(int(record[0] / (record[0] + record[1]) * 100)) + '%'
+                                print(f"{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate}{CEND}") if i % 2 == 0 else \
+                                print(f"{CBEIGE}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate}{CEND}")
             main_screen()
         # no savefile
         except FileNotFoundError:

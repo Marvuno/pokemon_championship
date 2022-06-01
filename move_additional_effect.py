@@ -37,7 +37,7 @@ def move_special_effect(user_side, target_side, user, target, battleground, user
         "self_team_buff": check_move_user_team_buff,
         "weather_effect": check_move_battleground_weather_effect,
         "field_effect": check_move_battleground_field_effect,
-        "entry_hazard": check_move_entry_hazard_effect,
+        "apply_entry_hazard": check_move_entry_hazard_effect,
         "clear_entry_hazard": check_move_clear_entry_hazard,
         "switching": check_move_self_switching_effect,
         "cursing": check_move_cursing,
@@ -197,11 +197,15 @@ def check_move_clear_entry_hazard(user_side, target_side, user, target, battlegr
 def check_move_self_switching_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     number_of_pokemon = sum(1 for pokemon in user_team if pokemon.status != "Fainted")
     if number_of_pokemon > 1:
-        if user_side.level == "Protagonist":  # protagonist side
-            if move.name == "Baton Pass":
-                user_team[0] = switching.switching_criteria(user_side, target_side, user_team, target_team, battleground, True, True)
+        if user_side.main:  # protagonist side
+            if not battleground.auto_battle:
+                if move.name == "Baton Pass":
+                    user_team[0] = switching.switching_criteria(user_side, target_side, user_team, target_team, battleground, True, True)
+                else:
+                    user_team[0] = switching.switching_criteria(user_side, target_side, user_team, target_team, battleground, True)
             else:
-                user_team[0] = switching.switching_criteria(user_side, target_side, user_team, target_team, battleground, True)
+                user_team[0] = switching.switching_mechanism(user_side, target_side, battleground, user_team, target_team,
+                                                             ai.ai_switching_mechanism(target_side, user_side, battleground, True, True), False)
         else:
             user_team[0] = switching.switching_mechanism(user_side, target_side, battleground, user_team, target_team, ai.ai_switching_mechanism(target_side, user_side, battleground, True, True), False)
 

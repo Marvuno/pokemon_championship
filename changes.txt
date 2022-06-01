@@ -92,7 +92,7 @@ Ability
 - Compass Needle: always guarantee accuracy
 - Dead Calm: negate weather buff/nerf to moves
 - Scorch: burn target grounded pokemon
-- Goredrinker: user recovers 50% damage as HP for damaging moves when below 50% HP
+- Goredrinker: user recovers ~33% damage as HP for damaging moves when below 50% HP
 
 2. Some abilities are buffed, including:
 - Berserk: can now activate several times when taking damage under 50% HP (previously only one time)

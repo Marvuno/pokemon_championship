@@ -10,6 +10,7 @@ class Clear(Weather):
     def __init__(self):
         super().__init__()
         self.id = 0
+        self.desc = "clear"
 
 
 class Sunny(Weather):

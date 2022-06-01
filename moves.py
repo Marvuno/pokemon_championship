@@ -933,7 +933,7 @@ list_of_moves = {
 
     'Spikes': Move(name="Spikes", power=0, attack_type="Status", type="Ground", accuracy=GUARANTEE_ACCURACY, pp=20,
                    crit=0, priority=0, recoil=0, flags='b',
-                   effect_type="entry_hazard", special_effect="Spikes"),
+                   effect_type="apply_entry_hazard", special_effect="Spikes"),
 
     'Spirit Break': Move(name="Spirit Break", power=75, attack_type="Physical", type="Fairy", accuracy=1, pp=15,
                          crit=0, priority=0, recoil=0, flags='a',
@@ -944,11 +944,11 @@ list_of_moves = {
 
     'Stealth Rock': Move(name="Stealth Rock", power=0, attack_type="Status", type="Rock", accuracy=GUARANTEE_ACCURACY, pp=20,
                          crit=0, priority=0, recoil=0, flags='b',
-                         effect_type="entry_hazard", special_effect="Stealth Rock"),
+                         effect_type="apply_entry_hazard", special_effect="Stealth Rock"),
 
     'Sticky Web': Move(name="Sticky Web", power=0, attack_type="Status", type="Bug", accuracy=GUARANTEE_ACCURACY, pp=20,
                        crit=0, priority=0, recoil=0, flags='b',
-                       effect_type="entry_hazard", special_effect="Sticky Web"),
+                       effect_type="apply_entry_hazard", special_effect="Sticky Web"),
 
     'Stone Edge': Move(name="Stone Edge", power=100, attack_type="Physical", type="Rock", accuracy=0.8, pp=5,
                        crit=1, priority=0),
@@ -1068,7 +1068,7 @@ list_of_moves = {
 
     'Toxic Spikes': Move(name="Toxic Spikes", power=0, attack_type="Status", type="Poison", accuracy=GUARANTEE_ACCURACY, pp=20,
                          crit=0, priority=0, recoil=0, flags='b',
-                         effect_type="entry_hazard", special_effect="Toxic Spikes"),
+                         effect_type="apply_entry_hazard", special_effect="Toxic Spikes"),
 
     'Toxic': Move(name="Toxic", power=0, attack_type="Status", type="Poison", accuracy=0.9, pp=10,  # poison type guarantee accuracy
                   crit=0, priority=0, recoil=0,
@@ -1291,7 +1291,7 @@ list_of_moves = {
                          effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, -1, 0, -1, -1, 0, 0, 0], Frighten], effect_accuracy=0.5),
 
     'Empyrean Glory': Move(name="Empyrean Glory", power=0, attack_type="Status", type="Flying", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b', custom=True,
-                              effect_type=["user_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 1, 0, 0], "",0.25, Clear]),
+                              effect_type=["self_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 1, 0, 0], "",0.25, Clear]),
 
     'Draconic Blade': Move(name="Draconic Blade", power=100, attack_type="Physical", type="Dragon", accuracy=1, pp=10, flags='a', custom=True,
                            effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, 0, -1, 0], Frighten], effect_accuracy=0.3),
