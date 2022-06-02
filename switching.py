@@ -86,10 +86,12 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
     print(f"{CVIOLET2}{CBOLD}{user_team[0].name} is switched in!{CEND}")
 
+    switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
+
     # triggering entry hazard
     entry_hazard_effect(user, user_team[0])
 
-    switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
+
 
     if user.main:
         sound(audio="music/confirm.mp3")

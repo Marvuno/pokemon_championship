@@ -88,12 +88,13 @@ def choose_pokemon(protagonist, opponent, battleground):
     choice, obtained_pokemon, thrown_pokemon = None, -1, -1
     current_pokemon = [pokemon.name.removesuffix(' (Fainted)') for pokemon in protagonist.team]
     if not battleground.verbose:
-        if (len(protagonist.team) + len(protagonist.unused_team)) < ROUND_LIMIT[GameSystem.stage + 1]:
+        if (len(protagonist.team) + len(protagonist.unused_team)) < ROUND_LIMIT[GameSystem.stage + 1] or len(protagonist.team) == MAX_POKEMON:
+            # win the round
             if protagonist.stage > opponent.stage:
                 print(f"{CGREEN2}{CBOLD}Your Team: {[pokemon.name.removesuffix(' (Fainted)') for pokemon in protagonist.team]}\n"
                       f"{CRED2}Opponent Team: {[pokemon.name.removesuffix(' (Fainted)') for pokemon in opponent.team]}{CEND}")
                 # not yet full team, can get extra pokemon
-                if len(protagonist.team) != MAX_POKEMON:
+                if (len(protagonist.team) + len(protagonist.unused_team)) != MAX_POKEMON:
                     while choice != "Y" and choice != "N":
                         choice = input(f"Input Y if you want to take from the opponent, and N to get a random pokemon from the organizer (No going back when "
                                        f"you have chosen). ").upper()
@@ -118,6 +119,7 @@ def choose_pokemon(protagonist, opponent, battleground):
                             obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
                             print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
                             protagonist.team.append(obtained_pokemon)
+                # swap pokemon
                 else:
                     # when full team
                     while choice != "Y" and choice != "N":
@@ -133,6 +135,7 @@ def choose_pokemon(protagonist, opponent, battleground):
                                                                  f"{CRED2}{CBOLD}{[(index, pokemon.name.removesuffix(' (Fainted)')) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
                                                                  f"--> "))
                                     protagonist.team[thrown_pokemon] = opponent.team[obtained_pokemon]
+            # lose the round
             else:
                 # when lost
                 if len(protagonist.team) != MAX_POKEMON:

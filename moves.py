@@ -1049,7 +1049,7 @@ list_of_moves = {
 
     'Hurricane': Move(name="Hurricane", power=110, attack_type="Special", type="Flying", accuracy=0.7, pp=5,
                       crit=0, priority=0, recoil=0,
-                      effect_type="target_non_volatile", special_effect=Confused, effect_accuracy=0.3),
+                      effect_type="target_volatile", special_effect=Confused, effect_accuracy=0.3),
 
     'Thunderbolt': Move(name="Thunderbolt", power=90, attack_type="Special", type="Electric", accuracy=1, pp=15,
                         crit=0, priority=0, recoil=0,

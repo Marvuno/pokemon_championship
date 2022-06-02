@@ -8,31 +8,22 @@
 - Graphics?! (Optional)
 
 - revitalize current code
-    1. put entry hazard to team effect instead of individual effect (done)
     2. weather changes to string and dict instead of class
-    3. disable by move.name, not by moveset position (done)
-    4. ratings deduction determined by enemy strength (done)
-    5. show how many championships opponent has won (done)
-    6. show your opponent journey (done)
-    7. save your rank (done)
     8. debug mode
-    9. show super-effective moves (done)
-    10. obtain pokemon based on rating (aka strength) and increase iv based on rating (done)
-    11. match history vs each opponent (done) --> add comprehensive match history for every opponent (done)
-    12. when ended, go back to initial page instead of ending (done)
-    13. auto battle (with dumb ai) (done)
     14. renew music (uniformity and preferably royalty-free) (partial done)
-    15. swiss system tournament (done)
-- add prize money to exchange for ability & pokemon
-- character ability
-- redevelop and update ai
-- organize print text
-- organize files into folders
+    16. add prize money to exchange for ability & pokemon
+    17. character ability
+    18. redevelop and update ai
+    19. organize print text
+    20. organize files into folders
+
+QOL:
+- add "press any key" for charging move and frenzy move
 
 bugs to fix:
 - fainted status not updated literally (unknown)
-- duplicated pokemon (fixed)
-- without save file, when check history --> new game, it will pop out history and override the new game (fixed)
+- outrage got cancelled due to fairy pokemon but still am using
+- AI switching fainted pokemon then switch again <-- not sure if it is an issue
 
 play_test needed:
 - weather_affecting moves

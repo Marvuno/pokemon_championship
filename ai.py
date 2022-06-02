@@ -79,8 +79,7 @@ def dumb_ai_select_move(battleground, protagonist, ai):
         if ai.position_change != 0:
             return list_of_moves[ai.team[0].moveset[0]]  # switching
         else:
-            if list_of_moves[ai_pokemon.moveset[move_damage.index(max(move_damage))]] == 0:
-                return list_of_moves[ai_pokemon.moveset[random.randint(1, len(ai_pokemon.moveset) - 1)]]
+            return list_of_moves[ai_pokemon.moveset[random.randint(1, len(ai_pokemon.moveset) - 1)]]
     return list_of_moves[ai_pokemon.moveset[move_damage.index(max(move_damage))]]
 
 

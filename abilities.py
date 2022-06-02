@@ -82,19 +82,24 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         # switching in
         if abilityphase == 1:
             illusion_name = user.name
+            illusion_type = user.type
             for pokemon in user_side.team:
                 if pokemon.status != "Fainted" and pokemon.name != "Zoroark":  # use id when finalizing pokemon list
                     illusion_name = pokemon.name
+                    illusion_type = pokemon.type
                     break
             user.name = illusion_name
+            user.type = illusion_type
         elif abilityphase == 5:
             if move.damage > 0:
                 user.name = "Zoroark"
+                user.type = ["Dark"]
                 print(f"{user.name} is in disguise!")
         # switched out
         elif abilityphase == 9:
             if user.status != "Fainted":
                 user.name = "Zoroark"
+                user.type = ["Dark"]
 
     def prankster(user_side, target_side, user, target, battleground, move, abilityphase):
         if move.attack_type == "Status" and "Dark" not in target.type:

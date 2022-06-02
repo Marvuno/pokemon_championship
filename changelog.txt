@@ -1,4 +1,21 @@
-alpha v1.0.3
+Pokemon Championship v1.0.4
+
+Changed
+- updated descriptions and quotes for some characters
+- replaced the Lower Elite Four
+
+Fixed
+- fixed gamesystem giving duplicated pokemon when continue game (not accounting for pokemon object previously)
+- fixed 6 pokemon cannot swap bug
+- hurricane confused bug
+- fixed sticky web fails to slow pokemon
+
+QOL
+- change type for Zoroark illusion
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Pokemon Championship v1.0.3 (snapshot release)
 
 Added
 - added team selection feature when player has more Pokemon than the round requires
@@ -7,8 +24,9 @@ Added
 Fixed
 - fixed levitate & ungrounded bug
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-alpha v1.0.2
+Pokemon Championship v1.0.2
 
 Added
 - added Auto Battle feature (automating battle with Dumb AI upon player's wish)
@@ -24,8 +42,9 @@ Fixed
 - fixed incorrect IV distribution
 - compatible smart AI with multiple move effects
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-alpha v1.0.1
+Pokemon Championship v1.0.1
 
 Added
 - comprehensive match history available at home screen
@@ -40,4 +59,3 @@ Fixed
 - duplicated Pokemon upon selection
 - bug involving History and New Game (due to recursion)
 - AI simulation issue
-

@@ -139,7 +139,7 @@ def next_battle():
 def team_generation(participant):
     # pokemon is divided to 6 tier (very low, low, medium, high, very high, custom)
     # should be selected based on strength
-    nominal_team = []
+    nominal_team, unavailable_pokemon = [], set()
     random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, int(participant.strength / 120 * 31))}
     custom_team(participant)
     # weights formula
@@ -153,10 +153,15 @@ def team_generation(participant):
     tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High"],
                                weights=[very_low, low, medium, high, very_high],
                                k=ROUND_LIMIT[GameSystem.stage] - len(participant.team))
+    for pokemon in participant.team:
+        unavailable_pokemon.add(pokemon) if isinstance(pokemon, str) else unavailable_pokemon.add(pokemon.name)
     for tier in tier_list:
-        pokemon_availability_list = [pokemon for pokemon in list(list_of_pokemon) if
-                                     pokemon not in (participant.team + nominal_team) and list_of_pokemon[pokemon].tier == tier]
-        nominal_team.append(random.choice(pokemon_availability_list))
+        new_pokemon = random.choice([pokemon for pokemon in list(list_of_pokemon) if
+                                     pokemon not in unavailable_pokemon and list_of_pokemon[pokemon].tier == tier])
+        nominal_team.append(new_pokemon)
+        unavailable_pokemon.add(new_pokemon)
+        # debug
+        # print(unavailable_pokemon)
     print(tier_list)  # debug
 
     with suppress(ValueError):
