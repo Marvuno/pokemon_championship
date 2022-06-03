@@ -179,6 +179,9 @@ def other_effect_when_use_move(user, target, battleground, move):
         user.applied_modifier = [modifier if modifier > 0 else 0 for modifier in target.modifier]
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
         target.modifier = [0 if modifier > 0 else modifier for modifier in target.modifier]
+    # double power when hit
+    if move.multi[2]:
+        move.power *= 2
 
 
 def fainting_blow_move_effect(user, target, move):

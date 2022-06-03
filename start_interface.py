@@ -83,7 +83,6 @@ def main_screen():
                 for competitor in data:
                     # # debug
                     # print(competitor.__dict__)
-                    # to be changed (clumsy enough)
                     op = list_of_competitors['Protagonist'] if competitor.main else list_of_competitors[competitor.name]
                     if competitor.main:
                         op.team = competitor.team
@@ -93,6 +92,11 @@ def main_screen():
                     op.opponent_history = competitor.opponent_history
                     op.participation = competitor.participation
                     op.championship = competitor.championship
+
+            print(f"\n{CBOLD}The Champion of the Pokemon Championship: ")
+            for parti, hist in list_of_competitors['Protagonist'].history.items():
+                print(f"#{parti + 1}: {hist[0]}")
+            print(CEND)
 
             char_dict = {}
             for index, competitor in enumerate(list_of_competitors):
@@ -111,16 +115,16 @@ def main_screen():
                     if confirmation == 'Y':
                         print(f"\n{op.name}'s Pokemon Championship history: ")
                         for parti, hist in op.history.items():
-                            print(f"Pokemon Championship #{parti + 1}: Rank {hist[1]}")
+                            print(f"#{parti + 1}: Rank {hist[1]}")
                         print(f"\n{op.name}'s match history against individuals:\n")
-                        print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 2}WR{' ' * 2}{CEND}")
+                        print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 4}WR{' ' * 4}{CEND}")
                         for i, (opponent, record) in enumerate(op.opponent_history.items()):
                             if opponent != op.name:
                                 win_rate = "N/A"
                                 with suppress(ZeroDivisionError):
                                     win_rate = str(int(record[0] / (record[0] + record[1]) * 100)) + '%'
-                                print(f"{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate}{CEND}") if i % 2 == 0 else \
-                                print(f"{CBEIGE}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate}{CEND}")
+                                print(f"{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}") if i % 2 == 0 else \
+                                print(f"{CBEIGE}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}")
             main_screen()
         # no savefile
         except FileNotFoundError:

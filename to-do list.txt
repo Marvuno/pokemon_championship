@@ -16,14 +16,17 @@
     18. redevelop and update ai
     19. organize print text
     20. organize files into folders
+    21. compatible for Protagonist name and Protagonist object
+    22. add PP/Struggle/Pressure
 
 QOL:
 - add "press any key" for charging move and frenzy move
+- add Keen Eye effect
 
 bugs to fix:
-- fainted status not updated literally (unknown)
+- fainted status not updated literally (now known: AI inter-switch pokemon and add >1 "Fainted" status)
 - outrage got cancelled due to fairy pokemon but still am using
-- AI switching fainted pokemon then switch again <-- not sure if it is an issue
+- AI switching fainted pokemon then switch again <-- not sure if it is an issue (causes #1)
 
 play_test needed:
 - weather_affecting moves

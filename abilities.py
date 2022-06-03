@@ -146,6 +146,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         if move.type == "Rock":
             move.power *= 1.3
 
+    def landlord(user_side, target_side, user, target, battleground, move, abilityphase):
+        if move.type == "Ground":
+            move.power *= 1.3
+
     def technician(user_side, target_side, user, target, battleground, move, abilityphase):
         move.power *= 1.5 if move.power <= 60 else 1
 
@@ -352,6 +356,13 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                 print(f"{user.name}'s attack cannot be lowered.")
                 user.modifier = list(map(operator.add, new_modifier, user.modifier))
 
+    def keeneye(user_side, target_side, user, target, battleground, move, abilityphase):
+        if "opponent_modifier" in move.effect_type:
+            if user.applied_modifier[1] < 0:
+                new_modifier = [0, 0, 0, 0, 0, 0, 0, user.applied_modifier[7] * -1, 0]
+                print(f"{user.name}'s accuracy cannot be lowered.")
+                user.modifier = list(map(operator.add, new_modifier, user.modifier))
+
     def insomnia(user_side, target_side, user, target, battleground, move, abilityphase):
         if user.status == "Sleep":
             user.status, user.volatile_status['NonVolatile'] = "Normal", 0
@@ -425,6 +436,11 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                 user.applied_modifier = [0, 0, 0, 0, 0, 1, 0, 0, 0]
                 user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
+    def watercompaction(user_side, target_side, user, target, battleground, move, abilityphase):
+        if move.attack_type != "Status" and move.type == "Water":
+            user.applied_modifier = [0, 0, 2, 0, 0, 0, 0, 0, 0]
+            user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
+
     def waterabsorb(user_side, target_side, user, target, battleground, move, abilityphase):
         if abilityphase == 3:
             move.abilitymodifier = 0 if move.type == "Water" else move.abilitymodifier
@@ -435,6 +451,11 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
     def sandveil(user_side, target_side, user, target, battleground, move, abilityphase):
         if battleground.weather_effect.id == 3:
             move.evasion *= 1.25
+
+    def sandforce(user_side, target_side, user, target, battleground, move, abilityphase):
+        if battleground.weather_effect.id == 3:
+            if move.type in ("Rock", "Steel", "Ground"):
+                move.power *= 1.3
 
     def snowcloak(user_side, target_side, user, target, battleground, move, abilityphase):
         if battleground.weather_effect.id == 4:
@@ -480,6 +501,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
     def wonderguard(user_side, target_side, user, target, battleground, move, abilityphase):
         if not move.super_effective:
             move.damage = 0
+
+    def tintedlens(user_side, target_side, user, target, battleground, move, abilityphase):
+        if move.not_effective:
+            move.damage *= 2
 
     def divinepower(user_side, target_side, user, target, battleground, move, abilityphase):
         if not move.super_effective:
@@ -653,6 +678,32 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         if "Fire" in move.type:
             move.damage *= 2
 
+    def heatproof(user_side, target_side, user, target, battleground, move, abilityphase):
+        if "Fire" in move.type:
+            move.damage //= 2
+
+    def mummy(user_side, target_side, user, target, battleground, move, abilityphase):
+        if 'a' in move.flags:
+            target.ability = "Mummy"
+
+    def punkrock(user_side, target_side, user, target, battleground, move, abilityphase):
+        if abilityphase == 4:
+            if 'f' in move.flags:
+                move.damage *= 1.3
+        elif abilityphase == 5:
+            if 'f' in move.flags:
+                move.damage //= 2
+
+    def instrumental(user_side, target_side, user, target, battleground, move, abilityphase):
+        if abilityphase == 4:
+            if 'f' in move.flags:
+                move.damage *= 1.5
+        elif abilityphase == 5:
+            if 'f' in move.flags:
+                move.damage = 0
+            if move.type == "Fire" or move.type == "Water":
+                move.damage *= 2
+
     list_of_abilities = {
         "Cloud Nine": ((1, 8), cloudnine),
         "Drizzle": (1, drizzle),
@@ -678,6 +729,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Blaze': (2, blaze),
         'Torrent': (2, torrent),
         'Formation': (2, formation, "Custom"),
+        'Landlord': (2, landlord, "Custom"),
         'Technician': (2, technician),
         'Levitate': (1, levitate),
         'Flash Fire': ((3, 5), flashfire),
@@ -723,6 +775,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Pure Power': (2, purepower),
         'Hustle': (2, hustle),
         'Hyper Cutter': (7, hypercutter),
+        'Keen Eye': (7, keeneye),
         'Insomnia': ((6, 7), insomnia),
         'Vital Spirit': ((6, 7), vitalspirit),
         'Sweet Veil': ((6, 7), sweetveil),
@@ -737,8 +790,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Sap Sipper': ((3, 5), sapsipper),
         'Volt Absorb': ((3, 5), voltabsorb),
         'Motor Drive': ((3, 5), motordrive),
+        'Water Compaction': (5, watercompaction),
         'Water Absorb': ((3, 5), waterabsorb),
         'Sand Veil': (3, sandveil),
+        'Sand Force': (2, sandforce),
         'Snow Cloak': (3, snowcloak),
         'Shadow Tag': (1, shadowtag),
         'Soundproof': (3, soundproof),
@@ -749,6 +804,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Thick Fat': (3, thickfat),
         'White Smoke': (7, whitesmoke),
         'Wonder Guard': (5, wonderguard),
+        'Tinted Lens': (4, tintedlens),
         'Divine Power': (4, divinepower, "Custom"),
         'Divine Aegis': (5, divineaegis, "Custom"),
         'Solid Rock': (5, solidrock),
@@ -783,6 +839,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Queenly Majesty': (3, queenlymajesty),
         'Tough Claws': (2, toughclaws),
         'Fluffy': (5, fluffy),
+        'Heatproof': (5, heatproof),
+        'Mummy': (7, mummy),
+        'Punk Rock': ((4, 5), punkrock),
+        'Instrumental': ((4, 5), instrumental, "Custom"),
     }
 
     try:
@@ -800,8 +860,19 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                     list_of_abilities[user.ability][1](user_side, target_side, user, target, battleground, move, abilityphase)
 
     if verbose:
-        print(f"\n{CBOLD}Total Number of Abilities: {len(list_of_abilities)}\nCustom: {CEND}")
+        print(f"\n{CBOLD}Total Number of Abilities: {len(list_of_abilities)}\nCustom: {sum([1 for abilities, values in list_of_abilities.items() if len(values) == 3])}{CEND}")
         for key, value in list_of_abilities.items():
             with suppress(IndexError):
                 if value[2] == "Custom":
                     print(f"{CYELLOW2}{key}{CEND}")
+        print(f"\n\n{CBOLD}Ability Usage: {CEND}\n")
+        ability_usage = True  # debug only
+        if ability_usage:
+            ability_list = dict.fromkeys([ability for ability in list_of_abilities], 0)
+            ability_list.update({'Pressure': 0, 'Illuminate': 0})
+            for pokemon in list_of_pokemon:
+                for ability in list_of_pokemon[pokemon].ability:
+                    ability_list[ability] += 1
+            ability_list = dict(sorted(ability_list.items(), key=lambda item: item[1]))
+            for ability, usage in ability_list.items():
+                print(f"{ability}: {usage}")

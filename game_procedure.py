@@ -85,15 +85,15 @@ def check_history(protagonist, opponent):
         print(f"{colors[opponent.opponent[i].color]}{opponent.opponent[i].name}: {'Win' if opponent.win_order[i] == 1 else 'Lose'}{CEND}")
     confirmation = input("\nWanna know the Pokemon Championship history? Press Y to confirm: ").upper()
     if confirmation == 'Y':
-        print(f"\nHere is your Pokemon Championship history: ")
+        print(f"\nYour Pokemon Championship history: ")
         for parti, hist in protagonist.history.items():
-            print(f"Pokemon Championship #{parti + 1}: Rank {hist[1]} | Ratings {hist[2]}")
-        print(f"\nHere is your opponent's Pokemon Championship history: ")
+            print(f"#{parti + 1}: Rank {hist[1]} | Ratings {hist[2]}")
+        print(f"\nYour opponent's Pokemon Championship history: ")
         for parti, hist in opponent.history.items():
-            print(f"Pokemon Championship #{parti + 1}: Rank {hist[1]}")
-        print(f"\nHere is the Champion of the Pokemon Championship: ")
+            print(f"#{parti + 1}: Rank {hist[1]}")
+        print(f"\nThe Champion of the Pokemon Championship: ")
         for parti, hist in protagonist.history.items():
-            print(f"Pokemon Championship #{parti + 1}: {hist[0]}")
+            print(f"#{parti + 1}: {hist[0]}")
 
 
 def quit_game(protagonist, opponent):
@@ -146,12 +146,13 @@ def team_generation(participant):
     very_low = max(0, 40 - participant.strength * 2)
     low = 60 - participant.strength if participant.strength <= 15 else max(0, 75 - participant.strength * 2)
     medium = min(40, 3 + participant.strength) if participant.strength <= 37 else max(0, 78 - participant.strength)
-    high = min(max(0, participant.strength - 20), 50) if participant.strength <= 70 else max(0, 120 - participant.strength)
+    high = min(max(0, participant.strength - 30), 70) if participant.strength <= 100 else max(0, 170 - participant.strength)
     very_high = min(max(0, participant.strength - 60), 50)
+    ultra_high = 0 if participant.strength <= 100 else 1 if participant.strength <= 200 else 2
     # new version
     # at strength 120, always get very high tier pokemon
-    tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High"],
-                               weights=[very_low, low, medium, high, very_high],
+    tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High", "Ultra High"],
+                               weights=[very_low, low, medium, high, very_high, ultra_high],
                                k=ROUND_LIMIT[GameSystem.stage] - len(participant.team))
     for pokemon in participant.team:
         unavailable_pokemon.add(pokemon) if isinstance(pokemon, str) else unavailable_pokemon.add(pokemon.name)

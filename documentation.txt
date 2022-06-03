@@ -21,7 +21,9 @@ Entry Hazard
 0 Stealth Rock | 1 Spikes | 2 Toxic Spikes | 3 Sticky Web
 
 Multi-Strike Move
-False = Fixed | True = Variable
+0: False = Fixed | True = Variable
+1: Max. no. of strikes
+2: False = No Power Adjustment | True = Double Power when Hit
 
 Move Special Effect
 0 no_effect | 1 target_non_volatile | 2 target_volatile | 9 user_volatile | 3 opponent_modifier | 4 self_modifier | 5 self_heal | 6 weather_effect | 7 apply_entry_hazard

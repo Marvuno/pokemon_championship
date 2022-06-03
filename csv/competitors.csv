@@ -2,7 +2,7 @@ ID,Name,Strength,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,
 0,Protagonist,1,"Currently 10 years old. This talented prodigy has recently won the U15 Pokemon Amateur Tournament,
 being the youngest winner of the tournament in the history. Rumours said that the prodigy is so good at
 reading others' mind, especially at the clutch moment, as there are often comebacks and luck involved in
-the prodigy's pokemon battle.",Protagonist,Zoroark,,,,,,,,Green,
+the prodigy's pokemon battle.",Protagonist,Pianotic,,,,,,,,Green,
 1,Clown Marcus,9,"Marcus is a mentally-challenged trainer who somehow goes into the Playoffs stage since his opponents in the Preliminary stage are
 either sick or have forfeited their match. Truly the luckiest person ever.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I am such an idiot.
 2,Trasher,1,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
@@ -72,7 +72,7 @@ That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elit
 While preparing his openings for the next World Chess Championship, he got addicted into
 Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Without the element of enjoyment, it is not worth trying to excel at anything."
 35,Animenz,117,"One of the Lower Elite Four. Animenz is greatest anime pianist in the history. 
-His masterful piano technique allows him to master Pokemon battle in a short time.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?"
+His masterful piano technique allows him to master Pokemon battle in a short time.",Elite,Pianotic,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?"
 36,Mivy Wenceslas,125,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland. 
 He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings.
 After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.
@@ -92,12 +92,12 @@ You are merely a worthless lowlife longing to achieve immortality.
 If you are willing to be my slave, I might consider sparing some of my blood to you."
 40,Emperor Marvuno,212,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient.
 Unlike Muzan and Reaper Conan, Marvuno appears to be very kind and friendly. As such, he easily boosts the morale of his Pokemon
-every battle, so that they usually overperform and thus win out every battle.",Elite,Azumarill,Blastoise,Dracovish,Cloyster,Tanjiro,Poseidon,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so."
-41,World Champion Marvin,800,"Marvin is the undoubted World Champion. Histruth  strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
+every battle, so that they usually overperform and thus win out every battle.",Elite,Barraskewda,Blastoise,Dracovish,Cloyster,Tanjiro,Poseidon,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so."
+41,World Champion Marvin,800,"Marvin is the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
 After observing his games, all people recognize that he could easily secure multiple World Champion Title in the
 Pokemon World Championship. In the Unofficial Pokemon Championship, Marvin effortlessly won 6-0 against his opponent, Demon Muzan, 
 one of the Upper Elite Four, in the Grand Final. This mystic figure is rumoured to have beaten the Upper Elite Four countless times, 
-because he has obtained the two True Pokemon Legends. One is the ruler of the heavens, the other is the warlord of the underworld.",Champion,Galvantula,Swampert,Blaziken,Scizor,Armadragdon,Memoraider,music/champion_battle.mp3,music/elite_ace.mp3,Yellow,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic.
+because he has obtained the two True Pokemon Legends. One is the ruler of the heavens, the other is the warlord of the underworld.",Champion,Vikavolt,Krusadian Salamence,Blaziken,Scizor,Armadragdon,Memoraider,music/champion_battle.mp3,music/elite_ace.mp3,Yellow,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic.
 This is going to be one of the most spectacular Pokemon battle in history.
 Unfortunate for you, the history only remembers the victor, and that will be me as always.
 "

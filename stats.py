@@ -5,7 +5,7 @@ from text_color import *
 
 TYPING = {0: 'Normal', 1: 'Fire', 2: 'Water', 3: 'Electric', 4: 'Grass', 5: 'Ice', 6: 'Fighting', 7: 'Poison', 8: 'Ground',
           9: 'Flying', 10: 'Psychic', 11: 'Bug', 12: 'Rock', 13: 'Ghost', 14: 'Dragon', 15: 'Dark', 16: 'Steel', 17: 'Fairy'}
-TIER = {0: 'Very Low', 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Very High', 5: 'Custom'}
+TIER = {0: 'Very Low', 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Very High', 5: 'Ultra High'}
 ATTACK_TYPE = {0: 'Physical', 1: 'Special', 2: 'Status'}
 
 print(f"{CBOLD}Total Number of Pokemon: {len(list_of_pokemon)}{CEND}")

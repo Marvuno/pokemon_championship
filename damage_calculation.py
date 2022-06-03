@@ -136,6 +136,8 @@ def check_type_effectiveness(target_side, target, move):
         target_side.in_battle_effects = dict.fromkeys(target_side.in_battle_effects.keys(), 0)
     # wonder guard
     move.super_effective = True if type_effectiveness >= 2 else False
+    # tinted lens
+    move.not_effective = True if type_effectiveness <= 0.5 else False
     print(effectiveness_description.get(type_effectiveness))
     return type_effectiveness
 

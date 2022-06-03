@@ -1,10 +1,10 @@
 Music:
 
 Royalty-Free
-start1.wav - Tavern Loop One by Alexander Nakarada
-start2.wav - Medieval Loop One by Alexander Nakarada
-start3.wav - Marked by Alexander Nakarada
-start4.wav - Bonfire by Alexander Nakarada
+start1.wav - "Tavern Loop One" by Alexander Nakarada
+start2.wav - "Medieval Loop One" by Alexander Nakarada
+start3.wav - "Marked" by Alexander Nakarada
+start4.wav - "Bonfire" by Alexander Nakarada
 intro.mp3 - "Kingdom of Fantasy" by LesFM
 lower_elite_battle.mp3 - "Fire and Thunder" by Cjbeards
 upper_elite_battle.mp3 - "Pokemon BW Elite Four Remix" by GlitchxCity
@@ -19,4 +19,4 @@ advanced.mp3 - Pokemon Wally Music
 ace.mp3 - Pokemon BW Music - Gym Leader (Last Pokemon)
 credits.mp3 - Pokemon X&Y Credits
 
-Marvin Hui || © 2022 || Pokemon Championship
+Pokemon Championship || Copyright 2022 Marvin Hui

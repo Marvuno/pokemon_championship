@@ -99,14 +99,16 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
                 player_team = protagonist.team
             # player vs ai
             else:
+                # not auto battle
                 if not battleground.auto_battle:
                     current_player = player
                     while player == current_player and player_move.name == "Switching":
                         player = switching_criteria(protagonist, competitor, player_team, opponent_team, battleground)
                         if player == current_player:
                             player_move = select_move(player, opponent, battleground)
+                # auto battle
                 else:
-                    player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team, ai_switching_mechanism(opponent, protagonist, battleground), False)
+                    player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team, ai_switching_mechanism(competitor, protagonist, battleground, True, True), False)
                     player_team = protagonist.team
 
         if opponent_move.name == "Switching":

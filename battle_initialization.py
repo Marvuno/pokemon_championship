@@ -13,6 +13,8 @@ def multi_strike_move(move):
     # variable multi-strike move
     if move.multi[0]:
         return random.choice([2] * 35 + [3] * 35 + [4] * 15 + [5] * 15)
+    elif move.multi[2]:  # for move like triple axel
+        return random.choice([1] * 90 + [2] * 81 + [3] * 729)
     return 1
 
 

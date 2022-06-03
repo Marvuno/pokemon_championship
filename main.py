@@ -31,7 +31,7 @@ while True:
         with open('credits.txt', 'r') as f:
             for line in f:
                 print(line.rstrip())
-        input("\nPress any key to continue.")
+        input("\nPress any key to proceed.")
 
     # game end
     if GameSystem.stage == 6:

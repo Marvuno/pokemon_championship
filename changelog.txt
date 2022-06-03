@@ -1,4 +1,19 @@
-Pokemon Championship v1.0.4
+Pokemon Championship v1.0.5 (Pokemon Update)
+
+Added
+- added new batch of Pokemon, and the respective necessary moves and abilities
+
+Changed
+- updated credits
+- updated moveset of some existing Pokemon
+
+Fixed
+- unused pokemon's moveset got erased
+- dumb AI won't switch pokemon when activating auto battle
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Pokemon Championship v1.0.4 (Lore Update)
 
 Changed
 - updated descriptions and quotes for some characters
@@ -15,7 +30,7 @@ QOL
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Pokemon Championship v1.0.3 (snapshot release)
+Pokemon Championship v1.0.3 (Team Presevation Update)
 
 Added
 - added team selection feature when player has more Pokemon than the round requires
@@ -26,7 +41,7 @@ Fixed
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Pokemon Championship v1.0.2
+Pokemon Championship v1.0.2 (Beginner-Friendly Update)
 
 Added
 - added Auto Battle feature (automating battle with Dumb AI upon player's wish)
@@ -44,7 +59,7 @@ Fixed
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Pokemon Championship v1.0.1
+Pokemon Championship v1.0.1 (Game System Update)
 
 Added
 - comprehensive match history available at home screen

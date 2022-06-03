@@ -77,6 +77,10 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         pokemon.disabled_moves = {}
         pokemon.disguise, pokemon.transform = False, False
 
+    for mon in protagonist.unused_team:
+        protagonist.team.append(mon)
+    protagonist.unused_team = []
+
     if battleground.verbose:
         print(f"{protagonist.name}: {protagonist.result} || {competitor.name}: {competitor.result}")
     else:
@@ -150,11 +154,5 @@ def choose_pokemon(protagonist, opponent, battleground):
                     obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
                     print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
                     protagonist.team.append(obtained_pokemon)
-        else:
-            if (len(protagonist.team) + len(protagonist.unused_team)) < MAX_POKEMON:
-                print("You have enough Pokemon for the next round. No free gift for you.")
-            for mon in protagonist.unused_team:
-                protagonist.team.append(mon)
-            protagonist.unused_team = []
         input("Press any key to continue.")
         os.system('cls')
