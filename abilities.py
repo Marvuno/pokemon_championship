@@ -81,25 +81,28 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
     def illusion(user_side, target_side, user, target, battleground, move, abilityphase):
         # switching in
         if abilityphase == 1:
-            illusion_name = user.name
-            illusion_type = user.type
+            user.disguise = True
             for pokemon in user_side.team:
                 if pokemon.status != "Fainted" and pokemon.name != "Zoroark":  # use id when finalizing pokemon list
-                    illusion_name = pokemon.name
-                    illusion_type = pokemon.type
+                    user.name, user.type = pokemon.name, pokemon.type
                     break
-            user.name = illusion_name
-            user.type = illusion_type
+        # precisely, should add another phase at dmg cal.
+        elif abilityphase == 3:
+            user.type = user.default_type
         elif abilityphase == 5:
-            if move.damage > 0:
-                user.name = "Zoroark"
-                user.type = ["Dark"]
+            if move.damage > 0 and user.disguise:
+                user.name, user.type = user.default_name, user.default_type
                 print(f"{user.name} is in disguise!")
+                user.disguise = False
+        elif abilityphase == 8:
+            if user.disguise:
+                for pokemon in user_side.team:
+                    if pokemon.status != "Fainted" and pokemon.name != "Zoroark":  # use id when finalizing pokemon list
+                        user.type = pokemon.type
+                        break
         # switched out
         elif abilityphase == 9:
-            if user.status != "Fainted":
-                user.name = "Zoroark"
-                user.type = ["Dark"]
+            user.name, user.type = user.default_name, user.default_type
 
     def prankster(user_side, target_side, user, target, battleground, move, abilityphase):
         if move.attack_type == "Status" and "Dark" not in target.type:
@@ -617,19 +620,19 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
 
     def protean(user_side, target_side, user, target, battleground, move, abilityphase):
         if abilityphase == 1:
-            user.type = list_of_pokemon[user.name].type
+            user.type = user.default_type
         elif abilityphase == 2:
             user.type = [move.type]
         elif abilityphase == 9:
-            user.type = list_of_pokemon[user.name].type
+            user.type = user.default_type
 
     def libero(user_side, target_side, user, target, battleground, move, abilityphase):
         if abilityphase == 1:
-            user.type = list_of_pokemon[user.name].type
+            user.type = user.default_type
         elif abilityphase == 2:
             user.type = [move.type]
         elif abilityphase == 9:
-            user.type = list_of_pokemon[user.name].type
+            user.type = user.default_type
 
     def longreach(user_side, target_side, user, target, battleground, move, abilityphase):
         with suppress(KeyError):
@@ -684,7 +687,8 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
 
     def mummy(user_side, target_side, user, target, battleground, move, abilityphase):
         if 'a' in move.flags:
-            target.ability = "Mummy"
+            if target.ability not in ('Multitype', 'Zen Mode', 'Stance Change', 'Schooling', 'Battle Bond', 'Power Construct', 'Shields Down', 'RKS System', 'Disguise', 'Comatose', 'Mummy'):
+                target.ability = "Mummy"
 
     def punkrock(user_side, target_side, user, target, battleground, move, abilityphase):
         if abilityphase == 4:
@@ -715,7 +719,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         "Anticipation": (1, anticipation),
         'Natural Cure': (1, naturalcure),
         'Stance Change': ((1, 2), stancechange),
-        'Illusion': ((1, 5, 9), illusion),
+        'Illusion': ((1, 3, 5, 8, 9), illusion),
         'Prankster': (2, prankster),
         'Rock Head': (2, rockhead),
         'Marvel Scale': (3, marvelscale),

@@ -24,7 +24,7 @@ def spikes_entry_hazard(switch_side, pokemon):
 def toxic_spikes_entry_hazard(switch_side, pokemon):
     # ungrounded pokemon unaffected
     if pokemon.volatile_status['Grounded'] == 1:
-        if "Poison" not in pokemon.type or "Steel" not in pokemon.type:
+        if "Poison" not in pokemon.type and "Steel" not in pokemon.type:
             toxic_spikes_effect = {0: "Normal", 1: "Poison", 2: "BadPoison"}
             if pokemon.status == "Normal":  # normal
                 pokemon.status = toxic_spikes_effect[switch_side.entry_hazard["Toxic Spikes"]]

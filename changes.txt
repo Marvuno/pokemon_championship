@@ -59,7 +59,7 @@ Moves
 - Crow Dance (Dark): status, increase ATK and SpA by 2 stages, DEF and SpDef by 1 stage, decrease Spd by 2 stages
 - Depraved Shriek (Dark): 120 power, special, duo-type with psychic, double power when move late
 - Double Sickle (Ghost): 50 power, physical, double hit, drain 15% hp and 20% to poison for each hit
-- Fish Needle (Water): 90 power, special, 50% to badly poison
+- Fish Needle (Water): 90 power, special, 30% badly poison
 - Enragement (Flying): 70 power, non-contact physical, power depends on number of pokemon fainted in user team (power range between 0 - 350)
 - Annihilation (Fighting): 240 power, physical, charging move, 25% recoil
 - Crystalline Clone (Ice): status, increase SpA and Evasion between 2 - 5 stages at 50% accuracy, depends on MultiHit formula (e.g. biased on around 2 - 3 stages)

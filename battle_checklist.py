@@ -161,7 +161,7 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         other_effect_when_use_move(user, target, battleground, move)
                         # damaging moves
                         move.damage = int(move.damage)
-                        move.recoil = int(min(target.battle_stats[0], move.damage) * move.recoil)
+                        move.recoil = math.ceil(min(target.battle_stats[0], move.damage) * move.recoil)
                         target.battle_stats[0] -= move.damage
                         # recoil moves
                         user.battle_stats[0] -= move.recoil
@@ -208,12 +208,10 @@ def check_fainted(user, target):
         if target.battle_stats[0] <= 0:  # out of HP
             print(f"{target.name} fainted!")
             target.status = "Fainted"
-            target.name += " (Fainted)"
     if user.status != "Fainted":
         if user.battle_stats[0] <= 0:  # recoil damage trigger fainted
             print(f"{user.name} fainted!")
             user.status = "Fainted"
-            user.name += " (Fainted)"
 
 
 # reducing hp at the end of each turn

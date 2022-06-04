@@ -1104,8 +1104,7 @@ list_of_moves = {
                        crit=1, priority=0, recoil=0,
                        effect_type="target_non_volatile", special_effect=Tri, effect_accuracy=0.2),
 
-    'Trick Room': Move(name="Trick Room", power=0, attack_type="Status", type="Psychic", accuracy=GUARANTEE_ACCURACY, pp=5,
-                       flags='b',
+    'Trick Room': Move(name="Trick Room", power=0, attack_type="Status", type="Psychic", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b',
                        effect_type="field_effect", special_effect="Trick Room"),
 
     'U-Turn': Move(name="U-Turn", power=70, attack_type="Physical", type="Bug", accuracy=1, pp=20,
@@ -1114,8 +1113,7 @@ list_of_moves = {
     'Flip Turn': Move(name="Flip Turn", power=60, attack_type="Physical", type="Water", accuracy=1, pp=20,
                    flags='a', effect_type="switching"),
 
-    'Fell Stinger': Move(name="Fell Stinger", power=50, attack_type="Physical", type="Bug", accuracy=1, pp=25,
-                         flags='a', ),
+    'Fell Stinger': Move(name="Fell Stinger", power=50, attack_type="Physical", type="Bug", accuracy=1, pp=25, flags='a'),
 
     'Vacuum Wave': Move(name="Vacuum Wave", power=40, attack_type="Special", type="Fighting", accuracy=1, pp=35,
                         crit=0, priority=1),
@@ -1136,7 +1134,6 @@ list_of_moves = {
                       effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.2),
 
     'Whirlpool': Move(name="Whirlpool", power=35, attack_type="Special", type="Water", accuracy=0.85, pp=15,
-                      crit=0, priority=0,
                       effect_type="target_volatile", special_effect=Binding),
 
     'Cling': Move(name="Cling", power=35, attack_type="Physical", type="Fairy", accuracy=0.9, pp=15,
@@ -1159,7 +1156,6 @@ list_of_moves = {
                         crit=0, priority=0, recoil=1 / 4, flags='a'),
 
     'Will-O-Wisp': Move(name="Will-O-Wisp", power=0, attack_type="Status", type="Fire", accuracy=0.85, pp=15,
-                        crit=0, priority=0, recoil=0,
                         effect_type="target_non_volatile", special_effect=Burn),
 
     'Wood Hammer': Move(name="Wood Hammer", power=120, attack_type="Physical", type="Grass", accuracy=1, pp=15,
@@ -1168,31 +1164,24 @@ list_of_moves = {
     'X-Scissor': Move(name="X-Scissor", power=80, attack_type="Physical", type="Bug", accuracy=1, pp=20, flags='a'),
 
     'Yawn': Move(name="Yawn", power=0, attack_type="Status", type="Normal", accuracy=GUARANTEE_ACCURACY, pp=10,
-                 crit=0, priority=0,
                  effect_type="target_volatile", special_effect=Yawn),
 
-    'Zap Cannon': Move(name="Zap Cannon", power=120, attack_type="Special", type="Electric", accuracy=0.5, pp=5,
-                       crit=0, priority=0, recoil=0, flags='i',
+    'Zap Cannon': Move(name="Zap Cannon", power=120, attack_type="Special", type="Electric", accuracy=0.5, pp=5, flags='i',
                        effect_type="target_non_volatile", special_effect=Paralysis),
 
-    'Zen Headbutt': Move(name="Zen Headbutt", power=80, attack_type="Physical", type="Psychic", accuracy=0.9, pp=15,
-                         crit=0, priority=0, recoil=0, flags='a',
+    'Zen Headbutt': Move(name="Zen Headbutt", power=80, attack_type="Physical", type="Psychic", accuracy=0.9, pp=15, flags='a',
                          effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.2),
 
-    'Heal Bell': Move(name="Heal Bell", power=0, attack_type="Status", type="Normal", accuracy=GUARANTEE_ACCURACY, pp=5,
-                      crit=0, priority=0, recoil=0, flags='b',
+    'Heal Bell': Move(name="Heal Bell", power=0, attack_type="Status", type="Normal", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b',
                       effect_type="team_status_heal"),
 
-    'Aromatherapy': Move(name="Aromatherapy", power=0, attack_type="Status", type="Grass", accuracy=GUARANTEE_ACCURACY, pp=5,
-                         crit=0, priority=0, recoil=0, flags='b',
+    'Aromatherapy': Move(name="Aromatherapy", power=0, attack_type="Status", type="Grass", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b',
                          effect_type="team_status_heal"),
 
     'Smack Down': Move(name="Smack Down", power=50, attack_type="Physical", type="Rock", accuracy=1, pp=20,
-                       crit=0, priority=0, recoil=0,
                        effect_type="target_volatile", special_effect=Grounded),
 
     'Magnet Rise': Move(name="Magnet Rise", power=0, attack_type="Status", type="Electric", accuracy=GUARANTEE_ACCURACY, pp=20,
-                        crit=0, priority=0, recoil=0,
                         effect_type="user_volatile", special_effect=Ungrounded),
 
     'Double Sickle': Move(name="Double Sickle", power=50, attack_type="Physical", type="Ghost", accuracy=0.9, pp=10,
@@ -1200,12 +1189,10 @@ list_of_moves = {
                           effect_type=["target_non_volatile", "hp_draining"], special_effect=[Poison, 0.15], effect_accuracy=0.2),
 
     'Octolock': Move(name="Octolock", power=0, attack_type="Status", type="Fighting", accuracy=1, pp=15,
-                     crit=0, priority=0,
                      effect_type=["target_volatile", "target_volatile"], special_effect=[Trapped, Octolock]),
 
-    'Fish Needle': Move(name="Fish Needle", power=90, attack_type="Special", type="Water", accuracy=1, pp=10,
-                        crit=0, priority=0, recoil=0, custom=True,
-                        effect_type="target_non_volatile", special_effect=BadPoison, effect_accuracy=0.5),
+    'Fish Needle': Move(name="Fish Needle", power=90, attack_type="Special", type="Water", accuracy=1, pp=10, custom=True,
+                        effect_type="target_non_volatile", special_effect=BadPoison, effect_accuracy=0.3),
 
     'Enragement': Move(name="Enragement", power=70, attack_type="Physical", type="Flying", accuracy=1, pp=5,
                        custom=True, effect_type="retaliation"),

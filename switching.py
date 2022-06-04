@@ -35,7 +35,7 @@ def switching_criteria(protagonist, competitor, user_team, opponent_team, battle
     position_change = 0
     while not (1 <= position_change < len(user_team)):
         for index, pokemon in enumerate(user_team):
-            print(f"{CWHITE2}{index}: {pokemon.name}{CEND}")
+            print(f"{CWHITE2}{index}: {pokemon.name}{' (Fainted)' if pokemon.status == 'Fainted' else ''}{CEND}")
         with suppress(ValueError, IndexError):
             position_change = int(input(f'Which pokemon would you like to switch in?\n8: View your pokemon\n9: Return to battle\n--> '))
             if not forced_switch and position_change == 9:
@@ -47,7 +47,7 @@ def switching_criteria(protagonist, competitor, user_team, opponent_team, battle
                 for i, pokemon in enumerate(user_team):
                     if i % 2 == 0:
                         print(CBEIGE, end='')
-                    print(f"ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
+                    print(f"ID: {pokemon.id} || Name: {pokemon.name}{' (Fainted)' if pokemon.status == 'Fainted' else ''} || Type: {pokemon.type}")
                     print(f"Ability: {pokemon.ability}")
                     print("Battle Stats:", [f"{STATISTICS[x]}: {pokemon.battle_stats[x]}" for x in range(len(pokemon.battle_stats))])
                     print("Status:", pokemon.status)
@@ -77,8 +77,11 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     sleeping_turn = user_team[0].volatile_status["NonVolatile"] if user_team[0].status == "Sleep" else 0
     user_team[0].volatile_status = dict.fromkeys(user_team[0].volatile_status.keys(), 0)
     user_team[0].volatile_status["NonVolatile"] = sleeping_turn
-    # reset trapping
+    # reset opponent trapping
     opponent_team[0].volatile_status['Trapped'], opponent_team[0].volatile_status['Binding'], opponent_team[0].volatile_status['Octolock'] = 0, 0, 0
+    # reset typing & abilities
+    user_team[0].type = user_team[0].default_type
+    user_team[0].ability = user_team[0].default_ability
 
     # triggering abilities when switched out
     UseAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)
@@ -90,8 +93,6 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
 
     # triggering entry hazard
     entry_hazard_effect(user, user_team[0])
-
-
 
     if user.main:
         sound(audio="music/confirm.mp3")

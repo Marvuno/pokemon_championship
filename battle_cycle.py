@@ -16,10 +16,13 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
         pokemon.hp = math.floor(0.01 * 2 * pokemon.nominal_base_stats[0] * 100) + 100 + 10 if pokemon.name != "Shedinja" else 1
         pokemon.battle_stats = [pokemon.hp] + [math.floor(0.01 * 2 * pokemon.nominal_base_stats[x] * 100 + 5) for x in range(1, 6)]
         pokemon.moveset = ['Switching'] + pokemon.moveset
+        # str, str, list
+        pokemon.default_name, pokemon.default_ability, pokemon.default_type = deepcopy(pokemon.name), deepcopy(pokemon.ability), deepcopy(pokemon.type)
         # side 2
         pokemon2.hp = math.floor(0.01 * 2 * pokemon2.nominal_base_stats[0] * 100) + 100 + 10 if pokemon2.name != "Shedinja" else 1
         pokemon2.battle_stats = [pokemon2.hp] + [math.floor(0.01 * 2 * pokemon2.nominal_base_stats[x] * 100 + 5) for x in range(1, 6)]
         pokemon2.moveset = ['Switching'] + pokemon2.moveset
+        pokemon2.default_name, pokemon2.default_ability, pokemon2.default_type = deepcopy(pokemon2.name), deepcopy(pokemon2.ability), deepcopy(pokemon2.type)
 
     # select weather
     battleground.starting_weather_effect = random.choices([Clear, Rain, Sunny, Sandstorm, Hail], weights=[6, 1, 1, 1, 1], k=1)[0]
@@ -82,7 +85,7 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
         # player vs ai
         else:
             player_move = select_move(player, opponent, battleground) if not battleground.auto_battle else dumb_ai_select_move(battleground, competitor, protagonist)
-            opponent_move = smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 10 \
+            opponent_move = smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 20 \
                 else dumb_ai_select_move(battleground, protagonist, competitor)
             # player_move, opponent_move = select_move(player), select_move(opponent)
 
@@ -118,12 +121,6 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
 
         player_move, opponent_move = deepcopy(player_move), deepcopy(opponent_move)
 
-        player_move = pre_move_adjustment(protagonist, competitor, player, opponent, battleground, player_move)
-        opponent_move = pre_move_adjustment(competitor, protagonist, opponent, player, battleground, opponent_move)
-
-        print(f"{player_move.name}: {player_move.power}")
-        print(f"{opponent_move.name}: {opponent_move.power}")
-
         compare_speed(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move)
 
 
@@ -152,9 +149,17 @@ def compare_speed(protagonist, competitor, player_team, opponent_team, player, o
 def move_execution(user_side, target_side, user_team, target_team, user, target, battleground, user_move, target_move):
     # faster pokemon moves first
     user_side.faster, target_side.faster = True, False
+
+    user_move = pre_move_adjustment(user_side, target_side, user, target, battleground, user_move)
+    print(f"{user_move.name}: {user_move.power}")
+
     move_order_and_execution(user_side, target_side, user_team, target_team, user, target, battleground, user_move, target_move)
     user, target = user_team[0], target_team[0]
+
     # slower pokemon moves last
+    target_move = pre_move_adjustment(target_side, user_side, target, user, battleground, target_move)
+    print(f"{target_move.name}: {target_move.power}")
+
     move_order_and_execution(target_side, user_side, target_team, user_team, target, user, battleground, target_move, user_move)
     user, target = user_team[0], target_team[0]
 

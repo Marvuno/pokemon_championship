@@ -335,14 +335,16 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
         if candidate != 0:
             return candidate
 
-        with suppress(IndexError):
-            net_damage = []
-            pokemon_index = [x for x in range(len(ai.team)) if ai.team[x].status != "Fainted"]
-            available_pokemon = [mon for mon in ai.team if mon.status != "Fainted"]
-            # AI will consider your moveset and its pokemon moveset, calculate the net damage and select the best pokemon
-            for pokemon in available_pokemon:
-                print(f"{CRED2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset}{CEND}")
-            for pokemon in available_pokemon:
+        available_pokemon = [x for x in ai.team]
+        net_damage = [0 if pokemon.status != "Fainted" else NEG_INF for pokemon in ai.team]
+        # AI will consider your moveset and its pokemon moveset, calculate the net damage and select the best pokemon
+        for pokemon in available_pokemon:
+            print(f"{CRED2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset}{CEND}")
+
+        for index, pokemon in enumerate(available_pokemon):
+            if pokemon.status == "Fainted":
+                continue
+            else:
                 estimated_incoming_damage, estimated_outgoing_damage = 0, 0
                 for protagonist_move in protagonist.team[0].moveset:
                     protagonist_move = list_of_moves[protagonist_move]
@@ -365,18 +367,19 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
                 spikes_damage = {0: 0, 1: 1 / 8, 2: 1 / 6, 3: 1 / 4}
                 estimated_incoming_damage += stealth_rock_damage * ai.entry_hazard["Stealth Rock"] + pokemon.hp * spikes_damage[
                     ai.entry_hazard["Spikes"]]
-                net_damage.append(estimated_outgoing_damage - estimated_incoming_damage)
 
-            try:
-                switched_pokemon = pokemon_index[net_damage.index(max(net_damage))]
-            except:
-                battle_win_condition.check_win_or_lose(protagonist, ai, protagonist.team, ai.team, battleground)
+                net_damage[index] = (estimated_outgoing_damage - estimated_incoming_damage)
 
-            else:
-                # second best pokemon
-                if forced_switch and switched_pokemon == 0:
-                    switched_pokemon = pokemon_index[net_damage.index(max(net_damage[1:5]))]
-                print(f"Estimated Net Damage: {net_damage}, Switched Pokemon: {switched_pokemon}")
+        try:
+            switched_pokemon = net_damage.index(max(net_damage))
+        except:
+            battle_win_condition.check_win_or_lose(protagonist, ai, protagonist.team, ai.team, battleground)
 
-                return switched_pokemon
+        else:
+            # second best pokemon
+            if forced_switch and switched_pokemon == 0:
+                switched_pokemon = net_damage.index(max(net_damage[1:5]))
+            print(f"Estimated Net Damage: {net_damage}, Switched Pokemon: {switched_pokemon}")
+
+            return switched_pokemon
     return 0

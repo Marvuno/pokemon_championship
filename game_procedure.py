@@ -140,6 +140,7 @@ def team_generation(participant):
     # pokemon is divided to 6 tier (very low, low, medium, high, very high, custom)
     # should be selected based on strength
     nominal_team, unavailable_pokemon = [], set()
+    # strength limit: low 20 | intermediate 70 | advanced 120 | lower elite 228 | upper elite 357 | champion 600
     random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, int(participant.strength / 120 * 31))}
     custom_team(participant)
     # weights formula
@@ -207,7 +208,8 @@ def round_end(stage):
     colors = {"": CWHITE2, "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
 
     def result_announcement(victor, loser, main):
-        print(colors[victor.color] + EntryBox(victor.id, f"{victor.name} [{victor.strength}]", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
+        level_order = {"Low": 1, "Intermediate": 2, "Advanced": 3, "Elite": 4, "Champion": 5, "Protagonist": 6}
+        print(colors[victor.color] + EntryBox(victor.id, f"{victor.name} [{victor.strength}]{' !!!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
         if main:  # the protagonist battle
             print(CGREY + EntryBox(loser.id, f"{loser.name} [{loser.strength}]",
                                    loser.stage - 1, loser.result).structure, "\n" + CEND)
@@ -316,7 +318,7 @@ def elo_rating():
             rating_diff = opponent.strength - list_of_competitors['Protagonist'].strength
             expected_score = 1 / (1 + pow(10, rating_diff / 100))
             rating_change += int((list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] - expected_score) *
-                                 (10 if rating_diff <= 10 else 20 if rating_diff <= 30 else 30))
+                                 (5 if rating_diff <= 10 else 10 if rating_diff <= 30 else 20 if rating_diff <= 50 else 30))
 
             print(
                 f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'}{CEND}")

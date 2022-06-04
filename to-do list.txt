@@ -4,29 +4,38 @@
 - Add special effects for moves
 - Add abilities for pokemon
 
-- Playable in website (optional)
-- Graphics?! (Optional)
+- long-term goals
+    1. playable in website
+    2. basic graphics
 
 - revitalize current code
     2. weather changes to string and dict instead of class
     8. debug mode
     14. renew music (uniformity and preferably royalty-free) (partial done)
-    16. add prize money to exchange for ability & pokemon
+    16. add prize money to exchange for character ability & pokemon
     17. character ability
     18. redevelop and update ai
     19. organize print text
     20. organize files into folders
     21. compatible for Protagonist name and Protagonist object
     22. add PP/Struggle/Pressure
+    23. easy mode/hard mode
 
 QOL:
 - add "press any key" for charging move and frenzy move
-- add Keen Eye effect
+- use "custom team" feature or not???
 
 bugs to fix:
-- fainted status not updated literally (now known: AI inter-switch pokemon and add >1 "Fainted" status)
+- fainted status not updated literally (now known: AI inter-switch pokemon and add >1 "Fainted" status) (fixed)
 - outrage got cancelled due to fairy pokemon but still am using
-- AI switching fainted pokemon then switch again <-- not sure if it is an issue (causes #1)
+- zoroark type should change before damage calculation (fixed)
+- ground type move should not work on levitate opponent (fixed?)
+- at least 1 recoil damage (fixed)
+- dumb ai facing opponent with x4 moves, when being the last pokemon, should use highest dmg move, not random
+- u-turn should switch first before being hit (sometimes happen? not sure yet)
+- aegislash should switch to blade forme when executing its move (fixed)
+- mummy ability revert when switch out (fixed)
+- poison type pokemon should not get poisoned by toxic spikes (fixed)
 
 play_test needed:
 - weather_affecting moves

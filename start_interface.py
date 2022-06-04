@@ -108,7 +108,7 @@ def main_screen():
                     if choice == 0:
                         break
                     op = list_of_competitors[char_dict[choice]]
-                    print(f"\n{CBOLD}{op.name}\n\nDescription: {op.desc}")
+                    print(f"\n{CBOLD}{op.name}\n\nDescription: {op.desc}") if not op.main else print(f"\n{CBOLD}{op.name}\n\nDescription: {op.desc.format(10 + len(op.history))}")
                     print(
                         f"\n{op.name} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).{CEND}")
                     confirmation = input("\nWanna know his/her match history? Press Y to confirm: ").upper()
@@ -138,6 +138,14 @@ def main_screen():
         GameSystem.participants += random.sample(GameSystem.competitor_list,
                                                  32 - len(GameSystem.participants))  # elite four, champion and protagonist are seeded
         random.shuffle(GameSystem.participants)
+
+        # debug reseeding
+        index = GameSystem.participants.index('Protagonist')
+        opponent = index + 1 if index % 2 == 0 else index - 1
+        for i in range(len(GameSystem.participants)):
+            if GameSystem.participants[i] == "Solanum":
+                GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
+                break
 
         for i, name in enumerate(GameSystem.participants):
             name = list_of_competitors[name]
