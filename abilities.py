@@ -195,6 +195,11 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             user.applied_modifier = [0, 1, 0, 0, 0, 0, 0, 0, 0]
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
+    def soulheart(user_side, target_side, user, target, battleground, move, abilityphase):
+        if target.battle_stats[0] <= 0:  # fainted
+            user.applied_modifier = [0, 0, 0, 1, 0, 0, 0, 0, 0]
+            user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
+
     def grimneigh(user_side, target_side, user, target, battleground, move, abilityphase):
         if target.status == "Fainted":
             user.applied_modifier = [0, 0, 0, 1, 0, 0, 0, 0, 0]
@@ -511,11 +516,11 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
 
     def divinepower(user_side, target_side, user, target, battleground, move, abilityphase):
         if not move.super_effective:
-            move.damage *= 2
+            move.damage = math.floor(move.damage * 1.5)
 
     def divineaegis(user_side, target_side, user, target, battleground, move, abilityphase):
         if not move.super_effective:
-            move.damage //= 2
+            move.damage = math.floor(move.damage * 2 / 3)
 
     def solidrock(user_side, target_side, user, target, battleground, move, abilityphase):
         if move.super_effective:
@@ -745,6 +750,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Pixelate': (2, pixelate),
         'Refrigerate': (2, refrigerate),
         'Moxie': (6, moxie),
+        'Soul-Heart': (8, soulheart),
         'Grim Neigh': (6, grimneigh),
         'Improvise': (6, improvise, "Custom"),
         'Beast Boost': (6, beastboost),

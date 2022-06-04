@@ -84,6 +84,7 @@ def select_move(pokemon, target, battleground):
     # charging move
     if pokemon.charging[0] != "":
         pokemon_move = pokemon.charging[0]
+        input(f"{CVIOLET2}{CBOLD}{pokemon.name} continues using {pokemon_move}. Enter any key to proceed.{CEND}")
 
     # very clumsily indicate move type and effect for noobs
     print(CBOLD, end='')
@@ -131,7 +132,7 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
     fail, immune = True, False
 
     if not user_health_condition and move.name != "Switching":
-        print(f"{user.name} used {move.name}.")
+        print(f"{CVIOLET2}{CBOLD}{user.name} used {move.name}{CEND}.")
         user.previous_move = move
 
         onWeatherCheck(battleground, move)
@@ -153,9 +154,9 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
                         UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
 
-                        if move.damage <= 0 and move.attack_type != "Status":
-                            if move.charging == "":
-                                immune = True
+                        # no effect move and not a charging move
+                        if move.damage <= 0 and move.attack_type != "Status" and move.charging not in ("Charging", "Semi-invulnerable"):
+                            immune = True
 
                         # trigger effects when using move
                         other_effect_when_use_move(user, target, battleground, move)

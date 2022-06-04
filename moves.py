@@ -674,7 +674,15 @@ list_of_moves = {
                        crit=0, priority=0, recoil=0,
                        effect_type="self_modifier", special_effect=[0, 0, 0, -2, 0, 0, 0, 0, 0]),
 
+    'Fleur Cannon': Move(name="Fleur Cannon", power=130, attack_type="Special", type="Fairy", accuracy=0.9, pp=5,
+                       crit=0, priority=0, recoil=0,
+                       effect_type="self_modifier", special_effect=[0, 0, 0, -2, 0, 0, 0, 0, 0]),
+
     'Leech Life': Move(name="Leech Life", power=80, attack_type="Physical", type="Bug", accuracy=1, pp=10,
+                       crit=0, priority=0, recoil=0, flags='a',
+                       effect_type="hp_draining", special_effect=0.5),
+
+    'Horn Leech': Move(name="Horn Leech", power=75, attack_type="Physical", type="Grass", accuracy=1, pp=10,
                        crit=0, priority=0, recoil=0, flags='a',
                        effect_type="hp_draining", special_effect=0.5),
 
@@ -1295,21 +1303,21 @@ list_of_moves = {
     'Metronome': Move(name="Metronome", power=0, attack_type="Status", type="Normal", accuracy=1, pp=30),
 
     'History Rewritten': Move(name="History Rewritten", power=0, attack_type="Status", type="Normal", accuracy=1, pp=10, custom=True,
-                 effect_type=["target_disable", "reset_target_modifier", "target_volatile"], special_effect=["Encore", "", Confused], effect_accuracy=0.6),
+                 effect_type=["target_disable", "reset_target_modifier", "target_volatile"], special_effect=["Encore", "", Confused], effect_accuracy=0.5),
 
-    'Soul Harvest': Move(name="Soul Harvest", power=50, attack_type="Special", type="Dark", accuracy=1, pp=10,
-                              crit=0, priority=2, custom=True,
-                              effect_type=["target_volatile", "hp_draining"], special_effect=[Binding, 0.5]),
+    'Soul Harvest': Move(name="Soul Harvest", power=60, attack_type="Special", type="Dark", accuracy=1, pp=10,
+                              crit=0, priority=1, custom=True,
+                              effect_type=["target_volatile", "hp_draining"], special_effect=[Binding, 0.25]),
 
-    'Reign of Terror': Move(name="Reign of Terror", power=100, attack_type="Special", type="Ghost", accuracy=1, pp=5,
+    'Reign of Terror': Move(name="Reign of Terror", power=90, attack_type="Special", type="Ghost", accuracy=1, pp=5,
                          crit=0, priority=0, custom=True,
-                         effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, -1, 0, -1, -1, 0, 0, 0], Frighten], effect_accuracy=0.5),
+                         effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, 0, -1, 0], Frighten], effect_accuracy=0.3),
 
     'Empyrean Glory': Move(name="Empyrean Glory", power=0, attack_type="Status", type="Flying", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b', custom=True,
-                              effect_type=["self_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 1, 0, 0], "",0.25, Clear]),
+                              effect_type=["self_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 0, 0, 0], "",0.2, Clear]),
 
-    'Draconic Blade': Move(name="Draconic Blade", power=100, attack_type="Physical", type="Dragon", accuracy=1, pp=10, flags='a', custom=True,
-                           effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, 0, -1, 0], Frighten], effect_accuracy=0.3),
+    'Draconic Blade': Move(name="Draconic Blade", power=90, attack_type="Physical", type="Dragon", accuracy=1, pp=10, flags='a', custom=True,
+                           effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, -1, 0, 0], Frighten], effect_accuracy=0.3),
 
     'Glissando': Move(name="Glissando", power=100, attack_type="Special", type="Flying", accuracy=0.9, pp=10, flags='f', custom=True,
                            effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.3),
@@ -1323,4 +1331,17 @@ list_of_moves = {
 
     '3-Hand Trick': Move(name="3-Hand Trick", power=20, attack_type="Special", type="Fairy", accuracy=0.9, pp=10,
                         crit=0, priority=0, recoil=0, multi=[False, 3, True], custom=True),
+
+    'Forest\'s Curse': Move(name="Forest's Curse", power=0, attack_type="Status", type="Grass", accuracy=1, pp=20,
+                      effect_type="add_target_type", special_effect=["Grass"]),
+
+    'Cannibalism': Move(name="Cannibalism", power=75, attack_type="Physical", type="Dark", accuracy=1, pp=10,
+                          crit=0, priority=0, recoil=0, flags='a', custom=True,
+                          effect_type="hp_draining", special_effect=0.5),
+
+    'Time Pressure': Move(name="Time Pressure", power=40, attack_type="Special", type="Ground", accuracy=1, pp=10, custom=True),
+
+    'Gambit': Move(name="Gambit", power=0, attack_type="Status", type="Normal", accuracy=GUARANTEE_ACCURACY, pp=20,
+                         crit=0, priority=0, recoil=0, deduct=1/3, flags='bj', custom=True,
+                         effect_type="self_modifier", special_effect=[0, 0, 0, 1, 1, 1, 0, 0, 0]),
 }

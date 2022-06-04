@@ -46,6 +46,7 @@ def move_special_effect(user_side, target_side, user, target, battleground, user
         "reset_target_modifier": check_move_reset_target_modifier,
         "reset_user_modifier": check_move_reset_user_modifier,
         "swap_barrier": check_move_swap_barrier,
+        "add_target_type": check_move_add_target_type,
     }
     vartype = type(move.effect_type)
     # only one effect
@@ -269,5 +270,11 @@ def check_move_reset_user_modifier(user_side, target_side, user, target, battleg
 
 def check_move_swap_barrier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     user_side.in_battle_effects, target_side.in_battle_effects = target_side.in_battle_effects, user_side.in_battle_effects
-    # swap entry hazard too but later add
+    user_side.entry_hazard, target_side.entry_hazard = target_side.entry_hazard, user_side.entry_hazard
+    print("Entry hazard and in-game barriers have been swapped!")
+
+
+def check_move_add_target_type(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+    target.type += special_effect
+    print(f"{target.name} has been added {special_effect} type.")
 

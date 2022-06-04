@@ -21,17 +21,17 @@
     22. add PP/Struggle/Pressure
     23. easy mode/hard mode
 
-QOL:
-- add "press any key" for charging move and frenzy move
-- use "custom team" feature or not???
+Ideas:
+1. use custom team?
+2. boost Pokemon that stays for some time (loyalty buff)?
 
 bugs to fix:
 - fainted status not updated literally (now known: AI inter-switch pokemon and add >1 "Fainted" status) (fixed)
-- outrage got cancelled due to fairy pokemon but still am using
+- outrage got cancelled due to fairy pokemon but still am using (fixed)
 - zoroark type should change before damage calculation (fixed)
-- ground type move should not work on levitate opponent (fixed?)
+- ground type move should not work on levitate opponent (fixed)
 - at least 1 recoil damage (fixed)
-- dumb ai facing opponent with x4 moves, when being the last pokemon, should use highest dmg move, not random
+- dumb ai facing opponent with x4 moves, when being the last pokemon, should use highest dmg move, not random (fixed)
 - u-turn should switch first before being hit (sometimes happen? not sure yet)
 - aegislash should switch to blade forme when executing its move (fixed)
 - mummy ability revert when switch out (fixed)

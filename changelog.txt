@@ -4,10 +4,14 @@ Added
 - added new characters
 - added incremental age for player
 - added sign (!!!) to indicate player loss and upset
+- added confirmation message for ongoing moves (e.g. frenzy and charging moves)
+- added signature pokemon for each character
 
 Changed
-- updated characters' ratings and quotes
-- slightly adjusted some Pokemon moves (mostly nerfing top-tier Pokemon)
+- updated existing characters' ratings and quotes
+- tone down some custom Pokemon moves (mostly Armadragdon & Memoraider)
+- tone down some custom Pokemon abilities (mostly Armadragdon & Memoraider)
+- readability update
 
 Fixed
 - fixed duplicated/ongoing literal "Fainted" status
@@ -17,9 +21,7 @@ Fixed
 - Pokemon affected by Mummy ability will now revert back when switched out
 - Poison type and Steel type Pokemon now does not get affected by poison due to toxic spikes
 - Ground type move now does not work on target with Levitate ability
-
-Specific In-Game Change
-- Fish Needle (move): 50% BadPoison --> 30% BadPoison
+- frenzy moves (e.g. outrage, raging fury etc.) now reset counter when being interrupted (e.g. fairy type Pokemon)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -50,9 +52,7 @@ Fixed
 - fixed 6 pokemon cannot swap bug
 - hurricane confused bug
 - fixed sticky web fails to slow pokemon
-
-Specific In-Game Change
-- change type for Zoroark illusion
+- now also change type for Zoroark illusion
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -76,14 +76,12 @@ Changed
 - formula for receiveing pokemon according to strength is changed
 - divided custom pokemon to several tiers, removed custom tier and added Boss tier (cannot be obtained)
 - updated text colors for readability
+- tone down Goredrinker ability
 
 Fixed
 - fixed incorrect win rate
 - fixed incorrect IV distribution
 - smart AI is now compatible with multiple move effects
-
-Specific In-Game Change
-- Goredrinker ability: drain 50% HP --> drain 33% HP
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 

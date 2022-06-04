@@ -82,15 +82,18 @@ Moves
 - Battle Axe (Rock): 80 power, physical, drain 25% HP
 - Thunderclap (Electric): 80 power, physical, 20% paralysis
 - Chaotic Shockwave (Electric): 80 power, physical, 30% flinch, sound-based move, can breakthrough protection
-- History Rewritten (Normal): status, encore, reset opponent stat stages and 60% confuse
-- Soul Harvest (Dark): 50 power, special, priority move, binding, drain 50% dmg
-- Reign of Terror (Ghost): 100 power, special, reduce target DEF, SpDef, Spd by 1 stage, 50% frighten
-- Empyrean Glory (Flying): status, buff user DEF, SpDef, EVA by 1 stage, heal team status condition problem, heal 25%, clear weather
-- Draconic Blade (Dragon): 100 power, physical, reduce target Spd and Acc by 1 stage, 30% frighten
+- History Rewritten (Normal): status, encore, reset opponent stat stages and 50% confuse
+- Soul Harvest (Dark): 60 power, special, priority move, binding, drain 25% dmg
+- Reign of Terror (Ghost): 90 power, special, 30% reduce target Spd and Acc by 1 stage, 30% frighten
+- Empyrean Glory (Flying): status, buff user DEF and SpDef by 1 stage, heal team status condition problem, heal 20%, clear weather
+- Draconic Blade (Dragon): 90 power, physical, 30% reduce target Spd and Eva. by 1 stage, 30% frighten
 - Ground Slam (Ground): 100 power, non-contact physical, 50% confuse
 - Glissando (Flying): 100 power, special, sound-based, 30% flinch
 - Eerie Rhythm (Ghost): 80 power, special, sound-based, 10% reduce target SpDef by 1 stage, 10% confuse
 - 3-Hand Trick (Fairy): 20 power, special, double power for each successive hit
+- Cannibalism (Dark): 75 power, physical, drain 50% HP, if directly cause faint drain another 50% HP
+- Time Pressure (Ground): 40 power, special, the higher the relative speed the higher the dmg (ref: electro ball)
+- Gambit (Normal): status, deduct 33% HP to increase SpDef, SpA and Spd by 1 stage, can only use at the first turn
 
 
 
@@ -104,8 +107,8 @@ Abilities
 - Goredrinker: user recovers ~33% damage as HP for damaging moves when below 50% HP
 - Formation: buff user Rock-type move damage by 30%
 - Landlord: buff user Ground-type move damage by 30%
-- Divine Power: if not super-effective against target, move damage doubles
-- Divine Aegis: if not super-effective against user, move damage halves
+- Divine Power: if not super-effective against target, move damage * 1.5
+- Divine Aegis: if not super-effective against user, move damage * 2/3 (Ignored by Mold Breaker)
 - Instrumental: immune to sound-based moves, sound-based moves against target buff move damage by 50%, take double damage from fire and water types attack
 
 2. Some abilities are buffed, including:

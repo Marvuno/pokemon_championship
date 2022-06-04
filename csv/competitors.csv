@@ -1,31 +1,31 @@
 ID,Name,Strength,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,Color,Quote
 0,Protagonist,1,"Currently {} years old. You have won the U15 Pokemon Amateur Tournament 2022,
-being the youngest winner of thesaid  tournament in history. You have been widely acknowledged as
+being the youngest winner of the said tournament in history. You have been widely acknowledged as
 the best prodigy of the decade. As people proclaimed, you are very good at reading others' mind and often
-won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Corviknight,Corviknight,Corviknight,Zoroark,,,,,Green,
+won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Psyduck,,,,,,,,Green,
 1,Trasher,1,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
 He is well known for his Garbador, his first and strongest pokemon.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I will prove to you that there is really treasure in a pile of trash!
 2,Goblin,2,"Goblin is simply a goblin. Dim, old, and weak.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I may be old. I may be weak. But I am certainly not blind.
 3,Monkey King,3,"Monkey King is the leader of the monkeys. After persuasion from his followers, he decided to participate into the
 Pokemon World Championship.",Low,,,,,,,music/low.mp3,music/ace.mp3,,Ook-ook! Eeek-aak-eek!
 4,Solanum,5,"Solanum has finally built a spaceship to escape from the Quantum Moon, so that he can participate into the Pokemon World
-Championship just in time.",Champion,Volcarona,Cofagrigus,Cofagrigus,Cofagrigus,,,music/low.mp3,music/ace.mp3,,"We do not have much connection, you and I. Still, this encounter feels special.
+Championship just in time.",Low,Alakazam,,,,,,music/low.mp3,music/ace.mp3,,"We do not have much connection, you and I. Still, this encounter feels special.
 I hope you won't mind if I think of you as a friend."
-5,President Rose,6,"President Rose is a moronic person in Pokemon Sword & Shield who seeks to obtain inifite energy from a legendary pokemon but
+5,President Rose,6,"President Rose is a moronic person in Pokemon Sword & Shield who seeks to obtain infinite energy from a legendary pokemon but
 backfired hard.",Low,Copperajah,,,,,,music/low.mp3,music/ace.mp3,,"1000 years later, I predict that there will be an energy crisis wiping the humanity."
 6,Mordekaiser,7,Mordekaiser is tired of battling with the other champions in League of Legends. He wants a change of his life.,Low,Boneknight,,,,,,music/low.mp3,music/ace.mp3,,I will silence the incessant thrum of mortal hearts.
-7,Takagi,9,Takagi is a crafty girl who has many small tricks and pranks. She still seeks Pokemon Battle as stress relief.,Low,Dedenne,,,,,,music/low.mp3,music/ace.mp3,,You finally look at me. Hehehe
+7,Takagi,9,Takagi is a crafty girl who has many small tricks and pranks. She still seeks Pokemon Battle as stress relief.,Low,Dedenne,Charmorin,,,,,music/low.mp3,music/ace.mp3,,You finally look at me. Hehehe
 8,Dulunga,11,Dulunga was once an experienced desert soldier. He prefers playing Pokemon TCG more than single battle though.,Low,Sandaconda,Gigalith,,,,,music/low.mp3,music/ace.mp3,,It takes skills to utilize the terrain for your advantage.
-9,Abota,12,"Abota was a Mongolian horse archer a long time ago. After his glorious retirement, he is addicted to Pokemon Battle.",Low,Galarian Rapidash,Donphan,,,,,music/low.mp3,music/ace.mp3,,"One stone can hit two birds;
+9,Abota,12,"Abota was a Mongolian horse archer a long time ago. After his glorious retirement, he is addicted to Pokemon Battle.",Low,Galarian Rapidash,,,,,,music/low.mp3,music/ace.mp3,,"One stone can hit two birds;
 Give me one more shot, and I will wipe out your whole team with it."
 10,Pudding,13,Pudding is a small boy who likes snacks.,Low,Vanilluxe,,,,,,music/low.mp3,music/ace.mp3,,I love ice-cream!!!
 11,Vardy,15,Vardy is an experienced footballer playing Forward for Leicester City.,Low,Talonflame,,,,,,music/low.mp3,music/ace.mp3,,"I am almost done with Leicester, to be honest."
 12,Mount,16,Mount is a prominent talent currently playing the position of CAM for the Chelsea Football Club.,Low,Cinderace,,,,,,music/low.mp3,music/ace.mp3,,You don't need eleven people when one is enough.
-13,Bruno,17,Bruno is an ordinary scientist.,Low,Claydol,,,,,,music/low.mp3,music/ace.mp3,,This is an interesting experiment.
+13,Bruno,17,Bruno is an ordinary scientist.,Low,Eelektross,,,,,,music/low.mp3,music/ace.mp3,,This is an interesting experiment.
 14,Clown Marcus,19,"Marcus is a mentally-challenged trainer who somehow goes into the Playoffs stage since his opponents in the Preliminary stage are
 either sick or have forfeited their match. Truly the luckiest person ever.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I am an Idiot. I am a Clown. Please laugh at me!
 15,Shuka,23,"Karino Shuka is a main character of Darwin's Game as well as a member of Sunset Ravens. 
-Shuka is typically friendly with people but can become deadly if needed.",Intermediate,Nidoqueen,,,,,,music/intermediate.mp3,music/ace.mp3,,"If I didn�t want to die, I shouldn�t have been born, right?"
+Shuka is typically friendly with people but can become deadly if needed.",Intermediate,Nidoqueen,,,,,,music/intermediate.mp3,music/ace.mp3,,"If I didn't want to die, I shouldn't have been born, right?"
 16,King Bosse,26,"King Bosse is known for one of the strongest man on Earth. He hit extremely hard, but he is also very slow.",Intermediate,Mamoswine,,,,,,music/intermediate.mp3,music/ace.mp3,,"Miranjo, just wait for a little more. I am coming."
 17,Bojji,30,"Bojji is a cursed giant with no physical strength. In compensation, he is extremely nimble, allowing him
 to dodge attack, and he is good at hitting the vital point of the opponent to win over them.",Intermediate,Scorchrome,,,,,,music/intermediate.mp3,music/ace.mp3,,...................
@@ -50,87 +50,93 @@ It is mentioned that almost no one knows of Therion's face despite his infamy,
 and that he is the enemy of every wealthy home and person.",Intermediate,Nightdaunter,,,,,,music/intermediate.mp3,music/ace.mp3,,Like a thief in the night.
 26,Voldemort,55,Voldemort is the main antagonist in the Harry Potter series. He has an angelic face and is skilled at using magic.,Intermediate,Gengar,,,,,,music/intermediate.mp3,music/ace.mp3,,"There is no good and evil, there is only power and those too weak to seek it."
 27,Berserker,60,"Berserker is a ruthless crazy barbarian who is more resilient when in danger. He is not good at capturing a lead but he is
-very good at comebacks.",Intermediate,Vindaxe,,,,,,music/intermediate.mp3,music/ace.mp3,,[BUWARKKKKKKKKKKKKK!!!!!]
+very good at comebacks.",Intermediate,Vindaxe,,,,,,music/intermediate.mp3,music/ace.mp3,,BUWARKKKKKKKKKKKKK!!!!!
 28,Steven,62,"Steven is the Champion of the Hoenn region. He is specialised in using Steel type Pokemon. However, this does not mean that
 he will be exclusively using Rock and Steel type Pokemon in the Championship.",Intermediate,Metagross,,,,,,music/intermediate.mp3,music/ace.mp3,,"Rock is Sturdy. Steel is Versatile.
 I wish your heart as hard as the mix of Rock and Steel.
 You still have a long journey, go for it!"
 29,Lusamine,65,"Lusamine is the main antagonist of Pokemon Sun and Moon. She is the president of Aether Paradise but she is obsessed with
-Ultra Beasts. She can get really dangerous when she slowly descends into a psychopath.",Intermediate,Nihilego,Bewear,,,,,music/intermediate.mp3,music/ace.mp3,,My sweet Pokemon... I promise I'll keep you safe... I'll protect you with my love�
-30,Paul,70,"Paul is initially not a caring Trainer as he wants pure power from his�Pok�mon�and the Trainers he faces to be strong. 
-Paul is also known to release his Pok�mon if he deems them weak or useless, 
-which seems somewhat appropriate because of his ambition and seeing his Pok�mon as tools for his own glory.",Advanced,Electivire,,,,,,music/advanced.mp3,music/ace.mp3,,Pathetic.
-30,Leon,74,"Leon is the Champion of the Galar region. He is pride of being known as one of the strongest Champions ever, being
+Ultra Beasts. She can get really dangerous when she slowly descends into a psychopath.",Intermediate,Nihilego,Bewear,,,,,music/intermediate.mp3,music/ace.mp3,,My sweet Pokemon... I promise I'll keep you safe... I'll protect you with my love.
+30,Paul,70,"Paul is initially not a caring Trainer as he wants pure power from his Pokemon and the Trainers he faces to be strong.
+Paul is also known to release his Pokemon if he deems them weak or useless,
+which seems somewhat appropriate because of his ambition and seeing his Pokemon as tools for his own glory.",Advanced,Electivire,,,,,,music/advanced.mp3,music/ace.mp3,,Pathetic.
+31,Leon,74,"Leon is the Champion of the Galar region. He is pride of being known as one of the strongest Champions ever, being
 undefeated against a strong Gym Leader Raihan. However, this is definitely not the case. His objective is to
 win the Championship and especially Marvin to prove himself.",Advanced,Charizard,Dragapult,,,,,music/advanced.mp3,music/ace.mp3,,I SHOULD BE THE REAL CHAMPION!
-31,Ash Ketchum,77,"Ash Ketchum is a 10-year old boy who never grows old. He has travelled in many different regions and the respective Pokemon League.
+32,Ash Ketchum,77,"Ash Ketchum is a 10-year old boy who never grows old. He has travelled in many different regions and the respective Pokemon League.
 He has never won any Championship except the unofficial Sun and Moon league. He is known for abandoning his Pokemon to Professor Oak
 when his journey ends. Also, he has an insane plot armor.",Advanced,Pikachu,,,,,,music/advanced.mp3,music/ace.mp3,,"Pikachu, use Thunderbolt!"
-32,Bondrewd,78,"Bondrewd 'The Novel', also known as 'The Lord of Dawn', 'The Sovereign of Dawn', is a legendary White Whistle Delver who has made
+33,Bondrewd,80,"Bondrewd 'The Novel', also known as 'The Lord of Dawn', 'The Sovereign of Dawn', is a legendary White Whistle Delver who has made
 many great discoveries about the secrets of the Abyss. A researcher fascinated by the Abyss, he has often resorted to illegal and
 morally questionable means in order to get funds for and conduct his research, including selling Artifacts and information from
 the depths illicitly, developing dangerous drugs, and even experimenting on living humans. He is ruthless, unethical, and insane.",Advanced,Haxorus,,,,,,music/advanced.mp3,music/ace.mp3,,May your journey overflows with curses and blessing.
-33,Gin,81,"Gin is a merciless and efficient assassin. He has no compunctions about killing or threatening fellow teammates.
+34,Gin,83,"Gin is a merciless and efficient assassin. He has no compunctions about killing or threatening fellow teammates.
 Fitting his icy personality, Gin's displayed range of emotions so far is relatively limited. He is the main antagonist of
 Detective Conan and is the most loyal to the Black Organization.",Advanced,Decidueye,,,,,,music/advanced.mp3,music/ace.mp3,,"If life is a color, it is going to be Silver."
-34,Titan,85,"Titan is an organization consisting of 9 people. They all have the ability to transform into a titan. Hence, when you battled against
-Titan, you are essentially battling against 9 people at the same time.",Advanced,Kommo-o,,,,,,music/advanced.mp3,music/ace.mp3,,"When the old boys get together, they will always sing this song."
-35,Yagami Light,90,"Light is characterized as hardworking, talented, and a natural genius. Highly perceptive and good with problem solving skills,
+35,Yagami Light,86,"Light is characterized as hardworking, talented, and a natural genius. Highly perceptive and good with problem solving skills,
 Light is a skilled planner and good at mapping out scenarios. Furthermore, Light is very popular among peers and adored by
 his family members. He often carries a notebook on his hand for no reason.",Advanced,Xurkitree,,,,,,music/advanced.mp3,music/ace.mp3,,May I ask what is your name? ^_^
-36,King Bradley,95,"King Bradley is the Wrath. He displays superhuman abilities when enraged. However, he is often perceived as a calm and humorous
-fuhrer. He is also the main antagonist in Fullmetal Alchemist.",Advanced,Marshadow,,,,,,music/advanced.mp3,music/ace.mp3,,"All power tends to corrupt, and absolute power corrupts absolutely. Great men are almost always bad men."
-37,Makise Kurisu,98,"Kurisu Makise�is the daughter of�Shouichi Makise, a genius girl who graduated from university at the age of seventeen, 
-and a member of the Brain Science Institute at�Viktor Chondria University�and the�Future Gadget Lab.",Advanced,Tsareena,,,,,,music/advanced.mp3,music/ace.mp3,,I don't want to deny who I've been. Because even my failures are a part of who I am today.
-38,Albert Einstein,101,"Albert Einstein was a German-born theoretical physicist, widely acknowledged to be one of the greatest and most influential physicists of all time. 
-Einstein is best known for developing the theory of relativity, but he also made important contributions to the development of the theory of quantum mechanics.",Advanced,Porygon-Z,,,,,,music/advanced.mp3,music/ace.mp3,,I have no special talent. I am only passionately curious.
-39,Jack the Ripper,104,"Jack the Ripper was an unidentified serial killer active in the impoverished districts in and around Whitechapel in the East End of London in 1888. 
+36,Misty,90,"Misty is the Gym Leader of Cerulean City's Gym. She is once specialized in Water-type Pokemon.
+She got bored of her Gym Leader life and decided to take a break to look for Ash Ketchum,
+thereby participating in the World Pokemon Championship.",Advanced,Starmie,,,,,,music/advanced.mp3,music/ace.mp3,,Sometimes I look at that Psyduck's face and I get a headache.
+37,Lance,93,"Lance is a Dragon-type Trainer, a member of the Indigo Elite Four, and later the
+Champion of the Indigo Plateau. He is known for using 3 Dragonite in the
+Champion battle.",Advanced,Dragonite,,,,,,music/advanced.mp3,music/ace.mp3,,So you think you can defeat a dragon trainer? En garde.
+38,Makise Kurisu,96,"Kurisu Makise is the daughter of Shouichi Makise, a genius girl who graduated from university at the age of seventeen,
+and a member of the Brain Science Institute at Viktor Chondria University and the Future Gadget Lab.",Advanced,Tsareena,,,,,,music/advanced.mp3,music/ace.mp3,,I don't want to deny who I've been. Because even my failures are a part of who I am today.
+39,Titan,98,"Titan is an organization consisting of 9 people. They all have the ability to transform into a titan. Hence, when you battled against
+Titan, you are essentially battling against 9 people at the same time.",Advanced,Kommo-o,,,,,,music/advanced.mp3,music/ace.mp3,,"When the old boys get together, they will always sing this song."
+40,Jack the Ripper,100,"Jack the Ripper was an unidentified serial killer active in the impoverished districts in and around Whitechapel in the East End of London in 1888. 
 In both criminal case files and the contemporary journalistic accounts, the killer was called the Whitechapel Murderer and Leather Apron.",Advanced,Naganadel,,,,,,music/advanced.mp3,music/ace.mp3,,Ninety years ago I was a freak. Today I'm an amateur. Ninety years later I will be a Pokemon professional.
-40,Adolf Hitler,107,"Adolf Hitler is widely known as the Fuhrer who persuded Nazism. He was the main cause of the Second World War. To these days,
+41,Adolf Hitler,103,"Adolf Hitler is widely known as the Fuhrer who persuded Nazism. He was the main cause of the Second World War. To these days,
 there are people that like him and also those that despise him.",Advanced,Machamp,,,,,,music/advanced.mp3,music/ace.mp3,,Anyone can deal with victory. Only the mighty can bear defeat.
-41,Faker,110,"Faker is the most famous LOL player. He is best known for his
+42,Albert Einstein,105,"Albert Einstein was a German-born theoretical physicist, widely acknowledged to be one of the greatest and most influential physicists of all time. 
+Einstein is best known for developing the theory of relativity, but he also made important contributions to the development of the theory of quantum mechanics.",Advanced,Porygon-Z,,,,,,music/advanced.mp3,music/ace.mp3,,I have no special talent. I am only passionately curious.
+43,King Bradley,108,"King Bradley is the Wrath. He displays superhuman abilities when enraged. However, he is often perceived as a calm and humorous
+fuhrer. He is also the main antagonist in Fullmetal Alchemist.",Advanced,Marshadow,,,,,,music/advanced.mp3,music/ace.mp3,,"All power tends to corrupt, and absolute power corrupts absolutely. Great men are almost always bad men."
+44,Faker,110,"Faker is the most famous LOL player. He is best known for his
 Zed outplay in a clip. He has won 3 Championships with T1 and stayed with them every since.",Advanced,Greninja,,,,,,music/advanced.mp3,music/ace.mp3,,Even solo killing me once puts that player in the spotlight for eternity.
-42,Privy,112,"Privy is a Chatbot developed by World Champion Marvin in his spare time.
+45,Privy,112,"Privy is a Chatbot developed by World Champion Marvin in his spare time.
 It unexpectedly obtained the ability to think. With its inherent ability,
 It is able to order Pokemon in battle and has won in many. Thus,
 it obtained the Wildcard to participate in the World Championship as an exception.
 (Note: DeepZenGo also obtained Wildcard in one of the World Go Championships)",Advanced,Genesect,,,,,,music/advanced.mp3,music/ace.mp3,,How may I help you?
-43,Ginko,116,"Ginko is the main character who is followed throughout the�Mushishi�series solving�Mushi�cases. 
-He rarely comes back to the same show location more than once, to reinforce his 'wanderer' status.",Advanced,Volcarona,,,,,,music/advanced.mp3,music/ace.mp3,,"If you throw your life away, you won�t even have the capacity to feel regret."
-44,Violet Evergarden,119,"Violet is a former soldier who was enlisted in the Leidenschaftlich army and fought in the war, where she was treated as nothing more than a weapon. 
-Violet became an�Auto Memories Doll�at the�CH Postal Company�after the war, seeking to understand the meaning of the words ""I love you,"" 
-which was said to her by her major�Gilbert Bougainvillea, during the War's final battle.",Advanced,,,,,,,music/advanced.mp3,music/ace.mp3,,"It is a pleasure to meet you. If it is your wish, I will travel anywhere to meet your request. 
+46,Ginko,116,"Ginko is the main character who is followed throughout the Mushishi series solving Mushi cases.
+He rarely comes back to the same show location more than once, to reinforce his 'wanderer' status.",Advanced,Volcarona,,,,,,music/advanced.mp3,music/ace.mp3,,"If you throw your life away, you won't even have the capacity to feel regret."
+47,Violet Evergarden,119,"Violet is a former soldier who was enlisted in the Leidenschaftlich army and fought in the war, where she was treated as nothing more than a weapon. 
+Violet became an Auto Memories Doll at the CH Postal Company after the war, seeking to understand the meaning of the words ""I love you,""
+which was said to her by her major Gilbert Bougainvillea, during the War's final battle.",Advanced,,,,,,,music/advanced.mp3,music/ace.mp3,,"It is a pleasure to meet you. If it is your wish, I will travel anywhere to meet your request.
 Auto Memory Doll, Violet Evergarden, at your service."
-45,Elias Ainsworth,165,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride.
+48,Elias Ainsworth,165,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride.
 Although he is scary-looking, he is actually kind and straightforward.
 Without Chise by his side, he got lonely and looked for other partners.
-That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,It is the instinct of the weak to be afraid of the strange.
-46,Magnus Carlsen,184,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history.
+That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,Dreadigo,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,It is the instinct of the weak to be afraid of the strange.
+49,Magnus Carlsen,184,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history.
 While preparing his openings for the next World Chess Championship, he got addicted into
-Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Without the element of enjoyment, it is not worth trying to excel at anything."
-47,Animenz,200,"One of the Lower Elite Four. Animenz is greatest anime pianist in the history. 
+Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Without the element of enjoyment, it is not worth trying to excel at anything."
+50,Animenz,200,"One of the Lower Elite Four. Animenz is greatest anime pianist in the history. 
 His masterful piano technique allows him to master Pokemon battle in a short time.",Elite,Pianotic,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?"
-48,Mivy Wenceslas,228,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland. 
+51,Mivy Wenceslas,228,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland. 
 He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings.
 After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,Victini,,,,,,music/lower_elite_battle.mp3,music/elite_ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.
-49,Reaper Conan,276,"One of the Upper Elite Four. Conan was once a prominent detective who solved many cases. Soon, he realised his ability to never get old
+52,Reaper Conan,276,"One of the Upper Elite Four. Conan was once a prominent detective who solved many cases. Soon, he realised his ability to never get old
 and his ability to bring death to people around. Slowly he descended into the dark side of his mind. He held the title of 
 Grim Reaper. He will usually display childlike and naive smile in front of the public, but mercilessly murdered people without
 hesitation.",Elite,Zoroark,Apoptoxitic,Sylveon,Arcanine,Darkrai,Kogoshaka,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Is this the life of an Antagonist? Is this the fate of a Grim Reaper?
 NO! I still can fight! I still got my Plot Armor! I will reap your soul and your spirit!"
-50,Specialist Cynthia,300,"One of the Upper Elite Four. Cynthia held the title of Pokemon Specialist. She is the Champion of the Sinnoh region and is praised to be one
+53,Specialist Cynthia,300,"One of the Upper Elite Four. Cynthia held the title of Pokemon Specialist. She is the Champion of the Sinnoh region and is praised to be one
 of the strongest Champions among many regions. She came in with a very comprehensive team and her intelligence and experience in
 Pokemon Battle could easily win anyone.",Elite,Spiritomb,Roserade,Togekiss,Milotic,Lucario,Garchomp,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Once a Champion, always a Champion.
 You may have defeated me. But you will never go above me."
-51,Demon Muzan,321,"One of the Upper Elite Four. Muzan held the title of Demon King. He is the leader of the demons. Ruthless and bloodthirsty, he granted
+54,Demon Muzan,321,"One of the Upper Elite Four. Muzan held the title of Demon King. He is the leader of the demons. Ruthless and bloodthirsty, he granted
 his Pokemon his Blood Moon magic to be extremely aggressive, strong and fierce. Muzan's game-changing trait could easily win
 anyone in the Playoffs.",Elite,Gyutaro,Gyokko,Hantengu,Akaza,Douma,Kokushibo,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Head down and kneel. Prostrate before me.
 You are merely a worthless lowlife longing to achieve immortality.
 If you are willing to be my slave, I might consider sparing some of my blood to you."
-52,Emperor Marvuno,357,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient.
+55,Emperor Marvuno,357,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient.
 Unlike Muzan and Reaper Conan, Marvuno appears to be very kind and friendly. As such, he easily boosts the morale of his Pokemon
 every battle, so that they usually overperform and thus win out every battle.",Elite,Barraskewda,Blastoise,Dracovish,Cloyster,Tanjiro,Poseidon,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so."
-53,World Champion Marvin,600,"Marvin is the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
+56,World Champion Marvin,600,"Marvin is the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
 After observing his games, all people recognize that he could easily secure multiple World Champion Title in the
 Pokemon World Championship. In the Unofficial Pokemon Championship, Marvin effortlessly won 6-0 against his opponent, Demon Muzan, 
 one of the Upper Elite Four, in the Grand Final. This mystic figure is rumoured to have beaten the Upper Elite Four countless times, 

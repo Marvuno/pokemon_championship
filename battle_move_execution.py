@@ -76,6 +76,9 @@ def onParticularMoveChange(user, target, move):
     elif move.name == "Electro Ball":
         relative_speed = target.battle_stats[5] / user.battle_stats[5]
         move.power = 40 if relative_speed > 1 else 60 if relative_speed > 0.5 else 80 if relative_speed > 0.3333 else 120 if relative_speed > 0.25 else 150
+    elif move.name == "Time Pressure":
+        relative_speed = target.battle_stats[5] / user.battle_stats[5]
+        move.power = 40 if relative_speed > 1 else 60 if relative_speed > 0.5 else 80 if relative_speed > 0.3333 else 120 if relative_speed > 0.25 else 150
     elif move.name == "Facade" and user.status != "Normal":
         move.power *= 2
     elif move.name == "Hex" and target.status != "Normal":
@@ -191,6 +194,9 @@ def fainting_blow_move_effect(user, target, move):
     if move.name == "Fell Stinger":
         user.applied_modifier = [0, 3, 0, 0, 0, 0, 0, 0, 0]
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
+    if move.name == "Cannibalism":
+        print(f"{user.name} absorbs {target.name} and regenerates {math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.5)} HP.")
+        user.battle_stats[0] += min(user.hp - user.battle_stats[0], math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.5))
 
 
 def move_fail_consequence_upon_execution(user, target, move):

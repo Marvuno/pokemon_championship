@@ -23,6 +23,22 @@ def start_game():
 
 
 def main_screen():
+    def load_data():
+        with open('savefile.dat', 'rb') as f:
+            data = pickle.load(f)
+            for competitor in data:
+                # # debug
+                # print(competitor.__dict__)
+                op = list_of_competitors['Protagonist'] if competitor.main else list_of_competitors[competitor.name]
+                if competitor.main:
+                    op.team = competitor.team
+                    op.name = competitor.name
+                    op.strength = competitor.strength
+                op.history = competitor.history
+                op.opponent_history = competitor.opponent_history
+                op.participation = competitor.participation
+                op.championship = competitor.championship
+
     print(f"┏------------┓\n"
           f"| 0 NEW GAME |\n"
           f"|------------|\n"
@@ -53,20 +69,7 @@ def main_screen():
     # continue
     elif option == 1:
         try:
-            with open('savefile.dat', 'rb') as f:
-                data = pickle.load(f)
-                for competitor in data:
-                    # # debug
-                    # print(competitor.__dict__)
-                    op = list_of_competitors['Protagonist'] if competitor.main else list_of_competitors[competitor.name]
-                    if competitor.main:
-                        op.team = competitor.team
-                        op.name = competitor.name
-                        op.strength = competitor.strength
-                    op.history = competitor.history
-                    op.opponent_history = competitor.opponent_history
-                    op.participation = competitor.participation
-                    op.championship = competitor.championship
+            load_data()
         except FileNotFoundError:
             print("No save file!")
             main_screen()
@@ -78,20 +81,7 @@ def main_screen():
     elif option == 3:
         # read savefile
         try:
-            with open('savefile.dat', 'rb') as f:
-                data = pickle.load(f)
-                for competitor in data:
-                    # # debug
-                    # print(competitor.__dict__)
-                    op = list_of_competitors['Protagonist'] if competitor.main else list_of_competitors[competitor.name]
-                    if competitor.main:
-                        op.team = competitor.team
-                        op.name = competitor.name
-                        op.strength = competitor.strength
-                    op.history = competitor.history
-                    op.opponent_history = competitor.opponent_history
-                    op.participation = competitor.participation
-                    op.championship = competitor.championship
+            load_data()
 
             print(f"\n{CBOLD}The Champion of the Pokemon Championship: ")
             for parti, hist in list_of_competitors['Protagonist'].history.items():
@@ -139,13 +129,14 @@ def main_screen():
                                                  32 - len(GameSystem.participants))  # elite four, champion and protagonist are seeded
         random.shuffle(GameSystem.participants)
 
-        # debug reseeding
-        index = GameSystem.participants.index('Protagonist')
-        opponent = index + 1 if index % 2 == 0 else index - 1
-        for i in range(len(GameSystem.participants)):
-            if GameSystem.participants[i] == "Solanum":
-                GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
-                break
+        # # debug reseeding
+        # # activation: set that character to be Champion
+        # index = GameSystem.participants.index('Protagonist')
+        # opponent = index + 1 if index % 2 == 0 else index - 1
+        # for i in range(len(GameSystem.participants)):
+        #     if GameSystem.participants[i] == "Shuka":
+        #         GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
+        #         break
 
         for i, name in enumerate(GameSystem.participants):
             name = list_of_competitors[name]

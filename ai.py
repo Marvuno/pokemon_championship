@@ -79,7 +79,10 @@ def dumb_ai_select_move(battleground, protagonist, ai):
         if ai.position_change != 0:
             return list_of_moves[ai.team[0].moveset[0]]  # switching
         else:
-            return list_of_moves[ai_pokemon.moveset[random.randint(1, len(ai_pokemon.moveset) - 1)]]
+            if move_damage.index(max(move_damage)) != 0:
+                return list_of_moves[ai_pokemon.moveset[move_damage.index(max(move_damage))]]
+            else:
+                return list_of_moves[ai_pokemon.moveset[random.randint(1, len(ai_pokemon.moveset) - 1)]]
     return list_of_moves[ai_pokemon.moveset[move_damage.index(max(move_damage))]]
 
 
@@ -317,10 +320,10 @@ def smart_ai_select_move(battleground, protagonist, ai):
     print("")
 
     # if there are moves worse than 0 (literally do nothing), then consider moves with damage (even if they are worse moves)
-    # if literlly nothing can be done or switched, then random (equivalent to surrender)
+    # if literlly nothing can be done or switched, then random
     if move_score.index(max(move_score)) == 0:
-        return list_of_moves[ai.team[0].moveset[move_damage.index(max(move_damage))]] if max(move_damage) != 0 else list_of_moves[
-            ai.team[0].moveset[random.randint(1, len(ai.team[0].moveset) - 1)]]
+        return list_of_moves[ai.team[0].moveset[move_damage.index(max(move_damage))]] if max(move_damage) != 0 else \
+            list_of_moves[ai.team[0].moveset[random.randint(1, len(ai.team[0].moveset) - 1)]]
     return list_of_moves[ai.team[0].moveset[move_score.index(max(move_score))]]
 
 
