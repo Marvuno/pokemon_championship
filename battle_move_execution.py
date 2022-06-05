@@ -88,6 +88,8 @@ def onParticularMoveChange(user, target, move):
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
     if target.volatile_status['Take Aim'] > 0:
         move.accuracy = GUARANTEE_ACCURACY
+    if move.charging in ("Charging", "Semi-invulnerable") and user.charging[0] == "":
+        move.accuracy = GUARANTEE_ACCURACY
 
 
 def onChargingMove(user, target, move):

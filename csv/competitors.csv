@@ -2,7 +2,7 @@ ID,Name,Strength,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,
 0,Protagonist,1,"Currently {} years old. You have won the U15 Pokemon Amateur Tournament 2022,
 being the youngest winner of the said tournament in history. You have been widely acknowledged as
 the best prodigy of the decade. As people proclaimed, you are very good at reading others' mind and often
-won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Cinderace,Greninja,,,,,,,Green,
+won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Psyduck,,,,,,,,Green,
 1,Trasher,1,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
 He is well known for his Garbador, his first and strongest pokemon.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I will prove to you that there is really treasure in a pile of trash!
 2,Goblin,2,"Goblin is simply a goblin. Dim, old, and weak.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I may be old. I may be weak. But I am certainly not blind.
@@ -136,8 +136,8 @@ If you are willing to be my slave, I might consider sparing some of my blood to 
 55,Emperor Marvuno,357,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient.
 Unlike Muzan and Reaper Conan, Marvuno appears to be very kind and friendly. As such, he easily boosts the morale of his Pokemon
 every battle, so that they usually overperform and thus win out every battle.",Elite,Barraskewda,Blastoise,Dracovish,Cloyster,Tanjiro,Poseidon,music/upper_elite_battle.mp3,music/elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so."
-56,World Champion Marvin,600,"Marvin is the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
-After observing his games, all people recognize that he could easily secure multiple World Champion Title in the
+56,World Champion Marvin,600,"Marvin has been the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
+After observing his games, all people recognize that he could easily secure multiple World Champion Titles in the
 Pokemon World Championship. In the Unofficial Pokemon Championship, Marvin effortlessly won 6-0 against his opponent, Demon Muzan, 
 one of the Upper Elite Four, in the Grand Final. This mystic figure is rumoured to have beaten the Upper Elite Four countless times, 
 because he has obtained the two True Pokemon Legends. One is the ruler of the heavens, the other is the warlord of the underworld.",Champion,Vikavolt,Krusadian Salamence,Blaziken,Scizor,Armadragdon,Memoraider,music/champion_battle.mp3,music/elite_ace.mp3,Yellow,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic.

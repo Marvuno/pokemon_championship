@@ -12,7 +12,9 @@ Changed
 - updated existing characters' ratings and quotes
 - tone down some custom Pokemon moves (mostly Armadragdon & Memoraider)
 - tone down some custom Pokemon abilities (mostly Armadragdon & Memoraider)
-- readability update
+- re-written elo rating formula
+- increase no. of elite per round (3-5 --> 4-6)
+- readability update (text color, spacing and individual rating change)
 
 Fixed
 - fixed duplicated/ongoing literal "Fainted" status
@@ -26,6 +28,7 @@ Fixed
 - countering moves (e.g. mirror coat & counter) now properly function
 - AI now uses first-turn priority moves (e.g. Fake Out) only at the first turn
 - status condition interrupt now won't inflict crash damage
+- charging moves and semi-invulnerable moves will now execute for the first turn regardless of accuracy
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 

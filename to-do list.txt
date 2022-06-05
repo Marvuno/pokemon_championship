@@ -21,6 +21,8 @@
     22. add PP/Struggle/Pressure
     23. easy mode/hard mode
     24. add tutorial
+    25. add favourite opponent
+    26. add "keep all" button when saving game
 
 Ideas:
 1. use custom team?
@@ -42,6 +44,8 @@ bugs to fix:
 - semi-invulnerable not working (not a bug)
 - ai using fake out on turn 0 and 1 (fixed)
 - libero & protean typing in new battle (fixed)
+- bounce should only miss at the second turn (fixed)
+- nichirin sword not working (work as intended LOL)
 
 play_test needed:
 - weather_affecting moves

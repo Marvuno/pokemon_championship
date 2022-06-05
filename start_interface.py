@@ -99,13 +99,12 @@ def main_screen():
                         break
                     op = list_of_competitors[char_dict[choice]]
                     print(f"\n{CBOLD}{op.name}\n\nDescription: {op.desc}") if not op.main else print(f"\n{CBOLD}{op.name}\n\nDescription: {op.desc.format(10 + len(op.history))}")
-                    print(
-                        f"\n{op.name} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).{CEND}")
-                    confirmation = input("\nWanna know his/her match history? Press Y to confirm: ").upper()
+                    print(f"\n{op.name} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).{CEND}")
+                    print(f"\n{op.name}'s Pokemon Championship history: ")
+                    for parti, hist in op.history.items():
+                        print(f"#{parti + 1}: Rank {hist[1]}")
+                    confirmation = input("\nWanna know his/her match history against individuals? (Quite Long!) Enter 'Y' to confirm: ").upper()
                     if confirmation == 'Y':
-                        print(f"\n{op.name}'s Pokemon Championship history: ")
-                        for parti, hist in op.history.items():
-                            print(f"#{parti + 1}: Rank {hist[1]}")
                         print(f"\n{op.name}'s match history against individuals:\n")
                         print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 4}WR{' ' * 4}{CEND}")
                         for i, (opponent, record) in enumerate(op.opponent_history.items()):

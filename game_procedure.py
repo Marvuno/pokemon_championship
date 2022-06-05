@@ -315,13 +315,13 @@ def elo_rating():
     rating_change = 0
     with suppress(IndexError):
         for opponent in list_of_competitors['Protagonist'].opponent:
-            rating_diff = opponent.strength - list_of_competitors['Protagonist'].strength
-            expected_score = 1 / (1 + pow(10, rating_diff / 100))
-            rating_change += int((list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] - expected_score) *
-                                 (5 if rating_diff <= 10 else 10 if rating_diff <= 30 else 20 if rating_diff <= 50 else 30))
+            match_rating = opponent.strength + list_of_competitors['Protagonist'].strength
+            proportion = (opponent.strength / match_rating) if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else (list_of_competitors['Protagonist'].strength / match_rating)
+            result = 1 if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else -1
+            individual_rating_change = int(round(math.sqrt(match_rating // 2) * proportion * result))
+            rating_change += individual_rating_change
 
-            print(
-                f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'}{CEND}")
+            print(f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'} [{'+' if individual_rating_change >= 0 else '-'}{abs(individual_rating_change)}]{CEND}")
 
     print(f"You have {'gained' if rating_change > 0 else 'lost'} {abs(rating_change)} ratings.")
     list_of_competitors['Protagonist'].strength = max(list_of_competitors['Protagonist'].strength + rating_change, 1)
