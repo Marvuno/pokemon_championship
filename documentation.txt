@@ -28,7 +28,8 @@ Multi-Strike Move
 Move Special Effect
 0 no_effect | 1 target_non_volatile | 2 target_volatile | 9 user_volatile | 3 opponent_modifier | 4 self_modifier | 5 self_heal | 6 weather_effect | 7 apply_entry_hazard
 8 hp_draining | 9 reset_user_modifier | 10 reset_target_modifier | 11 clear_entry_hazard | 12 charging (including charging, semi-invulnerable, frenzy) | 13 switching
-14 user_protection | 15 countering | 16 self_team_buff | 17 field_effect | 18 after_hand | 19 hp_split | 20 target_disable | 21 modifier_dependent | 22 remove_team_buff | 23 swap_barrier
+14 user_protection | 15 countering | 16 self_team_buff | 17 field_effect | 18 after_hand | 19 hp_split | 20 target_disable | 21 modifier_dependent | 22 remove_team_buff
+23 swap_barrier | 24 add_target_type
 
 Ability Phase
 1 Start (Beginning/Switched)

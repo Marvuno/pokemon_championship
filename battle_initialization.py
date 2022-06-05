@@ -7,6 +7,8 @@ def switched_in_initialization(user_side, opponent_side, user, opponent, battleg
         user.volatile_status['Grounded'] = 1
     # switched in ability
     UseAbility(user_side, opponent_side, user, opponent, battleground, "", abilityphase=1)
+    # turn
+    user.volatile_status['Turn'] += 1
 
 
 def multi_strike_move(move):

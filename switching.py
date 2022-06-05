@@ -45,9 +45,7 @@ def switching_criteria(protagonist, competitor, user_team, opponent_team, battle
                     return user_team[0]
             elif position_change == 8:
                 for i, pokemon in enumerate(user_team):
-                    if i % 2 == 0:
-                        print(CBEIGE, end='')
-                    print(f"ID: {pokemon.id} || Name: {pokemon.name}{' (Fainted)' if pokemon.status == 'Fainted' else ''} || Type: {pokemon.type}")
+                    print(f"{CBEIGE+CBOLD if i % 2 == 0 else CBOLD}ID: {pokemon.id} || Name: {pokemon.name}{' (Fainted)' if pokemon.status == 'Fainted' else ''} || Type: {pokemon.type}")
                     print(f"Ability: {pokemon.ability}")
                     print("Battle Stats:", [f"{STATISTICS[x]}: {pokemon.battle_stats[x]}" for x in range(len(pokemon.battle_stats))])
                     print("Status:", pokemon.status)
@@ -80,8 +78,7 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     # reset opponent trapping
     opponent_team[0].volatile_status['Trapped'], opponent_team[0].volatile_status['Binding'], opponent_team[0].volatile_status['Octolock'] = 0, 0, 0
     # reset typing & abilities
-    user_team[0].type = user_team[0].default_type
-    user_team[0].ability = user_team[0].default_ability
+    user_team[0].name, user_team[0].ability, user_team[0].type = user_team[0].default_name, user_team[0].default_ability, user_team[0].default_type
 
     # triggering abilities when switched out
     UseAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)

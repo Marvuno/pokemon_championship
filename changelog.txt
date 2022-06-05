@@ -6,6 +6,7 @@ Added
 - added sign (!!!) to indicate player loss and upset
 - added confirmation message for ongoing moves (e.g. frenzy and charging moves)
 - added signature pokemon for each character
+- added a few Pokemon
 
 Changed
 - updated existing characters' ratings and quotes
@@ -17,11 +18,14 @@ Fixed
 - fixed duplicated/ongoing literal "Fainted" status
 - Illusion ability now considers the correct typing for damage calculation
 - recoil damage now guarantees 1 damage to user
-- Aegislash now switches to blade forme only before it executes its attacking mvoe
+- Aegislash now switches to blade forme only before it executes its attacking move
 - Pokemon affected by Mummy ability will now revert back when switched out
 - Poison type and Steel type Pokemon now does not get affected by poison due to toxic spikes
 - Ground type move now does not work on target with Levitate ability
 - frenzy moves (e.g. outrage, raging fury etc.) now reset counter when being interrupted (e.g. fairy type Pokemon)
+- countering moves (e.g. mirror coat & counter) now properly function
+- AI now uses first-turn priority moves (e.g. Fake Out) only at the first turn
+- status condition interrupt now won't inflict crash damage
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35,7 +39,7 @@ Changed
 - updated moveset of some existing Pokemon
 
 Fixed
-- unused pokemon's moveset got erased
+- unused pokemon's moveset now does not get erased
 - dumb AI won't switch pokemon when activating auto battle
 - Keen Eye ability now properly functions
 

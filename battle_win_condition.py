@@ -73,9 +73,11 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         pokemon.protection = [0, 0]
         pokemon.charging = ["", "", 0]
         pokemon.moveset = pokemon.moveset[1:5]
-        pokemon.previous_move = ""
+        pokemon.previous_move = None
         pokemon.disabled_moves = {}
         pokemon.disguise, pokemon.transform = False, False
+        with suppress(AttributeError):
+            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
 
     for mon in protagonist.unused_team:
         protagonist.team.append(mon)

@@ -47,6 +47,7 @@ def move_special_effect(user_side, target_side, user, target, battleground, user
         "reset_user_modifier": check_move_reset_user_modifier,
         "swap_barrier": check_move_swap_barrier,
         "add_target_type": check_move_add_target_type,
+        "countering": check_move_countering,
     }
     vartype = type(move.effect_type)
     # only one effect
@@ -69,6 +70,7 @@ def check_move_target_non_volatile_status_effect(user_side, target_side, user, t
         with suppress(IndexError, KeyError):
             if target.volatile_status["NonVolatile"] <= 0:
                 target.volatile_status["NonVolatile"] = temporary_status[1]
+                print(f"{target.name} is now {target.status}!")
     elif target.status != "Normal" and temporary_status[0] != "Normal":  # non-volatile status won't add up
         print(f"{target.name} is already {target.status}!")
 
@@ -84,6 +86,7 @@ def check_move_target_volatile_status_effect(user_side, target_side, user, targe
         with suppress(KeyError):
             if target.volatile_status[temporary_status[0]] <= 0:
                 target.volatile_status[temporary_status[0]] = temporary_status[1]
+                print(f"{target.name} is now {temporary_status[0]}!")
             else:
                 print(f"The opponent is already {temporary_status[0]}!")
 
@@ -95,6 +98,7 @@ def check_move_user_volatile_status_effect(user_side, target_side, user, target,
     with suppress(KeyError):
         if user.volatile_status[temporary_status[0]] <= 0 or temporary_status[0] == "Grounded":
             user.volatile_status[temporary_status[0]] = temporary_status[1]
+            print(f"You are already {temporary_status[0]}!")
         else:
             print(f"You are already {temporary_status[0]}!")
 
@@ -278,3 +282,12 @@ def check_move_add_target_type(user_side, target_side, user, target, battlegroun
     target.type += special_effect
     print(f"{target.name} has been added {special_effect} type.")
 
+
+def check_move_countering(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+    type_effectiveness = 0 if math.prod([typeChart[move.type][target.type[x]] for x in range(len(target.type))]) == 0 else 1
+    if move.name == "Counter" and target.previous_move.attack_type == "Physical":
+        print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
+        target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
+    elif move.name == "Mirror Coat" and target.previous_move.attack_type == "Special":
+        print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
+        target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness

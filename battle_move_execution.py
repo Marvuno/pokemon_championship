@@ -118,7 +118,7 @@ def move_fail_checklist_before_execution(user, target, move, target_move):
             print("The move failed.")
             return True
     # first turn priority move
-    if 'j' in move.flags and user.volatile_status['Turn'] > 1:
+    if 'j' in move.flags and user.volatile_status['Turn'] > 2:
         print("The move failed.")
         return True
     # sucker punch

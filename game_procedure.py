@@ -39,8 +39,8 @@ def proceed_to_battle(protagonist, opponent):
 
 def view_pokemon(protagonist, opponent):
     statistics = {0: "HP", 1: "Atk", 2: "Def", 3: "SpA", 4: "SpDef", 5: "Speed"}
-    for pokemon in protagonist.team:
-        print(f"{CBOLD}ID: {pokemon.id} || Name: {pokemon.name}")
+    for i, pokemon in enumerate(protagonist.team):
+        print(f"{CBEIGE+CBOLD if i % 2 == 0 else CBOLD}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
         print(f"Ability: {pokemon.ability}")
         print("Base Stats:", [f"{statistics[x]}: {pokemon.nominal_base_stats[x]}({pokemon.iv[x]})" for x in range(6)])
         print(f"Moveset: {pokemon.moveset}{CEND}\n")

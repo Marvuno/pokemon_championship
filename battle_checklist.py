@@ -133,7 +133,6 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
 
     if not user_health_condition and move.name != "Switching":
         print(f"{CVIOLET2}{CBOLD}{user.name} used {move.name}{CEND}.")
-        user.previous_move = move
 
         onWeatherCheck(battleground, move)
         onParticularMoveChange(user, target, move)
@@ -194,13 +193,16 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
             # the move is dodged
             else:
                 print(f"\nOpponent Pokemon avoided the attack!\n")
+
+        if fail:
+            move_fail_consequence_upon_execution(user, target, move)
+
     else:
         print(f"{target.name} is still {target.status}.")
 
-    if fail:
-        move_fail_consequence_upon_execution(user, target, move)
-
+    user.previous_move = move
     user.modifier, target.modifier = check_modifier_limit(user), check_modifier_limit(target)
+    print("")
 
 
 # check if any pokemon fainted during or after the turn

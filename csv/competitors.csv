@@ -2,7 +2,7 @@ ID,Name,Strength,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,
 0,Protagonist,1,"Currently {} years old. You have won the U15 Pokemon Amateur Tournament 2022,
 being the youngest winner of the said tournament in history. You have been widely acknowledged as
 the best prodigy of the decade. As people proclaimed, you are very good at reading others' mind and often
-won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Psyduck,,,,,,,,Green,
+won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Cinderace,Greninja,,,,,,,Green,
 1,Trasher,1,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
 He is well known for his Garbador, his first and strongest pokemon.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I will prove to you that there is really treasure in a pile of trash!
 2,Goblin,2,"Goblin is simply a goblin. Dim, old, and weak.",Low,,,,,,,music/low.mp3,music/ace.mp3,,I may be old. I may be weak. But I am certainly not blind.

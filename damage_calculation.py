@@ -18,10 +18,9 @@ def damage_calculation(user_side, target_side, user, target, battleground, move)
     weather = check_if_weather_affect_moves(battleground, move)
     other = check_other_factor(user_side, target_side, user, target, move)
     power = check_power_modifier(user_side, target_side, user, target, move)
-    counter = counter_move_damage(user, target, move, target.previous_move)
 
     damage = math.floor((((((2 * 100 / 5) + 2) * power * attack / defense) / 50) + 2) * weather * critical * (
-            rand_factor * STAB * type_effectiveness * other * move.abilitymodifier)) + counter
+            rand_factor * STAB * type_effectiveness * other * move.abilitymodifier))
 
     return damage
 
@@ -159,13 +158,3 @@ def check_other_factor(user_side, target_side, user, target, move):
             if target_side.in_battle_effects['Light Screen'] > 0 or target_side.in_battle_effects['Aurora Veil'] > 0:
                 other *= 0.5
     return other
-
-
-def counter_move_damage(user, target, move, target_move):
-    type_effectiveness = 0 if math.prod([typeChart[move.type][target.type[x]] for x in range(len(target.type))]) == 0 else 1
-    if "countering" in move.effect_type:
-        if move.name == "Counter" and target_move.attack_type == "Physical":
-            return target_move.damage * 2 * type_effectiveness
-        elif move.name == "Mirror Coat" and target_move.attack_type == "Special":
-            return target_move.damage * 2 * type_effectiveness
-    return 0

@@ -64,9 +64,9 @@ def dumb_ai_select_move(battleground, protagonist, ai):
         # failed moves
         with suppress(KeyError):
             if ai_pokemon.disabled_moves[move.name] > 0:
-                move_damage[index] = INFINITY * -1
-        if 'j' in move.flags and ai_pokemon.volatile_status["Turn"] > 1:
-            move_damage[index] = INFINITY * -1
+                move_damage[index] = NEG_INF
+        if 'j' in move.flags and ai_pokemon.volatile_status["Turn"] > 2:
+            move_damage[index] = NEG_INF
 
     print("")
     for index, move in enumerate(ai_pokemon.moveset):
@@ -151,11 +151,11 @@ def smart_ai_select_move(battleground, protagonist, ai):
         with suppress(KeyError):
             if ai_pokemon.disabled_moves[move.name] > 0:
                 move_score[index], move_damage[index] = NEG_INF, NEG_INF
-        if 'j' in move.flags and ai_pokemon.volatile_status["Turn"] > 1:
+        if 'j' in move.flags and ai_pokemon.volatile_status["Turn"] > 2:
             move_score[index], move_damage[index] = NEG_INF, NEG_INF
 
         # first-turn priority moves must use (e.g. first impression / fake out)
-        if 'j' in move.flags and ai_pokemon.volatile_status["Turn"] <= 1:
+        if 'j' in move.flags and ai_pokemon.volatile_status["Turn"] < 2:
             # in case of type immunity
             if move.damage >= 0:
                 return move

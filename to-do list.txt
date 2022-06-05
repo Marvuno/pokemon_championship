@@ -20,6 +20,7 @@
     21. compatible for Protagonist name and Protagonist object
     22. add PP/Struggle/Pressure
     23. easy mode/hard mode
+    24. add tutorial
 
 Ideas:
 1. use custom team?
@@ -36,8 +37,14 @@ bugs to fix:
 - aegislash should switch to blade forme when executing its move (fixed)
 - mummy ability revert when switch out (fixed)
 - poison type pokemon should not get poisoned by toxic spikes (fixed)
+- deduct/crash should not happen when pokemon does not execute move due to status condition (fixed)
+- sweet dreams doesn't work (not a bug)
+- semi-invulnerable not working (not a bug)
+- ai using fake out on turn 0 and 1 (fixed)
+- libero & protean typing in new battle (fixed)
 
 play_test needed:
 - weather_affecting moves
+- 'b' move flags (success)
 
 

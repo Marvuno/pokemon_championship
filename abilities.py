@@ -713,6 +713,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             if move.type == "Fire" or move.type == "Water":
                 move.damage *= 2
 
+    def illuminate(user_side, target_side, user, target, battleground, move, abilityphase):
+        # this ability does nothing
+        pass
+
     list_of_abilities = {
         "Cloud Nine": ((1, 8), cloudnine),
         "Drizzle": (1, drizzle),
@@ -853,6 +857,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Mummy': (7, mummy),
         'Punk Rock': ((4, 5), punkrock),
         'Instrumental': ((4, 5), instrumental, "Custom"),
+        'Illuminate': (1, illuminate),
     }
 
     try:

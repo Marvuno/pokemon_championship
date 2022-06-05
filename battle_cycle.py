@@ -77,6 +77,11 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
               hp_bar_display(opponent),
               "\n" + CEND)
 
+        # add turn
+        battleground.turn += 1
+        player.volatile_status['Turn'] += 1
+        opponent.volatile_status['Turn'] += 1
+
         # for ai simulation
         if battleground.verbose:
             player_move = smart_ai_select_move(battleground, competitor, protagonist)
@@ -88,11 +93,6 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
             opponent_move = smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 20 \
                 else dumb_ai_select_move(battleground, protagonist, competitor)
             # player_move, opponent_move = select_move(player), select_move(opponent)
-
-        # add turn
-        battleground.turn += 1
-        player.volatile_status['Turn'] += 1
-        opponent.volatile_status['Turn'] += 1
 
         # switching
         # activate for AI simulation

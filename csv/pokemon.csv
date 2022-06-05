@@ -1,5 +1,5 @@
 ID,Name,Type1,Type2,Type3,Ability,SAbility,HP,Atk,Def,SpA,SpDef,Spd,Total,Move1,Move2,Move3,Move4,Move5,Move6,Tier,Custom
-1,TwinkTwin,Bug,Fairy,,Shield Dust,Limber,60,40,45,100,90,133,468,Sweet Dreams,Struggle Bug,Lovely Kiss,Vacuum Wave,Gust,Mirror Coat,Low,Y
+1,Twinktwin,Bug,Fairy,,Shield Dust,Limber,60,40,45,100,90,133,468,Sweet Dreams,Struggle Bug,Lovely Kiss,Vacuum Wave,Gust,Mirror Coat,Low,Y
 2,Scorchrome,Fire,Ground,,Scorch,,68,96,64,96,83,102,509,Scorching Sands,Overheat,Accelerock,Flame Wheel,Sunny Day,,Medium,Y
 3,Charmorin,Normal,Fairy,,Moody,,98,94,63,75,126,60,516,Cling,Charming Tap,Sparkling Punch,Body Slam,Bounce,,Medium,Y
 4,Emmount,Ground,Rock,,Formation,,123,102,113,58,67,53,516,Rock Slide,Earthquake,Wood Hammer,Boulder Smash,,,Medium,Y
@@ -12,9 +12,9 @@ ID,Name,Type1,Type2,Type3,Ability,SAbility,HP,Atk,Def,SpA,SpDef,Spd,Total,Move1,
 11,Tanjiro,Water,Fire,,Dead Calm,,100,120,90,60,90,60,520,Close Combat,Solar Blade,Total Concentration,Nichirin Sword,,,Very High,Y
 12,Vindaxe,Rock,,,Goredrinker,,70,126,98,26,98,112,530,Battle Axe,Thunderclap,Taunt,Bulk Up,Flame Charge,,Very High,Y
 13,Akaza,Fighting,,,No Guard,,90,115,115,110,70,80,580,Focus Blast,Chaotic Shockwave,Flying Press,Work Up,Annihilation,,Very High,Y
-14,Chesiquen,Ground,Flying,,Queenly Majesty,,65,78,62,138,92,145,580,Time Pressure,Air Slash,Gambit,Sticky Web,Draining Kiss,,Very High,Y
-15,Krusadian Salamence,Ground,Dragon,,Moxie,Landlord,105,125,100,70,100,100,600,Dragon Crescent,Dragon Dance,Fireballs,Ground Slam,,,Very High,Y
-16,Dreadigo,Dark,Fairy,,Moxie,Mold Breaker,106,122,113,86,113,60,600,Spirit Break,Horn Leech,Bulk Up,Forest's Curse,Cannibalism,,Very High,Y
+14,Chesiquen,Ground,Flying,,Queenly Majesty,,65,78,62,138,92,145,580,Time Pressure,Air Slash,Gambit,Sticky Web,Draining Kiss,,Ultra High,Y
+15,Krusadian Salamence,Ground,Dragon,,Moxie,Landlord,105,125,100,70,100,100,600,Dragon Crescent,Dragon Dance,Fireballs,Ground Slam,,,Ultra High,Y
+16,Dreadigo,Dark,Fairy,,Moxie,Mold Breaker,106,122,113,86,113,60,600,Spirit Break,Horn Leech,Bulk Up,Forest's Curse,Cannibalism,,Ultra High,Y
 17,Pianotic,Normal,Ghost,,Instrumental,,105,64,93,124,111,112,609,Boomburst,Glissando,Eerie Rhythm,3-Hand Trick,Calm Mind,,Ultra High,Y
 18,Douma,Ice,,,Ice Scales,,100,40,100,140,100,130,610,Glaciate,Crystalline Clone,Bodhisattva,Lotus Petal,,,Ultra High,Y
 19,Kogoshaka,Dark,Psychic,,Bulletproof,Cursed Body,125,137,87,137,87,108,681,Hypnosis,Pyro Ball,Depraved Shriek,Crow Dance,,,Boss,Y
