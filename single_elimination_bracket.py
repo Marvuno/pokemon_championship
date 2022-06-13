@@ -8,8 +8,8 @@ class EntryBox:
 
 
 def structure(id, name, stage, score):
-    box = f'╔====╦{"=" * 32}╦===╦===╗\n' \
-          f'║ {id + " " * (3 - len(id))}║ {name + " " * (31 - len(name))}║ {stage} ║ {score} ║\n' \
-          f'╚====╩{"=" * 32}╩===╩===╝'
+    box = f'╔====╦{"=" * 34}╦===╦===╗\n' \
+          f'║ {id + " " * (3 - len(id))}║ {name + " " * (32 - len(name))} ║ {stage} ║ {score} ║\n' \
+          f'╚====╩{"=" * 34}╩===╩===╝'
     return box
 

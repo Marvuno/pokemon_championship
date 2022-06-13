@@ -10,6 +10,8 @@ class Battleground:
         self.weather_effect = Clear()
         self.artificial_weather = False
         self.battle_continuation = True
+        self.reality = True
+        self.sudden_death = False
         # stackable
         self.field_effect = {
             "Trick Room": 0,

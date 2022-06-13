@@ -28,10 +28,17 @@ def damage_calculation(user_side, target_side, user, target, battleground, move)
 # check whether Atk or SpA is used
 def check_attack_power(user, target, move):
     if move.attack_type == "Physical":  # physical
-        return (target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]) if move.targetAtk else \
-            (user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1])
+        if move.targetAtk:
+            return target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]
+        elif move.DefAsAtk:
+            return user.battle_stats[2] * 0.5 if user.status == "Burn" else user.battle_stats[2]
+        return user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1]
     elif move.attack_type == "Special":  # special
-        return target.battle_stats[3] if move.targetAtk else user.battle_stats[3]
+        if move.targetAtk:
+            return target.battle_stats[3]
+        elif move.DefAsAtk:
+            return user.battle_stats[4]
+        return user.battle_stats[3]
 
 
 # check whether Def or SpDef is used
@@ -61,7 +68,7 @@ def check_power_modifier(user_side, target_side, user, target, move):
         positive_modifier = sum([i if i > 0 else 0 for i in user.modifier])
         power += positive_modifier * 20
     # activate flash fire
-    if "Fire" in move.type and user.volatile_status['Flash Fire'] > 0:
+    if "Fire" in move.type and user.volatile_status['FlashFire'] > 0:
         power *= 1.5
     # custom retaliate move
     # the more pokemon fainted the stronger

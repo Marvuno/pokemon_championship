@@ -33,6 +33,7 @@ Strategy: Again, it has very high defense that is almost unbeatable. destiny bon
 
 2. Some existing pokemon are tweaked, including:
 - Alolan Exeggutor: ability changes to Long Reach
+- Duraludon: ability changes to Sand Force
 - Scizor: 600BST, equivalent to Mega Scizor
 - Dedenne: ability changes to Static
 
@@ -47,10 +48,12 @@ Moves
 2. Some moves are buffed, including:
 - Dark Void: sleep 50% --> 70%
 - Team Effects (e.g. Light Screen, Reflect, Aurora Veil and Tailwind) lasts for 8 turns (by default)
+- Field and Weather Effects (e.g. Rain Dance, Trick Room etc.) lasts for 8 turns (by default)
 - Techno Blast: now interchange type between normal and water (since this game has no items)
 - Water Shuriken: 15 power --> 20 power
 - Rock Climb: Normal type -- > Rock type
 - Disable: can now disable multiple moves
+- Glaciate: 65 power --> 80 power
 
 3. Some custom moves are added, including:
 - Cold Touch (Ice): 30 power, physical, priority move, 30% flinch
@@ -63,7 +66,7 @@ Moves
 - Enragement (Flying): 70 power, non-contact physical, power depends on number of pokemon fainted in user team (power range between 0 - 350)
 - Annihilation (Fighting): 240 power, physical, charging move, 25% recoil
 - Crystalline Clone (Ice): status, increase SpA and Evasion between 2 - 5 stages at 50% accuracy, depends on MultiHit formula (e.g. biased on around 2 - 3 stages)
-- Bodhisattva (Ground): 80 power, contact special, -2 priority, super-effective against flying type, increase Def and SpDef by 1 stage
+- Bodhisattva (Ground): 60 power, contact special, -2 priority, super-effective against flying type, increase SpDef by 1 stage
 - Lotus Petal (Grass): 60 power, special, priority move
 - Unbreakable Will (Fighting): status, increase ATK, DEF, SpA, SpDef, Spd by 1 stage, deduct 25% HP
 - Moon Slash (Dark): 80 power, physical, drain 25% HP
@@ -79,7 +82,7 @@ Moves
 - Sparkling Punch (Fairy): 80 power, physical, 30% flinch
 - Sweet Dreams (Fairy): status, bypass protection and accuracy, 60% sleep
 - Revenant Charge (Ghost): 100 power, physical, 50% lower target DEF by 1 stage
-- Battle Axe (Rock): 80 power, physical, drain 25% HP
+- Battle Axe (Rock): 65 power, physical, drain 25% HP
 - Thunderclap (Electric): 80 power, physical, 20% paralysis
 - Chaotic Shockwave (Electric): 80 power, physical, 30% flinch, sound-based move, can breakthrough protection
 - History Rewritten (Normal): status, encore, reset opponent stat stages and 50% confuse
@@ -88,12 +91,13 @@ Moves
 - Empyrean Glory (Flying): status, buff user DEF and SpDef by 1 stage, heal team status condition problem, heal 20%, clear weather
 - Draconic Blade (Dragon): 90 power, physical, 30% reduce target Spd and Eva. by 1 stage, 30% frighten
 - Ground Slam (Ground): 100 power, non-contact physical, 50% confuse
-- Glissando (Flying): 100 power, special, sound-based, 30% flinch
-- Eerie Rhythm (Ghost): 80 power, special, sound-based, 10% reduce target SpDef by 1 stage, 10% confuse
+- Glissando (Flying): 80 power, special, sound-based, 30% flinch
+- Eerie Rhythm (Ghost): 70 power, special, sound-based, 10% reduce target SpDef by 1 stage, 10% confuse
 - 3-Hand Trick (Fairy): 20 power, special, double power for each successive hit
 - Cannibalism (Dark): 75 power, physical, drain 50% HP, if directly cause faint drain another 50% HP
 - Time Pressure (Ground): 40 power, special, the higher the relative speed the higher the dmg (ref: electro ball)
-- Gambit (Normal): status, deduct 33% HP to increase SpDef, SpA and Spd by 1 stage, can only use at the first turn
+- Gambit (Normal): status, increase SpDef, SpA and Spd by 1 stage, can only use at the first turn
+- Twin Shadows (Normal): status, increase Evasion by 2 stages
 
 
 
@@ -117,6 +121,7 @@ Abilities
 
 3. Some abilities are nerfed, including:
 - Heatproof: it will no longer prevent Burn status ailment
+- Battle Bond: it now only multiplies the power of Water Shuriken by 1.5
 
 
 

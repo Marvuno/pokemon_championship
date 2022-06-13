@@ -15,8 +15,8 @@ class Move:
     def __init__(self, name, power, attack_type, type, accuracy, pp,
                  ignoreEvasion=False, ignoreDef=False, ignoreWeather=False, ignoreType=[], ignoreImmunity=[],
                  ignoreBarrier=False, ignoreAbility=False, ignoreInvulnerability=False,
-                 targetAtk=False, inverseDef=False, multiType=[], interchangeType=[],
-                 charging="", crit=0, priority=0, recoil=0, deduct=0, crash=0, multi=[False, 1, False], flags='', custom=False,
+                 targetAtk=False, inverseDef=False, DefAsAtk=False, multiType=[], interchangeType=[],
+                 charging="", crit=0, priority=0, recoil=0, deduct=0, crash=0, multi=[0, 1], flags='', custom=False,
                  effect_type="no_effect", special_effect="", effect_accuracy=1):
         self.name = name
         self.power = power
@@ -38,6 +38,7 @@ class Move:
         self.ignoreInvulnerability = ignoreInvulnerability
         self.targetAtk = targetAtk
         self.inverseDef = inverseDef
+        self.DefAsAtk = DefAsAtk
         self.multiType = multiType
         self.interchangeType = interchangeType
         self.charging = charging
@@ -183,7 +184,7 @@ list_of_moves = {
                          effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.3),
 
     'Bone Rush': Move(name="Bone Rush", power=25, attack_type="Physical", type="Ground", accuracy=0.9, pp=10,
-                      crit=0, priority=0, multi=[True, 5, False]),
+                      crit=0, priority=0, multi=[1, 5]),
 
     'Boomburst': Move(name="Boomburst", power=140, attack_type="Special", type="Normal", accuracy=1, pp=10, flags='f'),
 
@@ -236,7 +237,7 @@ list_of_moves = {
                        crit=0, priority=1, flags='ae'),
 
     'Bullet Seed': Move(name="Bullet Seed", power=25, attack_type="Physical", type="Grass", accuracy=1, pp=30,
-                        crit=0, priority=0, multi=[True, 5, False], flags='i'),
+                        crit=0, priority=0, multi=[1, 5], flags='i'),
 
     'Calm Mind': Move(name="Calm Mind", power=0, attack_type="Status", type="Psychic", accuracy=GUARANTEE_ACCURACY, pp=20,
                       crit=0, priority=0, recoil=0, flags='b',
@@ -275,8 +276,7 @@ list_of_moves = {
                          effect_type="opponent_modifier", special_effect=[0, 0, 0, 0, 0, -2, 0, 0, 0]),
 
     'Counter': Move(name="Counter", power=0, attack_type="Status", type="Fighting", accuracy=1, pp=20,
-                    priority=-5,
-                    effect_type="countering"),
+                    priority=-5, effect_type="countering"),
 
     'Crabhammer': Move(name="Crabhammer", power=100, attack_type="Physical", type="Water", accuracy=0.9, pp=10,
                        crit=1, priority=0, flags='a'),
@@ -316,16 +316,16 @@ list_of_moves = {
                       effect_type="target_non_volatile", special_effect=Paralysis, effect_accuracy=0.3),
 
     'Double Hit': Move(name="Double Hit", power=35, attack_type="Physical", type="Normal", accuracy=0.9, pp=10,
-                       crit=0, priority=0, multi=[False, 2, False], flags='a'),
+                       crit=0, priority=0, multi=[0, 2], flags='a'),
 
     'Dual Wingbeat': Move(name="Dual Wingbeat", power=40, attack_type="Physical", type="Flying", accuracy=0.9, pp=10,
-                       crit=0, priority=0, multi=[False, 2, False], flags='a'),
+                       crit=0, priority=0, multi=[0, 2], flags='a'),
 
     'Bonemerang': Move(name="Bonemerang", power=50, attack_type="Physical", type="Ground", accuracy=0.9, pp=10,
-                       crit=0, priority=0, multi=[False, 2, False]),
+                       crit=0, priority=0, multi=[0, 2]),
 
     'Double Kick': Move(name="Double Kick", power=30, attack_type="Physical", type="Fighting", accuracy=1, pp=30,
-                        crit=0, priority=0, multi=[False, 2, False], flags='a'),
+                        crit=0, priority=0, multi=[0, 2], flags='a'),
 
     'Double-Edge': Move(name="Double-Edge", power=120, attack_type="Physical", type="Normal", accuracy=1, pp=15,
                         crit=0, priority=0, recoil=1 / 3, flags='a'),
@@ -359,7 +359,7 @@ list_of_moves = {
                            effect_type="opponent_modifier", special_effect=[0, -1, 0, 0, 0, 0, 0, 0, 0]),
 
     'Dragon Darts': Move(name="Dragon Darts", power=50, attack_type="Physical", type="Dragon", accuracy=1, pp=10,
-                         crit=0, priority=0, multi=[False, 2, False]),
+                         crit=0, priority=0, multi=[0, 2]),
 
     'Dragon Hammer': Move(name="Dragon Hammer", power=90, attack_type="Physical", type="Dragon", accuracy=1, pp=15, flags='a'),
 
@@ -379,7 +379,7 @@ list_of_moves = {
                       crit=1, priority=0, flags='a'),
 
     'Dual Chop': Move(name="Dual Chop", power=40, attack_type="Physical", type="Dragon", accuracy=0.9, pp=15,
-                      crit=0, priority=0, multi=[False, 2, False], flags='a'),
+                      crit=0, priority=0, multi=[0, 2], flags='a'),
 
     'Earth Power': Move(name="Earth Power", power=90, attack_type="Special", type="Ground", accuracy=1, pp=10,
                         crit=0, priority=0, recoil=0,
@@ -534,7 +534,7 @@ list_of_moves = {
                         crit=0, priority=0, recoil=0,
                         effect_type="hp_draining", special_effect=0.5),
 
-    'Glaciate': Move(name="Glaciate", power=65, attack_type="Special", type="Ice", accuracy=0.95, pp=10,
+    'Glaciate': Move(name="Glaciate", power=80, attack_type="Special", type="Ice", accuracy=0.95, pp=10,
                      crit=0, priority=0, recoil=0,
                      effect_type="opponent_modifier", special_effect=[0, 0, 0, 0, 0, -1, 0, 0, 0]),
 
@@ -631,7 +631,7 @@ list_of_moves = {
                       crit=0, priority=1, flags='a'),
 
     'Icicle Spear': Move(name="Icicle Spear", power=25, attack_type="Physical", type="Ice", accuracy=1, pp=30,
-                         crit=0, priority=0, multi=[True, 5, False]),
+                         crit=0, priority=0, multi=[1, 5]),
 
     'Iron Defense': Move(name="Iron Defense", power=0, attack_type="Status", type="Steel", accuracy=GUARANTEE_ACCURACY, pp=20,
                          crit=0, priority=0, recoil=0, flags='b',
@@ -723,8 +723,7 @@ list_of_moves = {
                        crit=0, priority=0, deduct=0.5),
 
     'Mirror Coat': Move(name="Mirror Coat", power=0, attack_type="Status", type="Psychic", accuracy=1, pp=20,
-                        crit=0, priority=-5, recoil=0,
-                        effect_type="countering"),
+                        crit=0, priority=-5, recoil=0, effect_type="countering"),
 
     'Moonblast': Move(name="Moonblast", power=95, attack_type="Special", type="Fairy", accuracy=1, pp=15,
                       crit=0, priority=0, recoil=0,
@@ -775,7 +774,7 @@ list_of_moves = {
                           charging="Semi-invulnerable", flags='a'),
 
     'Pin Missile': Move(name="Pin Missile", power=25, attack_type="Physical", type="Bug", accuracy=0.9, pp=20,
-                        crit=0, priority=0, multi=[True, 5, False]),
+                        crit=0, priority=0, multi=[1, 5]),
     'Play Rough': Move(name="Play Rough", power=90, attack_type="Physical", type="Fairy", accuracy=0.9, pp=10,
                        crit=0, priority=0, recoil=0, flags='a',
                        effect_type="opponent_modifier", special_effect=[0, -1, 0, 0, 0, 0, 0, 0, 0], effect_accuracy=0.1),
@@ -865,16 +864,16 @@ list_of_moves = {
                     effect_type="after_hand"),
 
     'Rock Blast': Move(name="Rock Blast", power=25, attack_type="Physical", type="Rock", accuracy=0.9, pp=10,
-                       crit=0, priority=0, multi=[True, 5, False], flags='i'),
+                       crit=0, priority=0, multi=[1, 5], flags='i'),
 
     'Tail Slap': Move(name="Tail Slap", power=25, attack_type="Physical", type="Normal", accuracy=0.85, pp=10,
-                       crit=0, priority=0, multi=[True, 5, False], flags='a'),
+                       crit=0, priority=0, multi=[1, 5], flags='a'),
 
     'Fireballs': Move(name="Fireballs", power=25, attack_type="Physical", type="Fire", accuracy=0.9, pp=10,
-                       crit=0, priority=0, multi=[True, 5, False], flags='i'),
+                       crit=0, priority=0, multi=[1, 5], flags='i'),
 
     'Water Shuriken': Move(name="Water Shuriken", power=20, attack_type="Special", type="Water", accuracy=1, pp=20,
-                           crit=0, priority=1, multi=[True, 5, False]),
+                           crit=0, priority=1, multi=[1, 5]),
 
     'Rock Slide': Move(name="Rock Slide", power=75, attack_type="Physical", type="Rock", accuracy=0.9, pp=10,
                        crit=0, priority=0, recoil=0,
@@ -1193,7 +1192,7 @@ list_of_moves = {
                         effect_type="user_volatile", special_effect=Ungrounded),
 
     'Double Sickle': Move(name="Double Sickle", power=50, attack_type="Physical", type="Ghost", accuracy=0.9, pp=10,
-                          crit=0, priority=0, recoil=0, multi=[False, 2, False], flags='a', custom=True,
+                          crit=0, priority=0, recoil=0, multi=[0, 2], flags='a', custom=True,
                           effect_type=["target_non_volatile", "hp_draining"], special_effect=[Poison, 0.15], effect_accuracy=0.2),
 
     'Octolock': Move(name="Octolock", power=0, attack_type="Status", type="Fighting", accuracy=1, pp=15,
@@ -1209,22 +1208,22 @@ list_of_moves = {
                          crit=0, priority=0, recoil=1 / 4, flags='a', custom=True, charging="Charging"),
 
     'Crystalline Clone': Move(name="Crystalline Clone", power=0, attack_type="Status", type="Ice", accuracy=GUARANTEE_ACCURACY, pp=10,
-                              crit=0, priority=0, multi=[True, 5, False], custom=True, flags='b',
+                              crit=0, priority=0, multi=[1, 5], custom=True, flags='b',
                               effect_type="self_modifier", special_effect=[0, 0, 0, 1, 0, 0, 0, 1, 0], effect_accuracy=0.5),
 
-    'Bodhisattva': Move(name="Bodhisattva", power=80, attack_type="Special", type="Ground", accuracy=1, pp=10,
+    'Bodhisattva': Move(name="Bodhisattva", power=60, attack_type="Special", type="Ground", accuracy=1, pp=10,
                         crit=0, priority=-2, custom=True, flags='a', ignoreType=["Flying"],
-                        effect_type="self_modifier", special_effect=[0, 0, 1, 0, 1, 0, 0, 0, 0]),
+                        effect_type="self_modifier", special_effect=[0, 0, 0, 0, 1, 0, 0, 0, 0]),
 
     'Lotus Petal': Move(name="Lotus Petal", power=60, attack_type="Special", type="Grass", accuracy=1, pp=20,
-                        crit=0, priority=1, custom=True, ),
+                        crit=0, priority=1, custom=True),
 
     'Unbreakable Will': Move(name="Unbreakable Will", power=0, attack_type="Status", type="Fighting", accuracy=GUARANTEE_ACCURACY, pp=5,
-                             crit=0, priority=0, deduct=1 / 4, flags='b', custom=True,
+                             crit=0, priority=0, deduct=1/4, flags='b', custom=True,
                              effect_type="self_modifier", special_effect=[0, 1, 1, 1, 1, 1, 0, 0, 0]),
 
     'Clangorous Soul': Move(name="Clangorous Soul", power=0, attack_type="Status", type="Dragon", accuracy=GUARANTEE_ACCURACY, pp=5,
-                             crit=0, priority=0, deduct=1 / 3, flags='b',
+                             crit=0, priority=0, deduct=1/3, flags='b',
                              effect_type="self_modifier", special_effect=[0, 1, 1, 1, 1, 0, 0, 0, 0]),
 
     'Moon Slash': Move(name="Moon Slash", power=80, attack_type="Physical", type="Dark", accuracy=1, pp=15,
@@ -1233,7 +1232,7 @@ list_of_moves = {
 
     'Dragon Crescent': Move(name="Dragon Crescent", power=80, attack_type="Physical", type="Dragon", accuracy=1, pp=10,
                             crit=1, priority=0, flags='a', custom=True,
-                            effect_type="target_non_volatile", special_effect=Flinch, effect_accuracy=0.2),
+                            effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.2),
 
     'First Strike': Move(name="First Strike", power=60, attack_type="Physical", type="Steel", accuracy=1, pp=20,
                          crit=0, priority=2, flags='a', custom=True),
@@ -1281,7 +1280,7 @@ list_of_moves = {
                         crit=0, priority=0, custom=True, flags='a',
                         effect_type="opponent_modifier", special_effect=[0, 0, -1, 0, 0, 0, 0, 0, 0], effect_accuracy=0.5),
 
-    'Battle Axe': Move(name="Battle Axe", power=80, attack_type="Physical", type="Rock", accuracy=1, pp=15,
+    'Battle Axe': Move(name="Battle Axe", power=65, attack_type="Physical", type="Rock", accuracy=1, pp=15,
                             crit=0, priority=0, custom=True, flags='a',
                             effect_type="hp_draining", special_effect=0.25),
 
@@ -1314,23 +1313,23 @@ list_of_moves = {
                          effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, 0, -1, 0], Frighten], effect_accuracy=0.3),
 
     'Empyrean Glory': Move(name="Empyrean Glory", power=0, attack_type="Status", type="Flying", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b', custom=True,
-                              effect_type=["self_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 0, 0, 0], "",0.2, Clear]),
+                              effect_type=["self_modifier", "team_status_heal", "self_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 0, 0, 0], "", 0.2, Clear]),
 
     'Draconic Blade': Move(name="Draconic Blade", power=90, attack_type="Physical", type="Dragon", accuracy=1, pp=10, flags='a', custom=True,
                            effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, -1, 0, 0], Frighten], effect_accuracy=0.3),
 
-    'Glissando': Move(name="Glissando", power=100, attack_type="Special", type="Flying", accuracy=0.9, pp=10, flags='f', custom=True,
+    'Glissando': Move(name="Glissando", power=80, attack_type="Special", type="Flying", accuracy=0.9, pp=10, flags='f', custom=True,
                            effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.3),
 
-    'Eerie Rhythm': Move(name="Eerie Rhythm", power=80, attack_type="Special", type="Ghost", accuracy=1, pp=15,
+    'Eerie Rhythm': Move(name="Eerie Rhythm", power=70, attack_type="Special", type="Ghost", accuracy=1, pp=15,
                         crit=0, priority=0, recoil=0, flags='f', custom=True,
                         effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, -1, 0, 0, 0, 0], Confused], effect_accuracy=0.1),
 
     'Triple Axel': Move(name="Triple Axel", power=20, attack_type="Physical", type="Ice", accuracy=0.9, pp=10,
-                         crit=0, priority=0, recoil=0, flags='a', multi=[False, 3, True]),
+                         crit=0, priority=0, recoil=0, flags='a', multi=[2, 3]),
 
     '3-Hand Trick': Move(name="3-Hand Trick", power=20, attack_type="Special", type="Fairy", accuracy=0.9, pp=10,
-                        crit=0, priority=0, recoil=0, multi=[False, 3, True], custom=True),
+                        crit=0, priority=0, recoil=0, multi=[2, 3], custom=True),
 
     'Forest\'s Curse': Move(name="Forest's Curse", power=0, attack_type="Status", type="Grass", accuracy=1, pp=20,
                       effect_type="add_target_type", special_effect=["Grass"]),
@@ -1342,6 +1341,34 @@ list_of_moves = {
     'Time Pressure': Move(name="Time Pressure", power=40, attack_type="Special", type="Ground", accuracy=1, pp=10, custom=True),
 
     'Gambit': Move(name="Gambit", power=0, attack_type="Status", type="Normal", accuracy=GUARANTEE_ACCURACY, pp=20,
-                         crit=0, priority=0, recoil=0, deduct=1/3, flags='bj', custom=True,
+                         crit=0, priority=0, recoil=0, flags='bj', custom=True,
                          effect_type="self_modifier", special_effect=[0, 0, 0, 1, 1, 1, 0, 0, 0]),
+
+    'Twin Shadows': Move(name="Twin Shadows", power=0, attack_type="Status", type="Normal", accuracy=GUARANTEE_ACCURACY, pp=15,
+                        crit=0, priority=0, recoil=0, flags='b', custom=True,
+                        effect_type="self_modifier", special_effect=[0, 0, 0, 0, 0, 0, 2, 0, 0]),
+
+    'Swagger': Move(name="Swagger", power=0, attack_type="Status", type="Normal", accuracy=0.85, pp=15,
+                     effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 2, 0, 0, 0, 0, 0, 0, 0], Confused]),
+
+    'Metal Burst': Move(name="Metal Burst", power=0, attack_type="Status", type="Steel", accuracy=1, pp=10,
+                    priority=0, effect_type="countering"),
+
+    'Snore': Move(name="Snore", power=50, attack_type="Special", type="Normal", accuracy=1, pp=15,
+                            effect_type="target_volatile", special_effect=Flinch, effect_accuracy=0.3),
+
+    'Fire Lash': Move(name="Fire Lash", power=80, attack_type="Physical", type="Fire", accuracy=1, pp=15,
+                       crit=0, priority=0, recoil=0, flags='a',
+                       effect_type="opponent_modifier", special_effect=[0, 0, -1, 0, 0, 0, 0, 0, 0]),
+
+    'Dive': Move(name="Dive", power=80, attack_type="Physical", type="Water", accuracy=1, pp=10,
+                charging="Semi-invulnerable", flags='a'),
+
+    'Body Press': Move(name="Body Press", power=80, attack_type="Physical", type="Fighting", accuracy=1, pp=10,
+                 DefAsAtk=True, flags='a'),
+
+    'Petal Blizzard': Move(name="Petal Blizzard", power=90, attack_type="Physical", type="Grass", accuracy=1, pp=15),
+
+    'Apple Acid': Move(name="Apple Acid", power=80, attack_type="Special", type="Grass", accuracy=1, pp=10,
+                      effect_type="opponent_modifier", special_effect=[0, 0, 0, 0, -1, 0, 0, 0, 0]),
 }

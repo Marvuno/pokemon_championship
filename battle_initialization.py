@@ -1,4 +1,5 @@
 from abilities import *
+import numpy as np
 
 
 def switched_in_initialization(user_side, opponent_side, user, opponent, battleground):
@@ -13,11 +14,13 @@ def switched_in_initialization(user_side, opponent_side, user, opponent, battleg
 
 def multi_strike_move(move):
     # variable multi-strike move
-    if move.multi[0]:
-        return random.choice([2] * 35 + [3] * 35 + [4] * 15 + [5] * 15)
-    elif move.multi[2]:  # for move like triple axel
-        return random.choice([1] * 90 + [2] * 81 + [3] * 729)
-    return 1
+    if move.multi[0] == 1:
+        return np.random.choice([2, 3, 4, 5], p=[0.35, 0.35, 0.15, 0.15])
+    elif move.multi[0] == 2:  # for move like triple axel
+        strikes = np.random.choice([0, 1, 2, 3], p=[(1 - move.accuracy), (1 - move.accuracy) * move.accuracy, (1 - move.accuracy) * (move.accuracy ** 2), move.accuracy ** 3])
+        move.accuracy = 1
+        return strikes
+    return move.multi[1]
 
 
 def pre_move_adjustment(user_side, opponent_side, user, opponent, battleground, move):
@@ -26,8 +29,6 @@ def pre_move_adjustment(user_side, opponent_side, user, opponent, battleground, 
             print(f"{user.name} used Metronome.")
             metronome_move_list = list(set(list_of_moves.keys()) - {"Baneful Bunker", "Counter", "Protect", "King's Shield", "Mirror Coat", "Metronome"})
             move = list_of_moves[random.choice(metronome_move_list)]
-        # variable multi-strike move
-        if move.multi[0]:
-            move.multi[1] = random.choice([2] * 35 + [3] * 35 + [4] * 15 + [5] * 15)
         UseAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)
+    user.move_order.append(move.name)
     return move

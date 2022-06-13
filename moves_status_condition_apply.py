@@ -3,7 +3,7 @@ from constants import *
 
 
 def Flinch(effect_accuracy):
-    return ["Flinched", 1] if random.random() <= effect_accuracy else ["", 0]
+    return ["Flinch", 1] if random.random() <= effect_accuracy else ["", 0]
 
 
 def Confused(effect_accuracy):
@@ -55,11 +55,11 @@ def Octolock(effect_accuracy):
 
 
 def DestinyBond(effect_accuracy):
-    return ["Destiny Bond", 1] if random.random() <= effect_accuracy else ["", 0]
+    return ["DestinyBond", 1] if random.random() <= effect_accuracy else ["", 0]
 
 
 def PerishSong(effect_accuracy):
-    return ["Perish Song", 1] if random.random() <= effect_accuracy else ["", 0]
+    return ["PerishSong", 1] if random.random() <= effect_accuracy else ["", 0]
 
 
 def Torment(effect_accuracy):
@@ -79,11 +79,11 @@ def Ungrounded(effect_accuracy):
 
 
 def TotalConcentration(effect_accuracy):
-    return ["Total Concentration", 1] if random.random() <= effect_accuracy else ["", 0]
+    return ["TotalConcentration", 1] if random.random() <= effect_accuracy else ["", 0]
 
 
 def LeechSeed(effect_accuracy):
-    return ["Leech Seed", 1] if random.random() <= effect_accuracy else ["", 0]
+    return ["LeechSeed", 1] if random.random() <= effect_accuracy else ["", 0]
 
 
 def Ingrain(effect_accuracy):
@@ -91,8 +91,8 @@ def Ingrain(effect_accuracy):
 
 
 def AquaRing(effect_accuracy):
-    return ["Aqua Ring", 1] if random.random() <= effect_accuracy else ["", 0]
+    return ["AquaRing", 1] if random.random() <= effect_accuracy else ["", 0]
 
 
 def TakeAim(effect_accuracy):
-    return ["Take Aim", 2] if random.random() <= effect_accuracy else ["", 0]
+    return ["TakeAim", 2] if random.random() <= effect_accuracy else ["", 0]

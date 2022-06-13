@@ -21,15 +21,37 @@ Entry Hazard
 0 Stealth Rock | 1 Spikes | 2 Toxic Spikes | 3 Sticky Web
 
 Multi-Strike Move
-0: False = Fixed | True = Variable
+0: 0: Fixed, 1: Variable, 2: Triple Hit
 1: Max. no. of strikes
-2: False = No Power Adjustment | True = Double Power when Hit
 
 Move Special Effect
-0 no_effect | 1 target_non_volatile | 2 target_volatile | 9 user_volatile | 3 opponent_modifier | 4 self_modifier | 5 self_heal | 6 weather_effect | 7 apply_entry_hazard
-8 hp_draining | 9 reset_user_modifier | 10 reset_target_modifier | 11 clear_entry_hazard | 12 charging (including charging, semi-invulnerable, frenzy) | 13 switching
-14 user_protection | 15 countering | 16 self_team_buff | 17 field_effect | 18 after_hand | 19 hp_split | 20 target_disable | 21 modifier_dependent | 22 remove_team_buff
-23 swap_barrier | 24 add_target_type
+0 no_effect
+1 target_non_volatile
+2 target_volatile
+3 user_volatile
+4 opponent_modifier
+5 self_modifier
+6 self_heal
+7 hp_draining
+8 weather_effect
+9 field_effect
+10 self_team_buff
+11 remove_team_buff
+12 apply_entry_hazard
+13 clear_entry_hazard
+14 charging (including charging, semi-invulnerable, frenzy)
+15 switching
+16 reset_user_modifier
+17 reset_target_modifier
+18 user_protection
+19 countering
+20 hp_split
+21 before_hand
+22 after_hand
+23 modifier_dependent
+24 target_disable
+25 swap_barrier
+26 add_target_type
 
 Ability Phase
 1 Start (Beginning/Switched)

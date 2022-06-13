@@ -28,7 +28,7 @@ import os
 
 def user_turn_in_battle_stats(user_side, user):
     # decrease with turns
-    diminishing_volatile_status = ['Confused', 'Frighten', 'Destiny Bond', 'Torment', 'Binding', 'Yawn']
+    diminishing_volatile_status = ['Confused', 'Frighten', 'DestinyBond', 'Torment', 'Binding', 'Yawn']
     # increase with turns
     increment_volatile_status = []
     for status in diminishing_volatile_status:
@@ -53,7 +53,7 @@ def onWeatherCheck(battleground, move):
                 move.power /= 2
         elif battleground.weather_effect.id == 1:  # Sunny
             if move.name == "Solar Beam" or move.name == "Solar Blade":
-                move.charging = 0
+                move.charging = ""
             elif move.name == "Thunder":
                 move.accuracy /= 2
         elif battleground.weather_effect.id == 2:  # rain
@@ -73,10 +73,7 @@ def onParticularMoveChange(user, target, move):
         move.power *= 2
     elif move.name == "Venoshock" and (target.status == "Poison" or target.status == "BadPoison"):
         move.power *= 2
-    elif move.name == "Electro Ball":
-        relative_speed = target.battle_stats[5] / user.battle_stats[5]
-        move.power = 40 if relative_speed > 1 else 60 if relative_speed > 0.5 else 80 if relative_speed > 0.3333 else 120 if relative_speed > 0.25 else 150
-    elif move.name == "Time Pressure":
+    elif move.name in ("Electro Ball", "Time Pressure"):
         relative_speed = target.battle_stats[5] / user.battle_stats[5]
         move.power = 40 if relative_speed > 1 else 60 if relative_speed > 0.5 else 80 if relative_speed > 0.3333 else 120 if relative_speed > 0.25 else 150
     elif move.name == "Facade" and user.status != "Normal":
@@ -86,7 +83,7 @@ def onParticularMoveChange(user, target, move):
     elif move.name == "Acupressure":
         user.applied_modifier[random.randint(1, 7)] += 2
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
-    if target.volatile_status['Take Aim'] > 0:
+    if target.volatile_status['TakeAim'] > 0:
         move.accuracy = GUARANTEE_ACCURACY
     if move.charging in ("Charging", "Semi-invulnerable") and user.charging[0] == "":
         move.accuracy = GUARANTEE_ACCURACY
@@ -134,6 +131,9 @@ def move_fail_checklist_before_execution(user, target, move, target_move):
     elif move.name == "Dream Eater" and target.status != "Sleep":
         print("The move failed.")
         return True
+    elif move.name == "Snore" and user.status != "Sleep":
+        print("The move failed.")
+        return True
     # powder moves
     elif 'g' in move.flags and 'Grass' in target.type:
         print("The move failed.")
@@ -154,10 +154,15 @@ def move_fail_checklist_during_execution(user, target, move, target_move):
                     move.power *= 2
                     target.charging = ["", "", 0]
                     return False
+            elif target.charging[0] == "Dive":
+                if move.name == "Whirlpool" or move.name == "Surf":
+                    move.power *= 2
+                    target.charging = ["", "", 0]
+                    return False
             if 'b' in move.flags:
                 return False
             return True
-    if (target.protection[0] > 0 or target.status == "Fainted") and 'b' not in move.flags:  # being protected
+    if target.protection[0] > 0 and 'b' not in move.flags:  # being protected
         # hardcode protective effects
         if 'a' in move.flags:
             # king's shield
@@ -172,6 +177,9 @@ def move_fail_checklist_during_execution(user, target, move, target_move):
                         user.status = "Poison"
         print("Opponent Pokemon protected the move.")
         return True
+    elif target.status == "Fainted" and 'b' not in move.flags:  # fainted already
+        print("Opponent Pokemon is already fainted!")
+        return True
     return False
 
 
@@ -185,12 +193,12 @@ def other_effect_when_use_move(user, target, battleground, move):
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
         target.modifier = [0 if modifier > 0 else modifier for modifier in target.modifier]
     # double power when hit
-    if move.multi[2]:
+    if move.multi == 2:
         move.power *= 2
 
 
 def fainting_blow_move_effect(user, target, move):
-    if target.volatile_status['Destiny Bond'] > 0:
+    if target.volatile_status['DestinyBond'] > 0:
         user.battle_stats[0] = 0
         print(f"{user.name} is affected by destiny bond!")
     if move.name == "Fell Stinger":

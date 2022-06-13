@@ -24,6 +24,7 @@ from game_system import *
 from moves import *
 from battle_move_execution import *
 from battle_win_condition import *
+from battle_initialization import *
 import os
 
 
@@ -137,7 +138,6 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
         onWeatherCheck(battleground, move)
         onParticularMoveChange(user, target, move)
         UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
-
         move.accuracy = move.accuracy * modifierChart[7][user.modifier[7]] * (1 / (modifierChart[6][0]) * move.evasion) if move.ignoreEvasion else \
             move.accuracy * modifierChart[7][user.modifier[7]] * (1 / (modifierChart[6][target.modifier[6]] * move.evasion))
 
@@ -221,15 +221,19 @@ def check_fainted(user, target):
 def hp_decreasing_modifier(pokemon, target, battleground):
     # status condition
     if pokemon.status == "Poison":  # regular poison
-        print(f"The Poison has eroded {pokemon.name} {pokemon.hp // 8} HP.")
+        print(f"The Poison has eroded {pokemon.name} {max(1, pokemon.hp // 8)} HP.")
         pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
     elif pokemon.status == "BadPoison":  # bad poison
         pokemon.volatile_status["NonVolatile"] += 1
-        print(f"The Bad Poison has eroded {pokemon.name} {pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16} HP.")
+        print(f"The Bad Poison has eroded {pokemon.name} {max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)} HP.")
         pokemon.battle_stats[0] -= max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)
     elif pokemon.status == "Burn":  # burn
-        print(f"The Burn has burned away {pokemon.name} {pokemon.hp // 16} HP.")
+        print(f"The Burn has burned away {pokemon.name} {max(1, pokemon.hp // 16)} HP.")
         pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
+    # sudden death
+    if battleground.sudden_death:
+        print(f"The dark energy has eroded {pokemon.name} {max(1, pokemon.hp // 4)} HP.")
+        pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
 
     # weather effect
     if battleground.weather_effect.id == 3:  # sandstorm
@@ -252,17 +256,17 @@ def hp_decreasing_modifier(pokemon, target, battleground):
         print(f"The curse has damaged {pokemon.name} {pokemon.hp // 4} HP.")
         pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
     # leech seed
-    if pokemon.volatile_status['Leech Seed'] > 0:
+    if pokemon.volatile_status['LeechSeed'] > 0:
         print(f"Leech seed has drained {pokemon.name} {pokemon.hp // 8} HP.")
         pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
-    if target.volatile_status['Leech Seed'] > 0:
+    if target.volatile_status['LeechSeed'] > 0:
         pokemon.battle_stats[0] += max(1, min(target.hp // 8, pokemon.hp - pokemon.battle_stats[0]))
     # ingrain
     if pokemon.volatile_status['Ingrain'] > 0:
         print(f"Ingrain roots has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
         pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
     # aqua ring
-    if pokemon.volatile_status['Aqua Ring'] > 0:
+    if pokemon.volatile_status['AquaRing'] > 0:
         print(f"Aqua ring has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
         pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
 

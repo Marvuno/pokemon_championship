@@ -17,7 +17,7 @@ def custom_team(participant):
 
             if participant.raw_id == raw_id:
                 pokemon = deepcopy(list_of_pokemon[pokemon])
-                pokemon.iv = [random.randint(iv, 31) for _ in range(6)]
+                pokemon.iv = [random.randint(iv, max(31, iv)) for _ in range(6)]
                 pokemon.ability = ability
                 pokemon.moveset = moveset
                 participant.team.append(pokemon)

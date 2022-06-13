@@ -1,3 +1,62 @@
+Pokemon Championship v1.0.7 (AI Update)
+
+AI
+- added new additional effects for smart AI to evaluate
+- added a new comprehensive scoring system for smart AI
+- added basic description for the AI
+- redevelop smart AI to be less willing to switch and more willing to attack, especially at desperate moment
+- smart AI will no longer spam self-modifying moves
+- smart AI now forbids entering into switching loop
+- smart AI will look upon special conditions for some moves (e.g. dream eater, sucker punch, destiny bond etc.)
+- smart AI will now consider before using health-deducting moves (e.g. explosion and belly drum)
+- updated AI switching mechanism
+- smart AI will attempt to predict moves
+
+In-Game Changes
+- Nerf: Bodhisattva, Battle Axe, Glissando, Eerie Rhythm
+- Buff: Glaciate, Gambit
+
+Added
+- added a proper and appropriately dumb auto-battle AI (worse than dumb AI)
+- added favorite opponent
+- added tutorial for beginners
+- added "keep all" function for player when crowned Champion
+- new tiebreak (opponent score) has been added to reflect on overall performance of the participant
+- special symbol to highlight high-valued Champion and low-valued Champion based on opponent score
+- display opponent Pokemon stats upon victory (convenient for choosing)
+- display player Pokemon stats for swapping
+- display total Pokemon stats for easier comparison
+- added sudden death to shorten game time
+- now displays no. of world champion of the participant (and bold them)
+- new batch of original Pokemon, with some new moves and abilities
+
+
+Changed
+- added custom function for ability Illuminate
+- amended wordings on Ash Ketchum's description
+- adjusted elo rating formula to be more vigorous
+- volatile status in battle now displays only when necessary (cleaner interface)
+- formula where participants receive Pokemon of different tiers based on ratings is now harsher
+- updated multi-strike metrics
+- added number of pokemon based on tier for AI simulation
+
+Fixed
+- multi-strike moves now function according to the formula properly
+- when fast-moving pokemon affects any battle stats, slow-moving pokemon's moves does not account for such change immediately
+- skill link not activated before multi-strike calculation
+- rough skin will no longer attack target that does no damage to user (including charging move)
+- countering moves now function as intended when opponent missed the move (instead of error)
+- obtained pokemon upon defeat now distributes IV according to player strength/ratings
+- aegislash will now change name and reset base stats after battle
+- zoroark illusion will no longer revert its typing when it is not hit or revealed
+- zoroark illusion now partially misleads AI (when considering its typing only)
+- recursion error in AI simulation is now non-existent due to sudden death
+
+Known Bugs
+- if there is only 1 Pokemon left and all its moves are disabled, there will be error
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.0.6 (Character Update)
 
 Added
@@ -10,8 +69,8 @@ Added
 
 Changed
 - updated existing characters' ratings and quotes
-- tone down some custom Pokemon moves (mostly Armadragdon & Memoraider)
-- tone down some custom Pokemon abilities (mostly Armadragdon & Memoraider)
+- tuned down some custom Pokemon moves (mostly Armadragdon & Memoraider)
+- tuned down some custom Pokemon abilities (mostly Armadragdon & Memoraider)
 - re-written elo rating formula
 - increase no. of elite per round (3-5 --> 4-6)
 - readability update (text color, spacing and individual rating change)
@@ -83,7 +142,7 @@ Changed
 - formula for receiveing pokemon according to strength is changed
 - divided custom pokemon to several tiers, removed custom tier and added Boss tier (cannot be obtained)
 - updated text colors for readability
-- tone down Goredrinker ability
+- tuned down Goredrinker ability
 
 Fixed
 - fixed incorrect win rate

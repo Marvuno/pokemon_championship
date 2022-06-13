@@ -18,11 +18,13 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
         pokemon.moveset = ['Switching'] + pokemon.moveset
         # str, str, list
         pokemon.default_name, pokemon.default_ability, pokemon.default_type = deepcopy(pokemon.name), deepcopy(pokemon.ability), deepcopy(pokemon.type)
+        pokemon.default_nominal_base_stats = deepcopy(pokemon.nominal_base_stats)
         # side 2
         pokemon2.hp = math.floor(0.01 * 2 * pokemon2.nominal_base_stats[0] * 100) + 100 + 10 if pokemon2.name != "Shedinja" else 1
         pokemon2.battle_stats = [pokemon2.hp] + [math.floor(0.01 * 2 * pokemon2.nominal_base_stats[x] * 100 + 5) for x in range(1, 6)]
         pokemon2.moveset = ['Switching'] + pokemon2.moveset
         pokemon2.default_name, pokemon2.default_ability, pokemon2.default_type = deepcopy(pokemon2.name), deepcopy(pokemon2.ability), deepcopy(pokemon2.type)
+        pokemon2.default_nominal_base_stats = deepcopy(pokemon2.nominal_base_stats)
 
     # select weather
     battleground.starting_weather_effect = random.choices([Clear, Rain, Sunny, Sandstorm, Hail], weights=[6, 1, 1, 1, 1], k=1)[0]
@@ -45,35 +47,37 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
         opponent.battle_stats = [opponent.battle_stats[0]] + \
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
-        print(
-            f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect.id)} [{battleground.weather_effect.__class__.__name__}]\n{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
+        print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect.id)} [{battleground.weather_effect.__class__.__name__}]\n"
+              f"{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
 
         print(CGREEN2 + CBOLD +
-              player.name, player.type, player.ability,
+              player.name, player.type, player.ability, player.moveset[1:5],
+              player.status, "\n",
               [f"{STATISTICS[x]}: {player.battle_stats[x]}" for x in range(len(player.battle_stats))],
               player.iv,
-              player.modifier,
-              player.status, "\n",
-              player.volatile_status, "\n",
-              protagonist.in_battle_effects,
+              player.modifier, "\n",
+              [f"{key}: {value}" for key, value in player.volatile_status.items() if value > 0], "\n",
+              "In-battle Effects:", [f"{key}: {value}" for key, value in protagonist.in_battle_effects.items() if value > 0],
+              "|| Entry Hazard:", [f"{key}: {value}" for key, value in protagonist.entry_hazard.items() if value > 0],
               "|| Protection:", player.protection,
               "|| Charging:", player.charging,
-              protagonist.entry_hazard,
-              "|| Disabled:", player.disabled_moves,
+              "|| Disabled:", player.disabled_moves, "\n",
+              "Move History:", player.move_order,
               hp_bar_display(player))
 
         print(CRED2 + CBOLD +
-              opponent.name, opponent.type, opponent.ability,
+              opponent.name, opponent.type, opponent.ability, opponent.moveset[1:5],
+              opponent.status, "\n",
               [f"{STATISTICS[x]}: {opponent.battle_stats[x]}" for x in range(len(opponent.battle_stats))],
               opponent.iv,
-              opponent.modifier,
-              opponent.status, "\n",
-              opponent.volatile_status, "\n",
-              competitor.in_battle_effects,
+              opponent.modifier, "\n",
+              [f"{key}: {value}" for key, value in opponent.volatile_status.items() if value > 0], "\n",
+              "In-battle Effects:", [f"{key}: {value}" for key, value in competitor.in_battle_effects.items() if value > 0],
+              "|| Entry Hazard:", [f"{key}: {value}" for key, value in competitor.entry_hazard.items() if value > 0],
               "|| Protection:", opponent.protection,
               "|| Charging:", opponent.charging,
-              competitor.entry_hazard,
-              "|| Disabled:", opponent.disabled_moves,
+              "|| Disabled:", opponent.disabled_moves, "\n",
+              "Move History:", opponent.move_order,
               hp_bar_display(opponent),
               "\n" + CEND)
 
@@ -82,6 +86,7 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
         player.volatile_status['Turn'] += 1
         opponent.volatile_status['Turn'] += 1
 
+        battleground.reality = False
         # for ai simulation
         if battleground.verbose:
             player_move = smart_ai_select_move(battleground, competitor, protagonist)
@@ -89,13 +94,13 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
 
         # player vs ai
         else:
-            player_move = select_move(player, opponent, battleground) if not battleground.auto_battle else dumb_ai_select_move(battleground, competitor, protagonist)
+            player_move = select_move(player, opponent, battleground) if not battleground.auto_battle else auto_ai_select_move(battleground, competitor, protagonist)
             opponent_move = smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 20 \
                 else dumb_ai_select_move(battleground, protagonist, competitor)
             # player_move, opponent_move = select_move(player), select_move(opponent)
 
         # switching
-        # activate for AI simulation
+        # for ai simulation
         if player_move.name == "Switching":
             if battleground.verbose:
                 player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team, protagonist.position_change, False)
@@ -111,13 +116,16 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
                             player_move = select_move(player, opponent, battleground)
                 # auto battle
                 else:
-                    player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team, ai_switching_mechanism(competitor, protagonist, battleground, True, True), False)
+                    player = switching_mechanism(protagonist, competitor, battleground, player_team, opponent_team,
+                                                 ai_switching_mechanism(competitor, protagonist, battleground, True, True), False)
                     player_team = protagonist.team
 
+        # ai switching
         if opponent_move.name == "Switching":
             # opponent = switching_criteria(competitor, protagonist, opponent_team, player_team, battleground)
             opponent = switching_mechanism(competitor, protagonist, battleground, opponent_team, player_team, competitor.position_change, False)
             opponent_team = competitor.team
+        battleground.reality = True
 
         player_move, opponent_move = deepcopy(player_move), deepcopy(opponent_move)
 
@@ -150,18 +158,24 @@ def move_execution(user_side, target_side, user_team, target_team, user, target,
     # faster pokemon moves first
     user_side.faster, target_side.faster = True, False
 
+    user_move.multi[1] = multi_strike_move(user_move)
     user_move = pre_move_adjustment(user_side, target_side, user, target, battleground, user_move)
     print(f"{user_move.name}: {user_move.power}")
 
     move_order_and_execution(user_side, target_side, user_team, target_team, user, target, battleground, user_move, target_move)
+    # mid-update
     user, target = user_team[0], target_team[0]
+    user.battle_stats = [user.battle_stats[0]] + \
+                          [math.floor(0.01 * 2 * user.nominal_base_stats[x] * modifierChart[x][user.modifier[x]] * 100 + 5) for x in range(1, 6)]
+    target.battle_stats = [target.battle_stats[0]] + \
+                            [math.floor(0.01 * 2 * target.nominal_base_stats[x] * modifierChart[x][target.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
     # slower pokemon moves last
+    target_move.multi[1] = multi_strike_move(target_move)
     target_move = pre_move_adjustment(target_side, user_side, target, user, battleground, target_move)
     print(f"{target_move.name}: {target_move.power}")
 
     move_order_and_execution(target_side, user_side, target_team, user_team, target, user, battleground, target_move, user_move)
-    user, target = user_team[0], target_team[0]
 
 
 def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move):
@@ -187,7 +201,7 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
                 print(f"{opponent.name} is now {opponent.status}!")
 
         # flinch
-        player.volatile_status["Flinched"], opponent.volatile_status["Flinched"] = 0, 0
+        player.volatile_status["Flinch"], opponent.volatile_status["Flinch"] = 0, 0
 
         # protect
         player.protection[1] = 0 if player.protection[0] == 0 else player.protection[1]
@@ -195,17 +209,17 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
         player.protection[0], opponent.protection[0] = 0, 0
 
         # disable destiny bond for the next turn after using it
-        if opponent.volatile_status['Destiny Bond'] > 0:
+        if opponent.volatile_status['DestinyBond'] > 0:
             opponent.disabled_moves[opponent_move.name] = 1
-        if player.volatile_status['Destiny Bond'] > 0:
+        if player.volatile_status['DestinyBond'] > 0:
             player.disabled_moves[player_move.name] = 1
 
         # perish count if fainted
-        if player.volatile_status['Perish Song'] == 4:
+        if player.volatile_status['PerishSong'] == 4:
             player.battle_stats[0] = 0
             check_fainted(player, opponent)
             print(f"{player.name} fainted due to perish song!")
-        if opponent.volatile_status['Perish Song'] == 4:
+        if opponent.volatile_status['PerishSong'] == 4:
             opponent.battle_stats[0] = 0
             check_fainted(opponent, player)
             print(f"{opponent.name} fainted due to perish song!")
@@ -226,10 +240,10 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
                 print("Toxic Spikes has been cleared!")
 
         # buff attack and special attack with total concentration
-        if opponent.volatile_status['Total Concentration'] > 0:
+        if opponent.volatile_status['TotalConcentration'] > 0:
             opponent.applied_modifier = [0, 1, 0, 1, 0, 0, 0, 0, 0]
             opponent.modifier = list(map(operator.add, opponent.applied_modifier, opponent.modifier))
-        if player.volatile_status['Total Concentration'] > 0:
+        if player.volatile_status['TotalConcentration'] > 0:
             player.applied_modifier = [0, 1, 0, 1, 0, 0, 0, 0, 0]
             player.modifier = list(map(operator.add, player.applied_modifier, player.modifier))
 
@@ -242,21 +256,31 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
             opponent.modifier = list(map(operator.add, opponent.applied_modifier, opponent.modifier))
 
         # perish song
-        player.volatile_status['Perish Song'] += 1 if player.volatile_status['Perish Song'] > 0 else 0
-        opponent.volatile_status['Perish Song'] += 1 if opponent.volatile_status['Perish Song'] > 0 else 0
+        player.volatile_status['PerishSong'] += 1 if player.volatile_status['PerishSong'] > 0 else 0
+        opponent.volatile_status['PerishSong'] += 1 if opponent.volatile_status['PerishSong'] > 0 else 0
 
         # take aim
-        player.volatile_status['Take Aim'] -= 1 if player.volatile_status['Take Aim'] > 0 else 0
-        opponent.volatile_status['Take Aim'] -= 1 if opponent.volatile_status['Take Aim'] > 0 else 0
+        player.volatile_status['TakeAim'] -= 1 if player.volatile_status['TakeAim'] > 0 else 0
+        opponent.volatile_status['TakeAim'] -= 1 if opponent.volatile_status['TakeAim'] > 0 else 0
 
         # trigger ability at the end of each turn
         UseAbility(protagonist, competitor, player, opponent, battleground, "", abilityphase=8)
         UseAbility(competitor, protagonist, opponent, player, battleground, "", abilityphase=8)
-        # applied_modifier
+
+        # reset applied_modifier
         player.applied_modifier, opponent.applied_modifier = [0] * 9, [0] * 9
 
-        player.battle_stats[0], opponent.battle_stats[0] = hp_decreasing_modifier(player, opponent, battleground), hp_decreasing_modifier(opponent, player,
-                                                                                                                                          battleground)
+        # sudden death
+        if battleground.turn >= 50 and not battleground.sudden_death:
+            print("Sudden Death is activated!!!")
+            sound(audio="music/sudden_death.mp3")
+            battleground.sudden_death = True
+
+        # hp decreasing modifier
+        player.battle_stats[0] = hp_decreasing_modifier(player, opponent, battleground)
+        opponent.battle_stats[0] = hp_decreasing_modifier(opponent, player, battleground)
+
+        # other check indicators
         battleground.weather_effect = check_weather_persist(battleground)
         player.modifier, opponent.modifier = check_modifier_limit(player), check_modifier_limit(opponent)
 

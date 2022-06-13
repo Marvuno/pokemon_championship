@@ -14,9 +14,9 @@ import sys
 
 def before_battle_option(protagonist, opponent):
     option = None
-    choices = {0: proceed_to_battle, 1: view_pokemon, 2: switch_order, 3: spy_opponent, 4: check_history, 5: quit_game}
+    choices = {0: proceed_to_battle, 1: view_pokemon, 2: switch_order, 3: about_opponent, 4: check_history, 5: quit_game}
     text = "What do you want to do?\n" \
-           "0: Battle || 1: View My Pokemon || 2: Switch Pokemon Order || 3: Spy on Opponent || 4: Check History || 5: Quit Game\n" \
+           "0: Battle || 1: View My Pokemon || 2: Switch Pokemon Order || 3: About Opponent || 4: Check History || 5: Quit Game\n" \
            "--> "
     while option != 0:
         with suppress(ValueError, KeyError):
@@ -27,21 +27,21 @@ def before_battle_option(protagonist, opponent):
             if option == 3:
                 del choices[3]
                 text = f"What do you want to do?\n" \
-                       f"0: Battle || 1: View My Pokemon || 2: Switch Pokemon Order || {CGREY}3: Spy on Opponent{CEND} || 4: Check History || 5: Quit Game\n" \
+                       f"0: Battle || 1: View My Pokemon || 2: Switch Pokemon Order || {CGREY}3: About Opponent{CEND} || 4: Check History || 5: Quit Game\n" \
                        f"--> "
 
 
 def proceed_to_battle(protagonist, opponent):
     print(f"{CBOLD}Round {GameSystem.stage}{CEND}")
     print(f"{CWHITE2}{CBOLD}{protagonist.name} [{protagonist.strength}] VS {opponent.name} [{opponent.strength}]{CEND}")
-    print(f"{CITALIC}{CBOLD}This is a {ROUND_LIMIT[GameSystem.stage]}vs{ROUND_LIMIT[GameSystem.stage]} battle.{CEND}")
+    print(f"{CWHITE2}{CBOLD}This is a {ROUND_LIMIT[GameSystem.stage]}vs{ROUND_LIMIT[GameSystem.stage]} battle.{CEND}")
 
 
 def view_pokemon(protagonist, opponent):
     statistics = {0: "HP", 1: "Atk", 2: "Def", 3: "SpA", 4: "SpDef", 5: "Speed"}
     for i, pokemon in enumerate(protagonist.team):
         print(f"{CBEIGE+CBOLD if i % 2 == 0 else CBOLD}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
-        print(f"Ability: {pokemon.ability}")
+        print(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
         print("Base Stats:", [f"{statistics[x]}: {pokemon.nominal_base_stats[x]}({pokemon.iv[x]})" for x in range(6)])
         print(f"Moveset: {pokemon.moveset}{CEND}\n")
 
@@ -59,28 +59,31 @@ def switch_order(protagonist, opponent):
                 print(f'New Order: {CVIOLET2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}{CEND}\n')
 
 
-def spy_opponent(protagonist, opponent):
-    print(f"{CBOLD}Opponent Introduction:\n{CYELLOW}{opponent.desc}\nTier: {opponent.level}{CEND}")
-    print(f"You have carefully sneaked into the training facility of {opponent.name}.")
-    if random.random() <= 0.5 * protagonist.strength / opponent.strength:
+def about_opponent(protagonist, opponent):
+    print(f"{CBOLD}{opponent.name} | Tier: {opponent.level}\n{CYELLOW}{opponent.desc}\n{CEND}")
+    print(f"Before the match begins, you approach your opponent {opponent.name} and introduce yourself.\nAfter a delightful chitchat...")
+    # illuminate ability increases prob. ten-fold to obtain information
+    prob = protagonist.strength / (opponent.strength + protagonist.strength)
+    for pokemon in protagonist.team:
+        if pokemon.ability == "Illuminate":
+            prob *= 10
+            break
+    if random.random() <= prob:
         revealed_pokemon = opponent.team[0]
         print(f"You have found that {opponent.name} will be using {CVIOLET2}{CBOLD}{revealed_pokemon.name}{CEND} as the 1st Pokemon for the next round!")
         if random.random() <= 0.5:
-            print(
-                f"Not only that, but you found that {CVIOLET2}{CBOLD}{revealed_pokemon.name}{CEND} has the moveset {CVIOLET2}{CBOLD}{revealed_pokemon.moveset}{CEND}!!")
+            print(f"Not only that, but you found that {CVIOLET2}{CBOLD}{revealed_pokemon.name}{CEND} has the moveset {CVIOLET2}{CBOLD}{revealed_pokemon.moveset}{CEND}!!")
     else:
-        print("Unfortunately, you have failed to obtain any useful information.")
+        print("Unfortunately, you fail to obtain any useful information.")
 
 
 def check_history(protagonist, opponent):
     colors = {"": "", "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
-    print(
-        f"{CBOLD}{protagonist.name} {protagonist.opponent_history[opponent.name][0]} : {protagonist.opponent_history[opponent.name][1]} {opponent.name}{CEND}")
+    print(f"{CBOLD}{protagonist.name} {protagonist.opponent_history[opponent.name][0]} : {protagonist.opponent_history[opponent.name][1]} {opponent.name}{CEND}")
     print(f"\nYou have participated the Pokemon Championship for {protagonist.participation} time(s), with {protagonist.championship} World Champion title(s).")
     for i in range(len(protagonist.opponent)):
         print(f"{colors[protagonist.opponent[i].color]}{protagonist.opponent[i].name}: {'Win' if protagonist.win_order[i] == 1 else 'Lose'}{CEND}")
-    print(
-        f"\nYour opponent {opponent.name} has participated the Pokemon Championship for {opponent.participation} time(s), with {opponent.championship} World Champion title(s).")
+    print(f"Your opponent {opponent.name} has participated the Pokemon Championship for {opponent.participation} time(s), with {opponent.championship} World Champion title(s).")
     for i in range(len(opponent.opponent)):
         print(f"{colors[opponent.opponent[i].color]}{opponent.opponent[i].name}: {'Win' if opponent.win_order[i] == 1 else 'Lose'}{CEND}")
     confirmation = input("\nWanna know the Pokemon Championship history? Press Y to confirm: ").upper()
@@ -106,21 +109,22 @@ def team_selection(protagonist):
     # exclusive to player
     # select pokemon when there is too many
     unused_list = set()
-    print(f"You have more Pokemon than needed for this round! Select {len(protagonist.team) - ROUND_LIMIT[GameSystem.stage]} "
-          f"Pokemon you DO NOT need this round:")
-    for pokemon in protagonist.team:
-        print(f"\n{CBOLD}{pokemon.name}:")
-        print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}({pokemon.iv[x]})" for x in range(6)])
-        print(f"Ability: {pokemon.ability} || Moveset: {pokemon.moveset}{CEND}")
-    while len(unused_list) != len(protagonist.team) - ROUND_LIMIT[GameSystem.stage]:
-        print(f"\n{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}")
-        with suppress(KeyError, ValueError, IndexError):
-            unused = int(input(f"Select the Pokemon you DO NOT need this round: "))
-            unused_list.add(unused)
-    unused_list = sorted(unused_list, reverse=True)
-    for index in unused_list:
-        protagonist.unused_team.append(protagonist.team[index])
-        del protagonist.team[index]
+    if len(protagonist.team) - ROUND_LIMIT[GameSystem.stage] > 0:
+        print(f"You have more Pokemon than needed for this round! Select {len(protagonist.team) - ROUND_LIMIT[GameSystem.stage]} "
+              f"Pokemon you DO NOT need this round:")
+        for pokemon in protagonist.team:
+            print(f"\n{CBOLD}{pokemon.name}:")
+            print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}({pokemon.iv[x]})" for x in range(6)])
+            print(f"Ability: {pokemon.ability} || Moveset: {pokemon.moveset}{CEND}")
+        while len(unused_list) != len(protagonist.team) - ROUND_LIMIT[GameSystem.stage]:
+            print(f"\n{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}")
+            with suppress(KeyError, ValueError, IndexError):
+                unused = int(input(f"Select the Pokemon you DO NOT need this round: "))
+                unused_list.add(unused)
+        unused_list = sorted(unused_list, reverse=True)
+        for index in unused_list:
+            protagonist.unused_team.append(protagonist.team[index])
+            del protagonist.team[index]
     return protagonist.team
 
 
@@ -140,18 +144,19 @@ def team_generation(participant):
     # pokemon is divided to 6 tier (very low, low, medium, high, very high, custom)
     # should be selected based on strength
     nominal_team, unavailable_pokemon = [], set()
-    # strength limit: low 20 | intermediate 70 | advanced 120 | lower elite 228 | upper elite 357 | champion 600
-    random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, int(participant.strength / 120 * 31))}
+    random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, int(participant.strength / 250 * 31))}
     custom_team(participant)
+    # slight boost to AI
+    ratings = participant.strength * 1.2 if not participant.main else participant.strength
     # weights formula
-    very_low = max(0, 40 - participant.strength * 2)
-    low = 60 - participant.strength if participant.strength <= 15 else max(0, 75 - participant.strength * 2)
-    medium = min(40, 3 + participant.strength) if participant.strength <= 37 else max(0, 78 - participant.strength)
-    high = min(max(0, participant.strength - 30), 70) if participant.strength <= 100 else max(0, 170 - participant.strength)
-    very_high = min(max(0, participant.strength - 60), 50)
-    ultra_high = 0 if participant.strength <= 100 else 1 if participant.strength <= 200 else 2
+    very_low = max(0, 40 - ratings)
+    low = max(0, 80 - ratings)
+    medium = min(60, 3 + ratings) if ratings <= 57 else max(0, 117 - ratings)
+    high = min(max(0, ratings - 50), 70)
+    very_high = min(max(0, ratings - 80), 120)
+    ultra_high = 0 if ratings < 100 else 2 if ratings < 120 else 4 if ratings < 140 else 6 if ratings < 160 \
+        else 8 if ratings < 180 else 10 if ratings < 200 else 12
     # new version
-    # at strength 120, always get very high tier pokemon
     tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High", "Ultra High"],
                                weights=[very_low, low, medium, high, very_high, ultra_high],
                                k=ROUND_LIMIT[GameSystem.stage] - len(participant.team))
@@ -162,8 +167,6 @@ def team_generation(participant):
                                      pokemon not in unavailable_pokemon and list_of_pokemon[pokemon].tier == tier])
         nominal_team.append(new_pokemon)
         unavailable_pokemon.add(new_pokemon)
-        # debug
-        # print(unavailable_pokemon)
     print(tier_list)  # debug
 
     with suppress(ValueError):
@@ -173,12 +176,15 @@ def team_generation(participant):
         try:
             pokemon = deepcopy(list_of_pokemon[participant.team[i]])
             pokemon.iv = [random.randint(random_iv_on_tier[participant.level], 31) for _ in range(6)] if pokemon.iv == 0 else pokemon.iv
+            pokemon.total_iv = sum(pokemon.iv)
             pokemon.nominal_base_stats = list(map(operator.add, pokemon.base_stats, pokemon.iv))
             pokemon.ability = random.choice(pokemon.ability)
             pokemon.moveset = random.sample(pokemon.moveset, min(4, len(pokemon.moveset)))
             participant.team[i] = pokemon
         except:
             pokemon = deepcopy(participant.team[i])
+            pokemon.total_stats = sum(pokemon.base_stats)
+            pokemon.total_iv = sum(pokemon.iv)
             pokemon.nominal_base_stats = list(map(operator.add, pokemon.base_stats, pokemon.iv))
             participant.team[i] = pokemon
     # the order of the team matters
@@ -198,8 +204,9 @@ def round_begin():
     for i in range(0, int(math.pow(2, 5))):
         participant = list_of_competitors[GameSystem.participants[i]]
         participant.match_id = i // 2
-        print(
-            colors[participant.color] + EntryBox(participant.id, f"{participant.name} [{participant.strength}]", participant.stage - 1, ).structure + CEND)
+        bold = CBOLD if participant.championship > 0 else ''
+        crown = f' |{participant.championship}|' if participant.championship > 0 else ''
+        print(colors[participant.color] + bold + EntryBox(participant.id, f"{participant.name} [{participant.strength}]{crown}", participant.stage - 1, ).structure + CEND)
         if i % 2 != 0:
             print("\n")
 
@@ -209,16 +216,18 @@ def round_end(stage):
 
     def result_announcement(victor, loser, main):
         level_order = {"Low": 1, "Intermediate": 2, "Advanced": 3, "Elite": 4, "Champion": 5, "Protagonist": 6}
-        print(colors[victor.color] + EntryBox(victor.id, f"{victor.name} [{victor.strength}]{' !!!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
+        victor_crown, loser_crown = f' |{victor.championship}|' if victor.championship > 0 else '', f' |{loser.championship}|' if loser.championship > 0 else ''
+        victor_bold, loser_bold = CBOLD if victor.championship > 0 else '', CBOLD if loser.championship > 0 else ''
+        print(colors[victor.color] + victor_bold + EntryBox(victor.id, f"{victor.name} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
         if main:  # the protagonist battle
-            print(CGREY + EntryBox(loser.id, f"{loser.name} [{loser.strength}]",
+            print(CGREY + loser_bold + EntryBox(loser.id, f"{loser.name} [{loser.strength}]{loser_crown}",
                                    loser.stage - 1, loser.result).structure, "\n" + CEND)
         else:  # others' battle
             result = ROUND_LIMIT[stage] * loser.strength / (victor.strength + loser.strength)
             result = int(min(round(result * random.uniform(1.25, 1.75), 0), ROUND_LIMIT[stage] - 1))
             victor.score += ROUND_LIMIT[stage] - result
             loser.score += result - ROUND_LIMIT[stage]
-            print(CGREY + EntryBox(loser.id, f"{loser.name} [{loser.strength}]", loser.stage - 1, result).structure, "\n" + CEND)
+            print(CGREY + loser_bold + EntryBox(loser.id, f"{loser.name} [{loser.strength}]{loser_crown}", loser.stage - 1, result).structure, "\n" + CEND)
 
     for i in range(0, int(math.pow(2, 5)), 2):
         one, two = list_of_competitors[GameSystem.participants[i]], list_of_competitors[GameSystem.participants[i + 1]]
@@ -246,25 +255,37 @@ def round_end(stage):
 
 def scoreboard():
     colors = {"": "", "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
+
+    # calculating opponent stage as tiebreaks
+    for participant in GameSystem.participants:
+        participant = list_of_competitors[participant]
+        for index, opponent in enumerate(participant.opponent):
+            participant.opponent_score += (opponent.stage - 1) * participant.win_order[index]
+
     print(f"{CBOLD}{CYELLOW2}Leaderboard:{CEND}")
-    print(f"{CBOLD}|| RANK || NAME                       || PTS || NKS ||{CEND}")
+    print(f"{CBOLD}|| RANK || NAME                   || PTS || OS || NKS ||{CEND}")
     GameSystem.participants = sorted(GameSystem.participants,
-                                     key=lambda x: (-list_of_competitors[x].stage, -list_of_competitors[x].score, list_of_competitors[x].strength))
+                                     key=lambda x: (-list_of_competitors[x].stage, -list_of_competitors[x].opponent_score,
+                                                    -list_of_competitors[x].score, list_of_competitors[x].strength))
+    # player always participate
     attendance = list_of_competitors['Protagonist'].participation
     for index, competitor in enumerate(GameSystem.participants):
         competitor = list_of_competitors[competitor]
         print(f"{CBOLD}{colors[competitor.color]}", end='')
         print(f"||  {index + 1}{' ' * (3 - len(str(index + 1)))} "
-              f"|| {competitor.name}[{competitor.strength}]{' ' * (24 - len(competitor.name) - len(str(competitor.strength)))} "
-              f"||  {competitor.stage - 1}  || {competitor.score}{' ' * (3 - len(str(competitor.score)))} ||{CEND}")
-        competitor.history[attendance] = (list_of_competitors[GameSystem.participants[0]].name, index + 1, competitor.strength)
+              f"|| {competitor.name}[{competitor.strength}]{' ' * (20 - len(competitor.name) - len(str(competitor.strength)))} "
+              f"||  {competitor.stage - 1}  || {competitor.opponent_score}{' ' * (2 - len(str(competitor.opponent_score)))} "
+              f"|| {competitor.score}{' ' * (3 - len(str(competitor.score)))} ||{CEND}")
+        trophy = ' 👑' if list_of_competitors[GameSystem.participants[0]].opponent_score >= 18 else ' 🥇' \
+            if list_of_competitors[GameSystem.participants[0]].opponent_score <= 12 else ''
+        competitor.history[attendance] = (list_of_competitors[GameSystem.participants[0]].name + trophy, index + 1, competitor.strength)
         if index == 0:
             competitor.championship += 1
         competitor.participation += 1
 
 
 def save_game():
-    # options to keep at most 2 pokemon and least 0 pokemon
+    # options to keep at most 3, 4, 6 pokemon and least 0 pokemon
     keep_team, keep_list = [], set()
     for pokemon in list_of_competitors['Protagonist'].team:
         print(f"\n{CBOLD}{pokemon.name}:")
@@ -276,14 +297,18 @@ def save_game():
         with suppress(KeyError, ValueError):
             acceptable_values = list(range(0, len(list_of_competitors['Protagonist'].team)))
             keep_number = KEEP_POKEMON_WIN if list_of_competitors['Protagonist'].stage == 6 else \
-                KEEP_POKEMON_SEMI if list_of_competitors['Protagonist'].stage == 5 else \
-                    KEEP_POKEMON_LOST
+                KEEP_POKEMON_SEMI if list_of_competitors['Protagonist'].stage == 5 else KEEP_POKEMON_LOST
             if len(keep_list) == keep_number:
                 break
-            keep = int(input(f"You can keep at most {keep_number} Pokemon for your next run. Select 9 when you are done: "))
+            keep = int(input(f"You can keep at most {keep_number} Pokemon for your next run. Enter 9 when you are done: ")) if list_of_competitors['Protagonist'].stage != 6 \
+            else int(input(f"You can keep at most {keep_number} Pokemon for your next run. Enter 9 when you are done and 10 to keep the whole team: "))
 
             if keep == 9:
                 break
+            elif keep == 10:
+                if list_of_competitors['Protagonist'].stage == 6:
+                    for i in range(6):
+                        keep_list.add(i)
             elif keep not in acceptable_values:
                 pass
             else:
@@ -298,7 +323,7 @@ def save_game():
     for competitor in list_of_competitors:
         competitor = list_of_competitors[competitor]
         to_delete = ['match_id', 'id', 'stage', 'result', 'level', 'music', 'ace_music', 'faster', 'color', 'in_battle_effects', 'entry_hazard',
-                     'desc', 'opponent', 'win_order', 'score', 'quote']
+                     'desc', 'opponent', 'opponent_score', 'win_order', 'score', 'quote']
         for variable in to_delete:
             delattr(competitor, variable)
         if not competitor.main:
@@ -318,7 +343,7 @@ def elo_rating():
             match_rating = opponent.strength + list_of_competitors['Protagonist'].strength
             proportion = (opponent.strength / match_rating) if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else (list_of_competitors['Protagonist'].strength / match_rating)
             result = 1 if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else -1
-            individual_rating_change = int(round(math.sqrt(match_rating // 2) * proportion * result))
+            individual_rating_change = int(round(math.sqrt(match_rating) * proportion * result))
             rating_change += individual_rating_change
 
             print(f"{colors[opponent.color]}{opponent.name}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'} [{'+' if individual_rating_change >= 0 else '-'}{abs(individual_rating_change)}]{CEND}")

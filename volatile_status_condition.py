@@ -7,7 +7,7 @@ from contextlib import suppress
 def check_volatile_status(pokemon, move):
     move_execution_inability = False
     volatile_status = {
-        "Flinched": flinching,
+        "Flinch": flinching,
         "Confused": confusing,
     }
     non_volatile_status = {

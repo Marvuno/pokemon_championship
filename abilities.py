@@ -81,25 +81,22 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
     def illusion(user_side, target_side, user, target, battleground, move, abilityphase):
         # switching in
         if abilityphase == 1:
-            user.disguise = True
-            for pokemon in user_side.team:
-                if pokemon.status != "Fainted" and pokemon.name != "Zoroark":  # use id when finalizing pokemon list
-                    user.name, user.type = pokemon.name, pokemon.type
-                    break
-        # precisely, should add another phase at dmg cal.
-        elif abilityphase == 3:
+            if sum(1 for pokemon in user_side.team if pokemon.status != "Fainted") != 1:
+                user.disguise = True
+                for pokemon in user_side.team[1:]:
+                    if pokemon.status != "Fainted":  # use id when finalizing pokemon list
+                        user.name, user.type = pokemon.name, pokemon.type
+                        break
+        elif abilityphase == 2 and battleground.reality:
             user.type = user.default_type
-        elif abilityphase == 5:
+        elif abilityphase == 5 and battleground.reality:
             if move.damage > 0 and user.disguise:
                 user.name, user.type = user.default_name, user.default_type
                 print(f"{user.name} is in disguise!")
                 user.disguise = False
         elif abilityphase == 8:
             if user.disguise:
-                for pokemon in user_side.team:
-                    if pokemon.status != "Fainted" and pokemon.name != "Zoroark":  # use id when finalizing pokemon list
-                        user.type = pokemon.type
-                        break
+                user.type = list_of_pokemon[user.name].type
         # switched out
         elif abilityphase == 9:
             user.name, user.type = user.default_name, user.default_type
@@ -164,7 +161,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             move.abilitymodifier = 0 if move.type == "Fire" else move.abilitymodifier
         elif abilityphase == 5:
             if move.attack_type != "Status" and move.type == "Fire":
-                user.volatile_status['Flash Fire'] = 1
+                user.volatile_status['FlashFire'] = 1
 
     def bulletproof(user_side, target_side, user, target, battleground, move, abilityphase):
         move.abilitymodifier = 0 if 'i' in move.flags else move.abilitymodifier
@@ -179,7 +176,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         move.accuracy *= 1.3
 
     def skilllink(user_side, target_side, user, target, battleground, move, abilityphase):
-        if move.multi[0]:
+        if move.multi[0] == 1:
             move.multi[1] = 5
 
     def pixelate(user_side, target_side, user, target, battleground, move, abilityphase):
@@ -218,7 +215,13 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def roughskin(user_side, target_side, user, target, battleground, move, abilityphase):
-        damage = max(1, target.hp // 8) if ('a' in move.flags) else 0
+        damage = max(1, target.hp // 8) if ('a' in move.flags and move.damage > 0) else 0
+        target.battle_stats[0] -= damage
+        if damage > 0:
+            print(f"{user.ability} dealt {damage} damage to {target.name}.")
+
+    def ironbarbs(user_side, target_side, user, target, battleground, move, abilityphase):
+        damage = max(1, target.hp // 8) if ('a' in move.flags and move.damage > 0) else 0
         target.battle_stats[0] -= damage
         if damage > 0:
             print(f"{user.ability} dealt {damage} damage to {target.name}.")
@@ -714,8 +717,26 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                 move.damage *= 2
 
     def illuminate(user_side, target_side, user, target, battleground, move, abilityphase):
-        # this ability does nothing
+        # this ability does nothing in battle
+        # added custom ability for illuminate (see in spy opponent)
         pass
+
+    def battlebond(user_side, target_side, user, target, battleground, move, abilityphase):
+        # exclusive to faker-greninja
+        if move.name == "Water Shuriken":
+            move.power *= 1.5
+
+    def waterbubble(user_side, target_side, user, target, battleground, move, abilityphase):
+        if abilityphase == 4:
+            if 'Water' in move.type:
+                move.damage *= 2
+        elif abilityphase == 5:
+            if 'Fire' in move.type:
+                move.damage *= 0.5
+        elif abilityphase == 6:
+            # immune to burn
+            if user.status == 'Burn':
+                user.status = 'Normal'
 
     list_of_abilities = {
         "Cloud Nine": ((1, 8), cloudnine),
@@ -728,7 +749,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         "Anticipation": (1, anticipation),
         'Natural Cure': (1, naturalcure),
         'Stance Change': ((1, 2), stancechange),
-        'Illusion': ((1, 3, 5, 8, 9), illusion),
+        'Illusion': ((1, 2, 5, 8, 9), illusion),
         'Prankster': (2, prankster),
         'Rock Head': (2, rockhead),
         'Marvel Scale': (3, marvelscale),
@@ -759,6 +780,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Improvise': (6, improvise, "Custom"),
         'Beast Boost': (6, beastboost),
         'Rough Skin': (7, roughskin),
+        'Iron Barbs': (7, ironbarbs),
         'Clear Body': (7, clearbody),
         'Weak Armor': (7, weakarmor),
         'Aftermath': (7, aftermath),
@@ -858,6 +880,8 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Punk Rock': ((4, 5), punkrock),
         'Instrumental': ((4, 5), instrumental, "Custom"),
         'Illuminate': (1, illuminate),
+        'Battle Bond': (2, battlebond),
+        'Water Bubble': ((4, 5, 6), waterbubble)
     }
 
     try:
@@ -884,7 +908,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         ability_usage = True  # debug only
         if ability_usage:
             ability_list = dict.fromkeys([ability for ability in list_of_abilities], 0)
-            ability_list.update({'Pressure': 0, 'Illuminate': 0})
+            ability_list.update({'Pressure': 0, 'Illuminate': 0, 'Surge Surfer': 0})
             for pokemon in list_of_pokemon:
                 for ability in list_of_pokemon[pokemon].ability:
                     ability_list[ability] += 1

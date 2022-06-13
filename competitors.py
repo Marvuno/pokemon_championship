@@ -15,6 +15,7 @@ class Competitor:
         self.desc = desc
         self.result = 0
         self.score = 0
+        self.opponent_score = 0
         self.level = level
         self.music = music
         self.ace_music = ace_music
@@ -23,6 +24,7 @@ class Competitor:
         self.quote = quote
         self.team = []
         self.unused_team = []
+        self.switching = 0
         self.in_battle_effects = {"Reflect": 0,
                                   "Light Screen": 0,
                                   "Aurora Veil": 0,

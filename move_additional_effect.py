@@ -241,25 +241,41 @@ def check_move_hp_split(user_side, target_side, user, target, battleground, user
 def check_move_disable(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     if special_effect == "Disable":
         with suppress(ValueError, AttributeError):
-            target.disabled_moves[target.previous_move.name] = 5
+            try:
+                if target.disabled_moves[target.previous_move.name] != 0:
+                    print("The move is already disabled!")
+            except KeyError:
+                target.disabled_moves[target.previous_move.name] = 5
     elif special_effect == "Taunt":
         for i in range(len(target.moveset)):
             move = list_of_moves[target.moveset[i]]
             if move.attack_type == "Status" and move.name != "Switching":
-                target.disabled_moves[move.name] = 5
+                try:
+                    if target.disabled_moves[move.name] != 0:
+                        print("The move is already disabled!")
+                except KeyError:
+                    target.disabled_moves[move.name] = 5
     elif special_effect == "Encore":
         for i in range(len(target.moveset)):
             move = list_of_moves[target.moveset[i]]
             try:
                 if move.name != "Switching" and move.name != target.previous_move.name:
-                    target.disabled_moves[move.name] = 4
+                    try:
+                        if target.disabled_moves[move.name] != 0:
+                            print("The move is already disabled!")
+                    except KeyError:
+                        target.disabled_moves[move.name] = 4
             except AttributeError:
                 print("The move failed!")
     elif special_effect == "Sound":
         for i in range(len(target.moveset)):
             move = list_of_moves[target.moveset[i]]
             if 'f' in move.flags:
-                target.disabled_moves[move.name] = 2
+                try:
+                    if target.disabled_moves[move.name] != 0:
+                        print("The move is already disabled!")
+                except KeyError:
+                    target.disabled_moves[move.name] = 2
 
 
 def check_move_reset_target_modifier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
@@ -285,9 +301,13 @@ def check_move_add_target_type(user_side, target_side, user, target, battlegroun
 
 def check_move_countering(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     type_effectiveness = 0 if math.prod([typeChart[move.type][target.type[x]] for x in range(len(target.type))]) == 0 else 1
+    target.previous_move.damage = getattr(target.previous_move, 'damage', 0)
     if move.name == "Counter" and target.previous_move.attack_type == "Physical":
         print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
         target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
     elif move.name == "Mirror Coat" and target.previous_move.attack_type == "Special":
         print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
         target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
+    elif move.name == "Metal Burst":
+        print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 1.5 * type_effectiveness} damage.")
+        target.battle_stats[0] -= target.previous_move.damage * 1.5 * type_effectiveness
