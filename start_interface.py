@@ -144,7 +144,7 @@ def main_screen():
         # index = GameSystem.participants.index('Protagonist')
         # opponent = index + 1 if index % 2 == 0 else index - 1
         # for i in range(len(GameSystem.participants)):
-        #     if GameSystem.participants[i] == "Shuka":
+        #     if GameSystem.participants[i] == "Champion Marvin":
         #         GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
         #         break
 
@@ -178,6 +178,7 @@ def backstory():
 def rules():
     print("\nRules:\n"
           "The Pokemon Championship is a swiss-system tournament. It will be a 5-round robin with 32 participants.\n"
+          "Due to your character ability, you are able to do this:\n"
           "When the team is not full (6 pokemon), winner can either take 1 pokemon from the loser or receive a random pokemon from the organizer while\n"
           "loser can only receive a random inferior pokemon from the organizer.\n"
           "When the team is full (6 pokemon), winner has the option to swap 1 pokemon with the loser, while loser can do nothing.\n"

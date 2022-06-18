@@ -1,40 +1,46 @@
 Pokemon
 1. Several custom pokemon are added, including:
-- Nightdaunter 
-A shadowy pokemon that often backstabs other pokemon or human (ref: Battle for Wesnoth)
-Weakness: low def/spdef against priority move and ghost type moves
-- Kogoshaka 
-A parasitic pokemon that causes its owner to deprave and corrupt by controlling his/her mind. It does not always fight on its own unless necessary. Mystical
-It is in fact the cause for Conan to obtain superpower in an inhuman way. His signature move, the football shot, is influenced by Kogoshaka's mind-control ability, reflected in the move Pyro Ball.
-Weakness: weak to dark type pokemon (immune to depraved shriek) and bug type move (x4)
-- Gyutaro
-Weakness: very low SpDef
-- Gyokko
-Weakness: it lacks coverage against super-effective types (e.g. electric, ghost and dark)
-- Hantengu
-Weakness: don't really have one, but not too strong either, beware of his enragement when he got desperate (max. 350 power!)
-- Akaza
-Weakness: most of the moves are fighting moves, lacks coverage, annihilation is a charging fighting move (bring fighting-resistant pokemon e.g. ghost)
-- Douma
-Weakness: Weak to physical moves, Bodhisattva cover all his weaknesses except fighting, but is decreased priority move
-- Kokushibo
-Weakness: Fairy deal 4x against him, but beware of First Strike. Unbreakable Will deduct 25% of his HP, utilize that and his ability Defeatist
-- Tanjiro
-Weakness: none
-- Poseidon
-Weakness: none
-- Brambleblood
-- Memoraider
-Weakness: none
-Strategy: it is impossible to win using attacking moves. However, weather effects, Perish Song, Destiny Bond, Bad Poison etc. can beat this final boss.
-- Armadragdon
-Weakness: none
-Strategy: Again, it has very high defense that is almost unbeatable. destiny bond, perish song etc. might help but not poison since it is a steel type.
+- Snowchild ['Normal', 'Ice']
+- Kuroseh ['Fighting', 'Fairy']
+- Twinktwin ['Bug', 'Fairy']
+- Gyutaro ['Poison', 'Ghost']
+- Harshock ['Rock', 'Ghost']
+- Landozer ['Fighting', 'Ground']
+- Apoptoxitic ['Poison', 'Flying']
+- Emmount ['Ground', 'Rock']
+- Krusadian Flygon ['Bug', 'Dragon']
+- Galveon ['Steel']
+- Nightdaunter ['Ghost']
+- Gyokko ['Water', 'Psychic']
+- Boneknight ['Steel', 'Ghost']
+- Scorchrome ['Fire', 'Ground']
+- Charmorin ['Normal', 'Fairy']
+- Hantengu ['Electric', 'Flying']
+- Psyvinstry ['Grass', 'Ice', 'Psychic']
+- Fieritre ['Fire', 'Grass']
+- Fairyflame ['Fire', 'Fairy']
+- Tanjiro ['Water', 'Fire']
+- Vindaxe ['Rock']
+- Akaza ['Fighting']
+- Chesiquen ['Ground', 'Flying']
+- Krusadian Salamence ['Ground', 'Dragon']
+- Dreadigo ['Dark', 'Fairy']
+- Pianotic ['Normal', 'Ghost']
+- Douma ['Ice']
+- Faker-Greninja ['Water', 'Dark']
+- Kogoshaka ['Dark', 'Psychic']
+- Kokushibo ['Dark', 'Dragon']
+- Poseidon ['Water', 'Electric']
+- Memoraider ['Dark', 'Ghost']
+- Armadragdon ['Dragon', 'Flying', 'Steel']
+- Gambler ['Typeless']
+- Brambleblood ['Poison', 'Dark']
+- Maruka ['Fairy']
+- Ygadr ['Ice', 'Dragon']
 
 2. Some existing pokemon are tweaked, including:
 - Alolan Exeggutor: ability changes to Long Reach
 - Duraludon: ability changes to Sand Force
-- Scizor: 600BST, equivalent to Mega Scizor
 - Dedenne: ability changes to Static
 
 
@@ -54,12 +60,13 @@ Moves
 - Rock Climb: Normal type -- > Rock type
 - Disable: can now disable multiple moves
 - Glaciate: 65 power --> 80 power
+- Explosive moves (Explosion, Self-Destruct, Mind Blown etc.) will no longer deduct HP when target Pokemon is in Semi-Invulnerable mode
 
 3. Some custom moves are added, including:
 - Cold Touch (Ice): 30 power, physical, priority move, 30% flinch
 - Wail (Ghost): 90 special power, 50% to lower SpDef and Acc. by 1 stage
 - Corrosive Water (Water): 80 power, special, 90% accuracy, 20% poison, super-effective against grass and fairy type
-- Crow Dance (Dark): status, increase ATK and SpA by 2 stages, DEF and SpDef by 1 stage, decrease Spd by 2 stages
+- Adrenaline (Dark): status, increase ATK and SpA by 2 stages, DEF and SpDef by 1 stage, decrease Spd by 2 stages
 - Depraved Shriek (Dark): 120 power, special, duo-type with psychic, double power when move late
 - Double Sickle (Ghost): 50 power, physical, double hit, drain 15% hp and 20% to poison for each hit
 - Fish Needle (Water): 90 power, special, 30% badly poison
@@ -89,7 +96,7 @@ Moves
 - Soul Harvest (Dark): 60 power, special, priority move, binding, drain 25% dmg
 - Reign of Terror (Ghost): 90 power, special, 30% reduce target Spd and Acc by 1 stage, 30% frighten
 - Empyrean Glory (Flying): status, buff user DEF and SpDef by 1 stage, heal team status condition problem, heal 20%, clear weather
-- Draconic Blade (Dragon): 90 power, physical, 30% reduce target Spd and Eva. by 1 stage, 30% frighten
+- Draconic Blade (Dragon): 75 power, physical, 20% reduce target Spd and Eva. by 1 stage, 20% frighten
 - Ground Slam (Ground): 100 power, non-contact physical, 50% confuse
 - Glissando (Flying): 80 power, special, sound-based, 30% flinch
 - Eerie Rhythm (Ghost): 70 power, special, sound-based, 10% reduce target SpDef by 1 stage, 10% confuse
@@ -98,6 +105,7 @@ Moves
 - Time Pressure (Ground): 40 power, special, the higher the relative speed the higher the dmg (ref: electro ball)
 - Gambit (Normal): status, increase SpDef, SpA and Spd by 1 stage, can only use at the first turn
 - Twin Shadows (Normal): status, increase Evasion by 2 stages
+- Faerie Fire (Fire): 70 power, special, 2x against Dragon, 50% lower SpA by 1 stage
 
 
 
@@ -114,6 +122,7 @@ Abilities
 - Divine Power: if not super-effective against target, move damage * 1.5
 - Divine Aegis: if not super-effective against user, move damage * 2/3 (Ignored by Mold Breaker)
 - Instrumental: immune to sound-based moves, sound-based moves against target buff move damage by 50%, take double damage from fire and water types attack
+- Strong Roots: start with Ingrain
 
 2. Some abilities are buffed, including:
 - Berserk: can now activate several times when taking damage under 50% HP (previously only one time)
@@ -123,17 +132,20 @@ Abilities
 - Heatproof: it will no longer prevent Burn status ailment
 - Battle Bond: it now only multiplies the power of Water Shuriken by 1.5
 
+4. Some abilities are altered, including:
+- Magic Guard: it will now prevent damage from binding move, but also disable regeneration from ingrain, leech seed and aqua ring
+
 
 
 Others
 1. All trainers will have their character ability
 2. Some trainers will have custom pokemon, which is usually stronger and own unique ability or moves
-3. The AI will know everything about the field pokemon, but not the pokemon on the Protagonist team
-4. Unless otherwise specified, pokemon's ability can be selected via its mega form or normal form (but not limited to regional form)
+3. The AI will know the moves of the target Pokemon, but can be deceived by its typing, and not the pokemon on the Protagonist team
+4. Unless otherwise specified, original pokemon's ability can be selected via its mega form or normal form (but not limited to regional form)
 5. There is a certain probability that the weather will be different (10% for different weather to occur at start)
 6. There is no Draw in this game. However, if both players are out of usable Pokemon, the one with lower strength is deemed the winner.
 
 Bug
 1. If one team's pokemon got swept at the move selection process by entry hazard, the game will announce results
 but still go on for one more turn for the opponent.
-2. Due to Others#3, The "Illusion" Ability of Zoroark rendered useless to AI
+2. ability Illusion is partially useful to AI, due to Others#3.

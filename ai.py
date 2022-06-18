@@ -4,6 +4,7 @@ from text_color import *
 from weather import *
 from pokemon import *
 from abilities import *
+from character_abilities import *
 from battlefield import *
 from entry_hazard import *
 from volatile_status_condition import *
@@ -30,9 +31,12 @@ def move_score_finalization(user, target, move_score, index):
     move_score[index][2] = round(move_score[index][2], 2)
 
     # converting move damage and move additional effect into one single metric
-    move_score[index][3] = move_score[index][1] ** (min(move_score[index][1] / target.battle_stats[0], 1))  # damage conversion
+    move_score[index][3] = move_score[index][1] ** (min(move_score[index][1] / max(1, target.battle_stats[0]), 1))  # damage conversion
     move_score[index][3] += move_score[index][2] * 0.5  # additional effect conversion
-    move_score[index][3] = round(move_score[index][3], 2)  # rounding
+    try:
+        move_score[index][3] = round(move_score[index][3], 2)  # rounding
+    except TypeError:
+        move_score[index][3] = 0
     return move_score
 
 
@@ -43,7 +47,10 @@ def estimated_speed_adjustment(user_side, user, battleground):
             return speed // 2
         return speed
 
+    ability_impact_speed = {'Sunny': 'Chlorophyll', 'Rain': 'Swift Swim', 'Hail': 'Slush Rush'}
     speed = deepcopy(user.battle_stats[5])
+    with suppress(KeyError):
+        speed *= 2 if ability_impact_speed[battleground.weather_effect] in user.ability else 1
     speed = check_paralysis(user, speed)
     speed *= 2 if user_side.in_battle_effects['Tailwind'] > 0 else 1
     speed *= -1 if battleground.field_effect["Trick Room"] > 0 else 1
@@ -53,18 +60,14 @@ def estimated_speed_adjustment(user_side, user, battleground):
 def estimated_damage_calculation(user_side, target_side, user, target, battleground, move):
     # check whether Atk or SpA is used
     def check_estimated_attack_power(user, target, move):
+        attack = 0
         if move.attack_type == "Physical":  # physical
-            if move.targetAtk:
-                return target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]
-            elif move.DefAsAtk:
-                return user.battle_stats[2] * 0.5 if user.status == "Burn" else user.battle_stats[2]
-            return user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1]
+            attack = (target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]) if move.targetAtk else \
+                (user.battle_stats[2] * 0.5 if user.status == "Burn" else user.battle_stats[2]) if move.DefAsAtk else \
+                    user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1]
         elif move.attack_type == "Special":  # special
-            if move.targetAtk:
-                return target.battle_stats[3]
-            elif move.DefAsAtk:
-                return user.battle_stats[4]
-            return user.battle_stats[3]
+            attack = target.battle_stats[3] if move.targetAtk else user.battle_stats[4] if move.DefAsAtk else user.battle_stats[3]
+        return attack
 
     # check whether Def or SpDef is used
     def check_estimated_defense_strength(user, target, move):
@@ -111,15 +114,15 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
 
     # check whether weather will affect certain types of moves
     def check_if_estimated_weather_affect_moves(battleground, move):
-        if (battleground.weather_effect == 1 and move.type == "Water") or (battleground.weather_effect == 2 and move.type == "Fire"):
+        if (battleground.weather_effect == 'Sunny' and move.type == "Water") or (battleground.weather_effect == 'Rain' and move.type == "Fire"):
             return 0.5
-        elif (battleground.weather_effect == 1 and move.type == "Fire") or (battleground.weather_effect == 2 and move.type == "Water"):
+        elif (battleground.weather_effect == 'Sunny' and move.type == "Fire") or (battleground.weather_effect == 'Rain' and move.type == "Water"):
             return 2
         return 1
 
     # determine crit
     def check_estimated_crit(user, move):
-        return 1 + 0.5 * modifierChart[8][user.modifier[8] + move.critRatio]
+        return 1 + 0.5 * modifierChart[8][min(user.modifier[8] + move.critRatio, 3)]
 
     # determine STAB
     def check_estimated_STAB(user, move):
@@ -272,6 +275,8 @@ def dumb_ai_select_move(battleground, protagonist, ai):
 
         UseAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=2)
         UseAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=3)
+        UseCharacterAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=2)
+        UseCharacterAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=3)
         onWeatherCheck(battleground, move)
         onParticularMoveChange(ai_pokemon, protagonist_pokemon, move)
 
@@ -279,6 +284,8 @@ def dumb_ai_select_move(battleground, protagonist, ai):
 
         UseAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
         UseAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
+        UseCharacterAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
+        UseCharacterAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
 
         move_damage[index] = move.damage
 
@@ -326,6 +333,8 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
 
         UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=2)
         UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
+        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=2)
+        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
         onWeatherCheck(battleground, move)
         onParticularMoveChange(user, target, move)
 
@@ -337,6 +346,8 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
 
         UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
         UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
+        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
+        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
 
         # expected damage
         move_score[index][1] = min(move.damage, target.battle_stats[0] * 1.12) * move.accuracy
@@ -368,8 +379,8 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
             # entry hazard
             elif "apply_entry_hazard" in effect_type[i]:
                 if target_side.entry_hazard[special_effect[i]] < entry_hazard_maximum_usage[special_effect[i]]:
-                    move_score[index][2] += 20 * (1 / entry_hazard_maximum_usage[special_effect[i]]) * sum(
-                        1 for pokemon in user_side.team if pokemon.status != "Fainted")  # max 50
+                    move_score[index][2] += 20 * (1 / entry_hazard_maximum_usage[special_effect[i]]) * (sum(
+                        1 for pokemon in target_side.team if pokemon.status != "Fainted") - 1)  # max 50
             # clear entry hazard
             elif "clear_entry_hazard" in effect_type[i]:
                 move_score[index][2] += 20 * sum(1 for hazard in target_side.entry_hazard.values() if hazard > 0)
@@ -461,9 +472,15 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
                 move_score[index][0] -= 1
         if 'j' in move.flags and user.volatile_status["Turn"] > 2:
             move_score[index][0] -= 1
+            move_score[index][1] = 0
         # prolly no-effect move
         if move.attack_type != 'Status' and move.damage == 0:
             move_score[index][0] -= 1
+
+        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
+        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
+        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
+        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
 
         move_score = move_score_finalization(user, target, move_score, index)
 
@@ -576,16 +593,16 @@ def smart_ai_select_move(battleground, protagonist, ai):
     elif ai_pokemon.volatile_status['Yawn'] >= 1:
         ai_move_score[0][0] += 1
 
-    if battleground.verbose:
-        # converting move damage and move additional effect into one single metric
-        for index in range(5):
-            ai_move_score = move_score_finalization(ai_pokemon, protagonist_pokemon, ai_move_score, index)
-        # debug
-        print(f'\n{CBOLD}First: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
-        for i, (key, value) in enumerate(ai_move_score.items()):
-            with suppress(IndexError):
-                print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | Dmg: {ai_move_score[i][1]} "
-                      f"| Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
+    # if battleground.verbose:
+    #     # converting move damage and move additional effect into one single metric
+    #     for index in range(5):
+    #         ai_move_score = move_score_finalization(ai_pokemon, protagonist_pokemon, ai_move_score, index)
+    #     # debug
+    #     print(f'\n{CBOLD}First: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
+    #     for i, (key, value) in enumerate(ai_move_score.items()):
+    #         with suppress(IndexError):
+    #             print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | Dmg: {ai_move_score[i][1]} "
+    #                   f"| Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
 
     # attempt analysis to player situation
     # to predict switching
@@ -634,11 +651,19 @@ def smart_ai_select_move(battleground, protagonist, ai):
                         if battleground.verbose:
                             print(f"{CREDBG}2{CEND}")
                         if ai_best_attack == 0:
-                            # use best move instead
-                            ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[0]
-                            # second best move
+                            # use best attacking move instead
+                            ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][1]))[0]
                             if ai_best_attack == 0:
-                                ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[1]
+                                ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][1]))[1]
+
+                        # debug
+                        if battleground.verbose:
+                            print(f'\n{CBOLD}Final: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
+                            for i, (key, value) in enumerate(ai_move_score.items()):
+                                with suppress(IndexError):
+                                    print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | "
+                                          f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
+
                         return list_of_moves[ai_pokemon.moveset[ai_best_attack]]
 
     # will keep for now
@@ -653,14 +678,16 @@ def smart_ai_select_move(battleground, protagonist, ai):
                   f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
 
     ai_best_move = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[0]
-
-    if battleground.verbose:
-        print(f"{CVIOLETBG}1{CEND}")
+    if ai.position_change == 0 and ai_best_move == 0:
+        ai_best_move = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[1]
 
     if ai_best_move != 0:
         ai.switching = 0
     else:
         ai.switching += 1
+
+    if battleground.verbose:
+        print(f"{CVIOLETBG}1{CEND}")
 
     return list_of_moves[ai_pokemon.moveset[ai_best_move]]
 
@@ -676,7 +703,10 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
     net_damage = [0 if pokemon.status != "Fainted" else NEG_INF for pokemon in ai.team]
     # AI will consider your moveset and its pokemon moveset, calculate the net damage and select the best pokemon
     for pokemon in available_pokemon:
-        print(f"{CRED2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset}{CEND}")
+        print(f"{ai.side_color}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
+    # if battleground.verbose:
+    #     for pokemon in available_pokemon:
+    #         print(f"{ai.side_color}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
 
     for index, pokemon in enumerate(available_pokemon):
         ai_speed, protagonist_speed = estimated_speed_adjustment(ai, pokemon, battleground), \

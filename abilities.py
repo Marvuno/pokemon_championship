@@ -11,19 +11,24 @@ import operator
 
 def UseAbility(user_side, target_side, user, target, battleground, move="", abilityphase=1, verbose=False):
     def cloudnine(user_side, target_side, user, target, battleground, move, abilityphase):
-        battleground.weather_effect = Clear()
+        battleground.starting_weather_effect = 'Clear'
+        battleground.weather_effect = battleground.starting_weather_effect
 
     def drizzle(user_side, target_side, user, target, battleground, move, abilityphase):
-        battleground.weather_effect = Rain()
+        battleground.starting_weather_effect = 'Rain'
+        battleground.weather_effect = battleground.starting_weather_effect
 
     def drought(user_side, target_side, user, target, battleground, move, abilityphase):
-        battleground.weather_effect = Sunny()
+        battleground.starting_weather_effect = 'Sunny'
+        battleground.weather_effect = battleground.starting_weather_effect
 
     def snowwarning(user_side, target_side, user, target, battleground, move, abilityphase):
-        battleground.weather_effect = Hail()
+        battleground.starting_weather_effect = 'Hail'
+        battleground.weather_effect = battleground.starting_weather_effect
 
     def sandstream(user_side, target_side, user, target, battleground, move, abilityphase):
-        battleground.weather_effect = Sandstorm()
+        battleground.starting_weather_effect = 'Sandstorm'
+        battleground.weather_effect = battleground.starting_weather_effect
 
     def download(user_side, target_side, user, target, battleground, move, abilityphase):
         user.applied_modifier = [0, 1, 0, 0, 0, 0, 0, 0, 0] if target.battle_stats[2] < target.battle_stats[4] else [0, 0, 0, 1, 0, 0, 0, 0, 0]
@@ -88,6 +93,8 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                         user.name, user.type = pokemon.name, pokemon.type
                         break
         elif abilityphase == 2 and battleground.reality:
+            user.type = user.default_type
+        elif abilityphase == 3 and battleground.reality:
             user.type = user.default_type
         elif abilityphase == 5 and battleground.reality:
             if move.damage > 0 and user.disguise:
@@ -183,6 +190,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         if move.type == "Normal":
             move.type, move.power = "Fairy", move.power * 1.2
 
+    def materialize(user_side, target_side, user, target, battleground, move, abilityphase):
+        if move.type == "Normal":
+            move.type, move.power = "Steel", move.power * 1.2
+
     def refrigerate(user_side, target_side, user, target, battleground, move, abilityphase):
         if move.type == "Normal":
             move.type, move.power = "Ice", move.power * 1.2
@@ -260,8 +271,8 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def sandspit(user_side, target_side, user, target, battleground, move, abilityphase):
-        if move.damage > 0 and battleground.weather_effect.id != 3:
-            battleground.weather_effect = Sandstorm()
+        if move.damage > 0 and battleground.weather_effect != 'Sandstorm':
+            battleground.weather_effect = 'Sandstorm'
             battleground.artificial_weather = True
 
     def poisonpoint(user_side, target_side, user, target, battleground, move, abilityphase):
@@ -308,23 +319,23 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
 
     def chlorophyll(user_side, target_side, user, target, battleground, move, abilityphase):
         # double speed when sunny
-        user.battle_stats[5] *= 2 if battleground.weather_effect.id == 1 else 1
+        user.battle_stats[5] *= 2 if battleground.weather_effect == 'Sunny' else 1
 
     def swiftswim(user_side, target_side, user, target, battleground, move, abilityphase):
         # double speed when rain
-        user.battle_stats[5] *= 2 if battleground.weather_effect.id == 2 else 1
+        user.battle_stats[5] *= 2 if battleground.weather_effect == 'Rain' else 1
 
     def slushrush(user_side, target_side, user, target, battleground, move, abilityphase):
         # double speed when hail
-        user.battle_stats[5] *= 2 if battleground.weather_effect.id == 4 else 1
+        user.battle_stats[5] *= 2 if battleground.weather_effect == 'Hail' else 1
 
     def raindish(user_side, target_side, user, target, battleground, move, abilityphase):
-        if battleground.weather_effect.id == 2:
+        if battleground.weather_effect == 'Rain':
             user.battle_stats[0] += min(user.hp - user.battle_stats[0], user.hp // 16)
             print(f"{user.name} healed {min(user.hp - user.battle_stats[0], user.hp // 16)} HP.")
 
     def icebody(user_side, target_side, user, target, battleground, move, abilityphase):
-        if battleground.weather_effect.id == 4:
+        if battleground.weather_effect == 'Hail':
             user.battle_stats[0] += min(user.hp - user.battle_stats[0], user.hp // 16)
             print(f"{user.name} healed {min(user.hp - user.battle_stats[0], user.hp // 16)} HP.")
 
@@ -395,7 +406,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             user.status, user.volatile_status['NonVolatile'] = "Normal", 0
 
     def innerfocus(user_side, target_side, user, target, battleground, move, abilityphase):
-        user.volatile_status['Flinched'] = 0
+        user.volatile_status['Flinch'] = 0
 
     def owntempo(user_side, target_side, user, target, battleground, move, abilityphase):
         user.volatile_status['Confused'] = 0
@@ -460,16 +471,16 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                 user.battle_stats[0] += min(user.hp // 4, user.hp - user.battle_stats[0])
 
     def sandveil(user_side, target_side, user, target, battleground, move, abilityphase):
-        if battleground.weather_effect.id == 3:
+        if battleground.weather_effect == 'Sandstorm':
             move.evasion *= 1.25
 
     def sandforce(user_side, target_side, user, target, battleground, move, abilityphase):
-        if battleground.weather_effect.id == 3:
+        if battleground.weather_effect == 'Sandstorm':
             if move.type in ("Rock", "Steel", "Ground"):
                 move.power *= 1.3
 
     def snowcloak(user_side, target_side, user, target, battleground, move, abilityphase):
-        if battleground.weather_effect.id == 4:
+        if battleground.weather_effect == 'Hail':
             move.evasion *= 1.25
 
     def shadowtag(user_side, target_side, user, target, battleground, move, abilityphase):
@@ -496,7 +507,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                 'Schooling', 'Stance Change', 'Trace', 'Zen Mode']:
                 user.ability = target.ability
         elif abilityphase == 9:
-            user.ability = "Trace"
+            user.ability = user.default_ability
 
     def thickfat(user_side, target_side, user, target, battleground, move, abilityphase):
         if "Ice" in move.type or "Fire" in move.type:
@@ -523,7 +534,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
 
     def divineaegis(user_side, target_side, user, target, battleground, move, abilityphase):
         if not move.super_effective:
-            move.damage = math.floor(move.damage * 2 / 3)
+            move.damage = math.floor(move.damage * 0.75)
 
     def solidrock(user_side, target_side, user, target, battleground, move, abilityphase):
         if move.super_effective:
@@ -535,7 +546,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def hydration(user_side, target_side, user, target, battleground, move, abilityphase):
-        if battleground.weather_effect.id == 2:
+        if battleground.weather_effect == 'Rain':
             user.status, user.volatile_status['NonVolatile'] = "Normal", 0
 
     def reckless(user_side, target_side, user, target, battleground, move, abilityphase):
@@ -547,10 +558,10 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             user.battle_stats[3] *= 0.5
 
     def moody(user_side, target_side, user, target, battleground, move, abilityphase):
-        buff_index, nerf_index = random.randint(1, 7), random.randint(1, 7)
+        indexes = random.sample(range(1, 7), 2)
         new_modifier = [0] * 9
-        new_modifier[buff_index] += 2
-        new_modifier[nerf_index] -= 1
+        new_modifier[indexes[0]] += 2
+        new_modifier[indexes[1]] -= 1
         user.applied_modifier = new_modifier
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
@@ -583,7 +594,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         if abilityphase == 1:
             if not user.transform:
                 user.disguise = True
-        elif abilityphase == 5:
+        elif abilityphase == 5 and battleground.reality:
             if move.attack_type != "Status" and move.damage > 0:
                 if user.disguise:
                     move.damage = 0
@@ -679,6 +690,11 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             print(f"{target.name} cannot use {move.name} due to the Majesty's pressure!")
             move.accuracy = 0
 
+    def dazzling(user_side, target_side, user, target, battleground, move, abilityphase):
+        if move.priority > 0:
+            print(f"{target.name} cannot use {move.name}!")
+            move.accuracy = 0
+
     def toughclaws(user_side, target_side, user, target, battleground, move, abilityphase):
         if 'a' in move.flags:
             move.power *= 1.3
@@ -721,6 +737,15 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         # added custom ability for illuminate (see in spy opponent)
         pass
 
+    def pressure(user_side, target_side, user, target, battleground, move, abilityphase):
+        # this ability does nothing in battle
+        # added custom ability for pressure (see in spy opponent)
+        pass
+
+    def magicguard(user_side, target_side, user, target, battleground, move, abilityphase):
+        # this ability effect is indicated in hp_decreasing_modifier
+        pass
+
     def battlebond(user_side, target_side, user, target, battleground, move, abilityphase):
         # exclusive to faker-greninja
         if move.name == "Water Shuriken":
@@ -738,6 +763,20 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             if user.status == 'Burn':
                 user.status = 'Normal'
 
+    def superluck(user_side, target_side, user, target, battleground, move, abilityphase):
+        user.applied_modifier = [0, 0, 0, 0, 0, 0, 0, 0, 1]
+        user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
+
+    def liquidooze(user_side, target_side, user, target, battleground, move, abilityphase):
+        if 'hp_draining' in move.effect_type:
+            drain = move.special_effect if type(move.effect_type) is str else move.special_effect[move.effect_type.index('hp_draining')]
+            print(f"{target.name} is affected by liquid ooze.")
+            target.battle_stats[0] -= min(target.hp - target.battle_stats[0] + move.damage, math.floor((move.damage + min(target.battle_stats[0] + move.damage, 0)) * drain)) * 2
+
+    def strongroots(user_side, target_side, user, target, battleground, move, abilityphase):
+        user.volatile_status['Ingrain'] = 1
+        user.volatile_status['Trapped'] = 1
+
     list_of_abilities = {
         "Cloud Nine": ((1, 8), cloudnine),
         "Drizzle": (1, drizzle),
@@ -749,7 +788,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         "Anticipation": (1, anticipation),
         'Natural Cure': (1, naturalcure),
         'Stance Change': ((1, 2), stancechange),
-        'Illusion': ((1, 2, 5, 8, 9), illusion),
+        'Illusion': ((1, 2, 3, 5, 8, 9), illusion),
         'Prankster': (2, prankster),
         'Rock Head': (2, rockhead),
         'Marvel Scale': (3, marvelscale),
@@ -773,6 +812,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Compound Eyes': (2, compoundeyes),
         'Skill Link': (2, skilllink),
         'Pixelate': (2, pixelate),
+        'Materialize': (2, materialize, "Custom"),
         'Refrigerate': (2, refrigerate),
         'Moxie': (6, moxie),
         'Soul-Heart': (8, soulheart),
@@ -873,6 +913,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Goredrinker': (4, goredrinker, "Custom"),
         'Screen Cleaner': (1, screencleaner),
         'Queenly Majesty': (3, queenlymajesty),
+        'Dazzling': (3, dazzling),
         'Tough Claws': (2, toughclaws),
         'Fluffy': (5, fluffy),
         'Heatproof': (5, heatproof),
@@ -880,8 +921,13 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         'Punk Rock': ((4, 5), punkrock),
         'Instrumental': ((4, 5), instrumental, "Custom"),
         'Illuminate': (1, illuminate),
+        'Pressure': (1, pressure),
+        'Magic Guard': (8, magicguard),
         'Battle Bond': (2, battlebond),
-        'Water Bubble': ((4, 5, 6), waterbubble)
+        'Water Bubble': ((4, 5, 6), waterbubble),
+        'Super Luck': (1, superluck),
+        'Liquid Ooze': (7, liquidooze),
+        'Strong Roots': (1, strongroots, "Custom"),
     }
 
     try:
@@ -890,13 +936,14 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         ignoreAbility = False
     if not ignoreAbility:
         with suppress(KeyError, AttributeError):
-            vartype = type(list_of_abilities[user.ability][0])
-            if vartype is tuple:
-                if abilityphase in list_of_abilities[user.ability][0]:
-                    list_of_abilities[user.ability][1](user_side, target_side, user, target, battleground, move, abilityphase)
-            elif vartype is int:
-                if abilityphase == list_of_abilities[user.ability][0]:
-                    list_of_abilities[user.ability][1](user_side, target_side, user, target, battleground, move, abilityphase)
+            for ability in user.ability:
+                vartype = type(list_of_abilities[ability][0])
+                if vartype is tuple:
+                    if abilityphase in list_of_abilities[ability][0]:
+                        list_of_abilities[ability][1](user_side, target_side, user, target, battleground, move, abilityphase)
+                elif vartype is int:
+                    if abilityphase == list_of_abilities[ability][0]:
+                        list_of_abilities[ability][1](user_side, target_side, user, target, battleground, move, abilityphase)
 
     if verbose:
         print(f"\n{CBOLD}Total Number of Abilities: {len(list_of_abilities)}\nCustom: {sum([1 for abilities, values in list_of_abilities.items() if len(values) == 3])}{CEND}")
@@ -908,7 +955,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
         ability_usage = True  # debug only
         if ability_usage:
             ability_list = dict.fromkeys([ability for ability in list_of_abilities], 0)
-            ability_list.update({'Pressure': 0, 'Illuminate': 0, 'Surge Surfer': 0})
+            ability_list.update({'Surge Surfer': 0})
             for pokemon in list_of_pokemon:
                 for ability in list_of_pokemon[pokemon].ability:
                     ability_list[ability] += 1

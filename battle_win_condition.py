@@ -62,33 +62,62 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
 # battle ended
 # reset every in-battle state
 def end_battle(protagonist, competitor, player_team, opponent_team, battleground):
-    for pokemon in player_team:
-        pokemon.modifier = [0] * 9
-        if pokemon.status == "Fainted":
-            pokemon.name = pokemon.name.removesuffix(" (Fainted)")
-        pokemon.status = "Normal"
-        pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
-        protagonist.entry_hazard = dict.fromkeys(protagonist.entry_hazard.keys(), 0)
-        protagonist.in_battle_effects = dict.fromkeys(protagonist.in_battle_effects.keys(), 0)
-        pokemon.protection = [0, 0]
-        pokemon.charging = ["", "", 0]
-        pokemon.moveset = pokemon.moveset[1:5]
-        pokemon.move_order = []
-        pokemon.previous_move = None
-        pokemon.disabled_moves = {}
-        pokemon.disguise, pokemon.transform = False, False
-        with suppress(AttributeError):
+    if battleground.verbose:
+        for pokemon in player_team:
+            pokemon.modifier = [0] * 9
+            pokemon.status = "Normal"
+            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
+            pokemon.protection = [0, 0]
+            pokemon.charging = ["", "", 0]
+            pokemon.moveset = pokemon.moveset[1:5]
+            pokemon.move_order = []
+            pokemon.previous_move = None
+            pokemon.disabled_moves = {}
+            pokemon.disguise, pokemon.transform = False, False
             pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
 
-    for mon in protagonist.unused_team:
-        protagonist.team.append(mon)
-    protagonist.unused_team = []
+        for pokemon in opponent_team:
+            pokemon.modifier = [0] * 9
+            pokemon.status = "Normal"
+            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
+            pokemon.protection = [0, 0]
+            pokemon.charging = ["", "", 0]
+            pokemon.moveset = pokemon.moveset[1:5]
+            pokemon.move_order = []
+            pokemon.previous_move = None
+            pokemon.disabled_moves = {}
+            pokemon.disguise, pokemon.transform = False, False
+            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
 
-    if battleground.verbose:
-        print(f"{protagonist.name}: {protagonist.result} || {competitor.name}: {competitor.result}")
+        protagonist.entry_hazard = dict.fromkeys(protagonist.entry_hazard.keys(), 0)
+        protagonist.in_battle_effects = dict.fromkeys(protagonist.in_battle_effects.keys(), 0)
+        competitor.entry_hazard = dict.fromkeys(competitor.entry_hazard.keys(), 0)
+        competitor.in_battle_effects = dict.fromkeys(competitor.in_battle_effects.keys(), 0)
     else:
+        for pokemon in player_team:
+            pokemon.modifier = [0] * 9
+            pokemon.status = "Normal"
+            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
+            protagonist.entry_hazard = dict.fromkeys(protagonist.entry_hazard.keys(), 0)
+            protagonist.in_battle_effects = dict.fromkeys(protagonist.in_battle_effects.keys(), 0)
+            pokemon.protection = [0, 0]
+            pokemon.charging = ["", "", 0]
+            pokemon.moveset = pokemon.moveset[1:5]
+            pokemon.move_order = []
+            pokemon.previous_move = None
+            pokemon.disabled_moves = {}
+            pokemon.disguise, pokemon.transform = False, False
+            with suppress(AttributeError):
+                pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
+
+        for mon in protagonist.unused_team:
+            protagonist.team.append(mon)
+        protagonist.unused_team = []
+
+        print(weather_del[battleground.weather_effect])
+
         input("Press any key to continue.")
-        os.system('cls')
+        os.system('cls' if os.name == 'nt' else 'clear')
         game_procedure.round_end(GameSystem.stage)
         GameSystem.stage += 1
 
@@ -123,14 +152,16 @@ def choose_pokemon(protagonist, opponent, battleground):
                                                                  f"--> "))
                                     protagonist.team.append(opponent.team[obtained_pokemon])
                         elif choice == "N":
-                            defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Custom'}
+                            defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Ultra High'}
                             pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
                                                          list_of_pokemon[pokemon].tier == defeating_tier_list[opponent.level] and pokemon not in current_pokemon]
                             obtained_pokemon = random.choice(pokemon_availability_list)
                             obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
                             obtained_pokemon.iv = [random.randint(min(31, int(protagonist.strength / 250 * 31)), 31) for _ in range(6)]
+                            obtained_pokemon.total_iv = sum(obtained_pokemon.iv)
                             obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
-                            obtained_pokemon.ability = random.choice(obtained_pokemon.ability)
+                            obtained_pokemon.total_base_stats = sum(obtained_pokemon.base_stats)
+                            obtained_pokemon.ability = [random.choice(obtained_pokemon.ability)]
                             obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
                             obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
                             print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
@@ -174,8 +205,9 @@ def choose_pokemon(protagonist, opponent, battleground):
                     obtained_pokemon = random.choice(pokemon_availability_list)
                     obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
                     obtained_pokemon.iv = [random.randint(min(31, int(protagonist.strength / 250 * 31)), 31) for _ in range(6)]
+                    obtained_pokemon.total_iv = sum(obtained_pokemon.iv)
                     obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
-                    obtained_pokemon.ability = random.choice(obtained_pokemon.ability)
+                    obtained_pokemon.ability = [random.choice(obtained_pokemon.ability)]
                     obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
                     obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
                     print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")

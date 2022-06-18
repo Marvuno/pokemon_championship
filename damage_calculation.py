@@ -27,18 +27,14 @@ def damage_calculation(user_side, target_side, user, target, battleground, move)
 
 # check whether Atk or SpA is used
 def check_attack_power(user, target, move):
+    attack = 0
     if move.attack_type == "Physical":  # physical
-        if move.targetAtk:
-            return target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]
-        elif move.DefAsAtk:
-            return user.battle_stats[2] * 0.5 if user.status == "Burn" else user.battle_stats[2]
-        return user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1]
+        attack = (target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]) if move.targetAtk else \
+            (user.battle_stats[2] * 0.5 if user.status == "Burn" else user.battle_stats[2]) if move.DefAsAtk else \
+                user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1]
     elif move.attack_type == "Special":  # special
-        if move.targetAtk:
-            return target.battle_stats[3]
-        elif move.DefAsAtk:
-            return user.battle_stats[4]
-        return user.battle_stats[3]
+        attack = target.battle_stats[3] if move.targetAtk else user.battle_stats[4] if move.DefAsAtk else user.battle_stats[3]
+    return attack
 
 
 # check whether Def or SpDef is used
@@ -79,16 +75,16 @@ def check_power_modifier(user_side, target_side, user, target, move):
 
 # check whether weather will affect certain types of moves
 def check_if_weather_affect_moves(battleground, move):
-    if (battleground.weather_effect == 1 and move.type == "Water") or (battleground.weather_effect == 2 and move.type == "Fire"):
+    if (battleground.weather_effect == 'Sunny' and move.type == "Water") or (battleground.weather_effect == 'Rain' and move.type == "Fire"):
         return 0.5
-    elif (battleground.weather_effect == 1 and move.type == "Fire") or (battleground.weather_effect == 2 and move.type == "Water"):
+    elif (battleground.weather_effect == 'Sunny' and move.type == "Fire") or (battleground.weather_effect == 'Rain' and move.type == "Water"):
         return 2
     return 1
 
 
 # determine crit
 def check_crit(user, move):
-    if random.random() <= modifierChart[8][user.modifier[8] + move.critRatio]:
+    if random.random() <= modifierChart[8][min(3, user.modifier[8] + move.critRatio)]:
         move.critical_hit = True
         print("Crit!")
         return 1.5

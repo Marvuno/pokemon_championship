@@ -153,7 +153,7 @@ def check_move_user_protection(user_side, target_side, user, target, battlegroun
 # check if the move buff the whole team
 def check_move_user_team_buff(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     team_buff = special_effect
-    if team_buff == "Aurora Veil" and battleground.weather_effect.id != 4:  # hail
+    if team_buff == "Aurora Veil" and battleground.weather_effect == 'Hail':  # hail
         print(f"Not hailing. {team_buff} failed.")
     else:
         if user_side.in_battle_effects[team_buff] > 0:
@@ -166,9 +166,9 @@ def check_move_user_team_buff(user_side, target_side, user, target, battleground
 # check if the move affects the weather
 def check_move_battleground_weather_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     # weather effect
-    battleground.weather_effect = special_effect()
+    battleground.weather_effect = special_effect
     battleground.artificial_weather = True
-    print(f"The Weather is now {battleground.weather_effect.desc}.")
+    print(f"The Weather is now {weather_desc[battleground.weather_effect]}.")
 
 
 def check_move_battleground_field_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
@@ -242,7 +242,7 @@ def check_move_disable(user_side, target_side, user, target, battleground, user_
     if special_effect == "Disable":
         with suppress(ValueError, AttributeError):
             try:
-                if target.disabled_moves[target.previous_move.name] != 0:
+                if target.disabled_moves[target.previous_move.name] != 0 and target.previous_move.name != "Switching":
                     print("The move is already disabled!")
             except KeyError:
                 target.disabled_moves[target.previous_move.name] = 5
@@ -259,7 +259,7 @@ def check_move_disable(user_side, target_side, user, target, battleground, user_
         for i in range(len(target.moveset)):
             move = list_of_moves[target.moveset[i]]
             try:
-                if move.name != "Switching" and move.name != target.previous_move.name:
+                if move.name != "Switching" and move.name != target.previous_move.name and target.previous_move.name != "Switching":
                     try:
                         if target.disabled_moves[move.name] != 0:
                             print("The move is already disabled!")
@@ -272,7 +272,7 @@ def check_move_disable(user_side, target_side, user, target, battleground, user_
             move = list_of_moves[target.moveset[i]]
             if 'f' in move.flags:
                 try:
-                    if target.disabled_moves[move.name] != 0:
+                    if target.disabled_moves[move.name] != 0 and target.previous_move.name != "Switching":
                         print("The move is already disabled!")
                 except KeyError:
                     target.disabled_moves[move.name] = 2
@@ -295,19 +295,22 @@ def check_move_swap_barrier(user_side, target_side, user, target, battleground, 
 
 
 def check_move_add_target_type(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    target.type += special_effect
-    print(f"{target.name} has been added {special_effect} type.")
+    for typing in special_effect:
+        if typing not in target.type:
+            target.type += [typing]
+            print(f"{target.name} has been added {typing} type.")
 
 
 def check_move_countering(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
     type_effectiveness = 0 if math.prod([typeChart[move.type][target.type[x]] for x in range(len(target.type))]) == 0 else 1
-    target.previous_move.damage = getattr(target.previous_move, 'damage', 0)
-    if move.name == "Counter" and target.previous_move.attack_type == "Physical":
-        print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
-        target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
-    elif move.name == "Mirror Coat" and target.previous_move.attack_type == "Special":
-        print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
-        target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
-    elif move.name == "Metal Burst":
-        print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 1.5 * type_effectiveness} damage.")
-        target.battle_stats[0] -= target.previous_move.damage * 1.5 * type_effectiveness
+    if type(target.previous_move) is not str:
+        target.previous_move.damage = getattr(target.previous_move, 'damage', 0)
+        if move.name == "Counter" and target.previous_move.attack_type == "Physical":
+            print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
+            target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
+        elif move.name == "Mirror Coat" and target.previous_move.attack_type == "Special":
+            print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
+            target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
+        elif move.name == "Metal Burst":
+            print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 1.5 * type_effectiveness} damage.")
+            target.battle_stats[0] -= target.previous_move.damage * 1.5 * type_effectiveness

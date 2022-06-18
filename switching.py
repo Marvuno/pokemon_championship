@@ -5,6 +5,7 @@ from text_color import *
 from weather import *
 from pokemon import *
 from abilities import *
+from character_abilities import *
 from battlefield import *
 from entry_hazard import *
 from volatile_status_condition import *
@@ -85,9 +86,10 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
 
     # triggering abilities when switched out
     UseAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)
+    UseCharacterAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)
 
     user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
-    print(f"{CVIOLET2}{CBOLD}{user_team[0].name} is switched in!{CEND}")
+    print(f"{user.side_color}{user_team[0].name} is switched in!{CEND}")
 
     switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
 
@@ -99,7 +101,7 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     elif not user.main:
         if sum(1 for pokemon in user.team if pokemon.status != "Fainted") == 1:
             colors = {"": CWHITE2, "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
-            print(f"{colors[user.color]}{CBOLD}{user.name}: {user.quote}{CEND}")  # will add quotes on competitor
+            print(f"\n{colors[user.color]}{CBOLD}{user.name}: {user.quote}{CEND}")  # will add quotes on competitor
             music(audio=user.ace_music, loop=True)
 
     return user_team[0]

@@ -11,12 +11,21 @@ ATTACK_TYPE = {0: 'Physical', 1: 'Special', 2: 'Status'}
 
 print(f"{CBOLD}Total Number of Pokemon: {len(list_of_pokemon)}{CEND}")
 for index, type in TYPING.items():
+    tier_list = {'Very Low': 0, 'Low': 0, 'Medium': 0, 'High': 0, 'Very High': 0, 'Ultra High': 0}
+    tier_conversion = {'Very Low': 'VL', 'Low': 'L', 'Medium': 'M', 'High': 'H', 'Very High': 'VH', 'Ultra High': 'UH'}
+    temp = []
     number = sum([1 for pokemon in list_of_pokemon if type in list_of_pokemon[pokemon].type])
-    print(f"{CBEIGE2}{type}: {number}{CEND}")
+    for tier, count in tier_list.items():
+        tier_list[tier] = sum([1 for pokemon in list_of_pokemon if type in list_of_pokemon[pokemon].type and tier == list_of_pokemon[pokemon].tier])
+        temp.append(tier_list[tier])
+    # print(f"{CBEIGE2}{type}: {number} || {[(tier_conversion[key], value) for key, value in tier_list.items()]} {CEND}")
+    print(f"{CBEIGE2}{type}: {number} || {temp} {CEND}")
 print("")
+
 for index, tier in TIER.items():
     number = sum([1 for pokemon in list_of_pokemon if tier == list_of_pokemon[pokemon].tier])
     print(f"{CGREEN2}{tier}: {number}{CEND}")
+
 print(f"\n{CBOLD}Custom: {sum([1 for pokemon in list_of_pokemon if list_of_pokemon[pokemon].custom])}{CEND}")
 for mon in list_of_pokemon.values():
     if mon.custom:
@@ -26,10 +35,12 @@ print(f"\n{CBOLD}Total Number of Moves: {len(list_of_moves)}{CEND}")
 for index, type in TYPING.items():
     number = sum([1 for moves in list_of_moves if list_of_moves[moves].type == type])
     print(f"{CBEIGE2}{type}: {number}{CEND}")
+
 print(f"\n{CBOLD}By Attack Types:{CEND}")
 for index, type in ATTACK_TYPE.items():
     number = sum([1 for moves in list_of_moves if list_of_moves[moves].attack_type == type])
     print(f"{CGREEN2}{type}: {number}{CEND}")
+
 print(f"\n{CBOLD}Custom: {sum([1 for moves in list_of_moves if list_of_moves[moves].custom])}{CEND}")
 for move in list_of_moves.values():
     if move.custom:

@@ -1,4 +1,5 @@
 from abilities import *
+from character_abilities import *
 import numpy as np
 
 
@@ -7,6 +8,7 @@ def switched_in_initialization(user_side, opponent_side, user, opponent, battleg
     if not ("Flying" in user.type or user.ability == "Levitate"):
         user.volatile_status['Grounded'] = 1
     # switched in ability
+    UseCharacterAbility(user_side, opponent_side, user, opponent, battleground, "", abilityphase=1)
     UseAbility(user_side, opponent_side, user, opponent, battleground, "", abilityphase=1)
     # turn
     user.volatile_status['Turn'] += 1
@@ -30,5 +32,6 @@ def pre_move_adjustment(user_side, opponent_side, user, opponent, battleground, 
             metronome_move_list = list(set(list_of_moves.keys()) - {"Baneful Bunker", "Counter", "Protect", "King's Shield", "Mirror Coat", "Metronome"})
             move = list_of_moves[random.choice(metronome_move_list)]
         UseAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)
+        UseCharacterAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)
     user.move_order.append(move.name)
     return move

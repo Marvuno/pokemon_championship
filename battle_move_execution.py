@@ -46,22 +46,22 @@ def user_turn_in_battle_stats(user_side, user):
 # check if weather effect affects the move
 def onWeatherCheck(battleground, move):
     if not move.ignoreWeather:
-        if battleground.weather_effect.id == 4:  # hail
+        if battleground.weather_effect == 'Hail':  # hail
             if move.name == "Blizzard":
                 move.accuracy = GUARANTEE_ACCURACY
             elif move.name == "Solar Beam" or move.name == "Solar Blade":
                 move.power /= 2
-        elif battleground.weather_effect.id == 1:  # Sunny
+        elif battleground.weather_effect == 'Sunny':  # Sunny
             if move.name == "Solar Beam" or move.name == "Solar Blade":
                 move.charging = ""
             elif move.name == "Thunder":
                 move.accuracy /= 2
-        elif battleground.weather_effect.id == 2:  # rain
+        elif battleground.weather_effect == 'Rain':  # rain
             if move.name == "Solar Beam" or move.name == "Solar Blade":
                 move.power /= 2
             elif move.name == "Thunder" or move.name == "Hurricane" or move.name == "Thunderous Trident":
                 move.accuracy = GUARANTEE_ACCURACY
-        elif battleground.weather_effect.id == 3:  # sandstorm
+        elif battleground.weather_effect == 'Sandstorm':  # sandstorm
             if move.name == "Solar Beam" or move.name == "Solar Blade":
                 move.power /= 2
 
@@ -138,6 +138,10 @@ def move_fail_checklist_before_execution(user, target, move, target_move):
     elif 'g' in move.flags and 'Grass' in target.type:
         print("The move failed.")
         return True
+    # shell trap for turtonator
+    elif move.name == "Shell Trap" and 'a' not in target_move.flags:
+        print("The move failed.")
+        return True
 
     return False
 
@@ -193,7 +197,7 @@ def other_effect_when_use_move(user, target, battleground, move):
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
         target.modifier = [0 if modifier > 0 else modifier for modifier in target.modifier]
     # double power when hit
-    if move.multi == 2:
+    if move.multi[0] == 2:
         move.power *= 2
 
 

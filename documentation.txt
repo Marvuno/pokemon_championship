@@ -11,9 +11,6 @@ Modifier
 Status Condition
 0 Normal | 1 Poison | 2 BadPoison | 3 Paralysis | 4 Burn | 5 Sleep | 6 Freeze | 7 Fainted
 
-Weather Effect
-0 Clear | 1 Harsh Sunlight | 2 Rain | 3 Sandstorm | 4 Hail
-
 Battle Stats
 0 Attack | 1 Defense | 2 SpA | 3 SpDef | 4 Speed
 
@@ -54,6 +51,7 @@ Move Special Effect
 26 add_target_type
 
 Ability Phase
+0 Battle Initialization (Character Ability only)
 1 Start (Beginning/Switched)
 2 After Move Select (User Side)
 3 After Move Select (Target Side)

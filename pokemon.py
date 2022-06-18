@@ -53,6 +53,7 @@ class Pokemon:
         self.disabled_moves = {}
         # other individual factors
         self.disguise, self.transform = False, False
+        self.second_life = 0
 
 
 with open('csv/pokemon.csv', encoding="ISO-8859-1") as f:

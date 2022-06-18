@@ -5,11 +5,12 @@ import csv
 
 
 class Competitor:
-    def __init__(self, raw_id, name, strength=1, desc="", level="", music="", ace_music="", color="", quote=""):
+    def __init__(self, raw_id, name, strength=1, ability="", desc="", level="", music="", ace_music="", color="", quote=""):
         self.id, self.match_id = None, None
         self.raw_id = raw_id
         self.name = name
         self.strength = strength
+        self.ability = ability
         self.main = False
         self.stage = 1
         self.desc = desc
@@ -20,6 +21,7 @@ class Competitor:
         self.music = music
         self.ace_music = ace_music
         self.faster = False
+        self.side_color = ""
         self.color = color
         self.quote = quote
         self.team = []
@@ -46,7 +48,7 @@ with open('csv/competitors.csv', encoding="ISO-8859-1") as f:
     reader = csv.DictReader(f)
     list_of_competitors = {}
     for row in reader:
-        list_of_competitors[row['Name']] = Competitor(row['ID'], row['Name'], int(row['Strength']), row['Desc'], row['Level'],
+        list_of_competitors[row['Name']] = Competitor(row['ID'], row['Name'], int(row['Strength']), row['Ability'], row['Desc'], row['Level'],
                                                       row['Music'], row['Ace Music'], row['Color'], row['Quote'])
         for i in range(1, 7):
             if row[f'Poke{i}'] != '':

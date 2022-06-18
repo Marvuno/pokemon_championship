@@ -1,3 +1,48 @@
+Pokemon Championship v1.0.8 (Character Ability Update)
+
+In-Game Changes
+Moves
+- Nerf: Draconic Blade, Empyrean Glory, Soul Harvest, History Rewritten, Glissando
+- Change: Crow Dance -> Adrenaline (different move effect), Depraved Shriek (after_hand -> before_hand, power 120 -> 100)
+- Buff: Cannibalism
+
+Abilities
+- Nerf: Divine Aegis
+
+Pokemon
+- Nerf: Scizor (reverted to original base stats)
+
+Added
+- new batch of both original and custom Pokemon is added, with some additional new moves and abilities
+- added comprehensive stats, including win rate, for AI simulation
+- now able to loop through each opponent in AI simulation
+- added Character Ability for AI participants (!!)
+
+Changed
+- converted weather to str/dict instead of class
+- ratings adjustment and Pokemon tier adjustment based on data analysis
+- pokemon team alternation for characters
+- text color adjustment
+- actual gameplay readability update
+
+Fixed
+- 3-hit moves (e.g. 3-hand trick & triple axel) now multiplies power when hit
+- AI now appropriately addresses ability Disguise (mimikyu)
+- perish song is now properly functioning, with perish count included
+- AI will no longer switch itself in
+- attempt to reach >6 critical hit will no long result in error
+- ability Illusion now changes type before calculating move damage
+- ability-induced changes will now be factored before calculating speed and move order
+- obtaining random pokemon when beating Champion-level participant will no longer cause error
+- disabling moves will now fail when previous move of the target pokemon is "Switching"
+- smart AI using useless first-turn-priority move (e.g. fake out)
+- interchangable type moves should use the best typing now
+- countering move won't induce error if target has not used any move before
+- fixed ability Moody affecting the same stats (now distinct)
+- AI now properly addresses speed adjustment due to abilities
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.0.7 (AI Update)
 
 AI

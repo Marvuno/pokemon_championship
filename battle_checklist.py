@@ -6,6 +6,7 @@ from text_color import *
 from weather import *
 from pokemon import *
 from abilities import *
+from character_abilities import *
 from battlefield import *
 from entry_hazard import *
 from volatile_status_condition import *
@@ -133,11 +134,12 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
     fail, immune = True, False
 
     if not user_health_condition and move.name != "Switching":
-        print(f"{CVIOLET2}{CBOLD}{user.name} used {move.name}{CEND}.")
+        print(f"{user_side.side_color}{user.name} used {move.name}{CEND}.")
 
         onWeatherCheck(battleground, move)
         onParticularMoveChange(user, target, move)
         UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
+        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
         move.accuracy = move.accuracy * modifierChart[7][user.modifier[7]] * (1 / (modifierChart[6][0]) * move.evasion) if move.ignoreEvasion else \
             move.accuracy * modifierChart[7][user.modifier[7]] * (1 / (modifierChart[6][target.modifier[6]] * move.evasion))
 
@@ -152,6 +154,8 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
 
                         UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
                         UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
+                        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
+                        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
 
                         # no effect move and not a charging move
                         if move.damage <= 0 and move.attack_type != "Status" and move.charging not in ("Charging", "Semi-invulnerable"):
@@ -189,6 +193,8 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                             # trigger ability when target is being hit
                             UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
                             UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
+                            UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
+                            UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
                             fail = False
             # the move is dodged
             else:
@@ -209,66 +215,69 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
 def check_fainted(user, target):
     if target.status != "Fainted":  # check fainted or not
         if target.battle_stats[0] <= 0:  # out of HP
-            print(f"{target.name} fainted!")
+            print(f"{target.side_color}{target.name} fainted!{CEND}")
             target.status = "Fainted"
     if user.status != "Fainted":
         if user.battle_stats[0] <= 0:  # recoil damage trigger fainted
-            print(f"{user.name} fainted!")
+            print(f"{user.side_color}{user.name} fainted!{CEND}")
             user.status = "Fainted"
 
 
 # reducing hp at the end of each turn
 def hp_decreasing_modifier(pokemon, target, battleground):
-    # status condition
-    if pokemon.status == "Poison":  # regular poison
-        print(f"The Poison has eroded {pokemon.name} {max(1, pokemon.hp // 8)} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
-    elif pokemon.status == "BadPoison":  # bad poison
-        pokemon.volatile_status["NonVolatile"] += 1
-        print(f"The Bad Poison has eroded {pokemon.name} {max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)
-    elif pokemon.status == "Burn":  # burn
-        print(f"The Burn has burned away {pokemon.name} {max(1, pokemon.hp // 16)} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
-    # sudden death
-    if battleground.sudden_death:
-        print(f"The dark energy has eroded {pokemon.name} {max(1, pokemon.hp // 4)} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
+    if pokemon.ability != 'Magic Guard':
+        # status condition
+        if pokemon.status == "Poison":  # regular poison
+            print(f"The Poison has eroded {pokemon.name} {max(1, pokemon.hp // 8)} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
+        elif pokemon.status == "BadPoison":  # bad poison
+            pokemon.volatile_status["NonVolatile"] += 1
+            print(f"The Bad Poison has eroded {pokemon.name} {max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)
+        elif pokemon.status == "Burn":  # burn
+            print(f"The Burn has burned away {pokemon.name} {max(1, pokemon.hp // 16)} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
+        # sudden death
+        if battleground.sudden_death:
+            print(f"The dark energy has eroded {pokemon.name} {max(1, pokemon.hp // 4)} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
 
-    # weather effect
-    if battleground.weather_effect.id == 3:  # sandstorm
-        if "Ground" not in pokemon.type and "Steel" not in pokemon.type and "Rock" not in pokemon.type:  # ground, rock, steel type immune
-            if pokemon.ability not in ("Sand Veil", "Sand Rush"):
-                print(f"The Sandstorm has hurt {pokemon.name} {pokemon.hp // 16} HP.")
-                pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
-    elif battleground.weather_effect.id == 4:  # hail
-        if "Ice" not in pokemon.type:  # ice type immune
-            if pokemon.ability not in ("Snow Cloak"):
-                print(f"The Hail has hurt {pokemon.name} {pokemon.hp // 16} HP.")
-                pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
+        # weather effect
+        if battleground.weather_effect == 'Sandstorm':  # sandstorm
+            if "Ground" not in pokemon.type and "Steel" not in pokemon.type and "Rock" not in pokemon.type:  # ground, rock, steel type immune
+                ability_list = ["Sand Veil", "Sand Rush"]
+                if any(ability not in pokemon.ability for ability in ability_list):
+                    print(f"The Sandstorm has hurt {pokemon.name} {pokemon.hp // 16} HP.")
+                    pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
+        elif battleground.weather_effect == 'Hail':  # hail
+            if "Ice" not in pokemon.type:  # ice type immune
+                ability_list = ["Snow Cloak"]
+                if any(ability not in pokemon.ability for ability in ability_list):
+                    print(f"The Hail has hurt {pokemon.name} {pokemon.hp // 16} HP.")
+                    pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
 
-    # binding effect
-    if pokemon.volatile_status['Binding'] >= 1:
-        print(f"The binding has damaged {pokemon.name} {pokemon.hp // 8} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
-    # cursed
-    if pokemon.volatile_status['Curse'] >= 1:
-        print(f"The curse has damaged {pokemon.name} {pokemon.hp // 4} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
-    # leech seed
-    if pokemon.volatile_status['LeechSeed'] > 0:
-        print(f"Leech seed has drained {pokemon.name} {pokemon.hp // 8} HP.")
-        pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
-    if target.volatile_status['LeechSeed'] > 0:
-        pokemon.battle_stats[0] += max(1, min(target.hp // 8, pokemon.hp - pokemon.battle_stats[0]))
-    # ingrain
-    if pokemon.volatile_status['Ingrain'] > 0:
-        print(f"Ingrain roots has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
-        pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
-    # aqua ring
-    if pokemon.volatile_status['AquaRing'] > 0:
-        print(f"Aqua ring has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
-        pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
+        # binding effect
+        if pokemon.volatile_status['Binding'] >= 1:
+            print(f"The binding has damaged {pokemon.name} {pokemon.hp // 8} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
+        # cursed
+        if pokemon.volatile_status['Curse'] >= 1:
+            print(f"The curse has damaged {pokemon.name} {pokemon.hp // 4} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
+        # leech seed
+        if pokemon.volatile_status['LeechSeed'] > 0:
+            print(f"Leech seed has drained {pokemon.name} {pokemon.hp // 8} HP.")
+            pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
+        if target.volatile_status['LeechSeed'] > 0:
+            pokemon.battle_stats[0] += max(1, min(target.hp // 8, pokemon.hp - pokemon.battle_stats[0]))
+        # ingrain
+        if pokemon.volatile_status['Ingrain'] > 0:
+            print(f"Ingrain roots has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
+            pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
+        # aqua ring
+        if pokemon.volatile_status['AquaRing'] > 0:
+            print(f"Aqua ring has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
+            pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
 
     return pokemon.battle_stats[0]
 
@@ -276,10 +285,10 @@ def hp_decreasing_modifier(pokemon, target, battleground):
 # check if weather effect stops
 def check_weather_persist(battleground):
     if battleground.artificial_weather:
-        if battleground.weather_effect.turn == WEATHER_EFFECT_TURNS:
+        if battleground.weather_turn == WEATHER_EFFECT_TURNS:
             battleground.artificial_weather = False
-            return battleground.starting_weather_effect()
-        battleground.weather_effect.turn += 1
+            return battleground.starting_weather_effect
+        battleground.weather_turn += 1
     return battleground.weather_effect
 
 
