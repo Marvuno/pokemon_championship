@@ -1,20 +1,16 @@
 import random
-from pokemon import *
-from moves import *
-from battlefield import *
-from copy import deepcopy
-from type_chart import *
-from text_color import *
-from battle_cycle import *
-from music import *
-from art import *
-from start_interface import *
-from competitors import *
-from game_procedure import *
-from abilities import *
-import pickle
 import os
 import sys
+from copy import deepcopy
+
+from Scripts.Art.text_color import *
+from Scripts.Data.pokemon import *
+from Scripts.Data.moves import *
+from Scripts.Data.battlefield import *
+from Scripts.Data.competitors import *
+from Scripts.Battle.battle_cycle import *
+from Scripts.Game.game_system import *
+
 
 GameSystem.stage = 5
 repeat = 1
@@ -33,11 +29,11 @@ if mode == 0:  # all vs all
     side1_participants = all_participants
     side2_participants = all_participants
 elif mode == 1:  # one vs all
-    side1_participants = ['Paul']
+    side1_participants = ['Animenz']
     side2_participants = all_participants
 else:  # one vs one
-    side1_participants = ['Demon Muzan']
-    side2_participants = ['Emperor Marvuno']
+    side1_participants = ['Trasher']
+    side2_participants = ['Dulunga']
 
 winner_name = []
 winner_count = dict.fromkeys(all_participants, 0)

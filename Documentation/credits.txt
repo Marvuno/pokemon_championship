@@ -1,0 +1,25 @@
+<<CREDITS>>
+
+Music:
+start1.mp3 - "Tavern Loop One" by Alexander Nakarada
+start2.mp3 - "Medieval Loop One" by Alexander Nakarada
+start3.mp3 - "Marked" by Alexander Nakarada
+start4.mp3 - "Bonfire" by Alexander Nakarada
+start5.mp3 - Unknown
+start6.mp3 - "Rise of a Kingdom" by BrunuhVille
+intro.mp3 - "Kingdom of Fantasy" by LesFM
+lower_elite_battle.mp3 - "Fire and Thunder" by Cjbeards
+upper_elite_battle.mp3 - "Pokemon BW Elite Four Remix" by GlitchxCity
+champion_battle.mp3 - "Dragon Castle" by Makai Symphony
+elite_ace.mp3 - "Epic Tension" by Royalty Free Music Licensing
+victory.mp3 - "Victory!" by Alexander Nakarada
+low.mp3 - ORAS Rival Battle Music
+intermediate.mp3 - Pokemon B2&W2 Gym Leader Music
+advanced.mp3 - Pokemon Wally Music
+ace.mp3 - Pokemon BW Music - Gym Leader (Last Pokemon)
+credits.mp3 - Pokemon X&Y Credits
+
+Graphics:
+Credits to ProjectPokemon, theSLAYER and pkparaiso for 3D animated sprites of all original Pokemon! Thank you for the generosity!
+
+Pokemon Championship || Copyright 2022 Marvin Hui

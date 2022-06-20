@@ -1,0 +1,695 @@
+Total Number of Pokemon: 239
+Normal: 20 || [4, 4, 7, 3, 1, 1] 
+Fire: 21 || [0, 2, 3, 10, 6, 0] 
+Water: 33 || [4, 2, 10, 13, 2, 1] 
+Electric: 20 || [3, 2, 5, 8, 1, 0] 
+Grass: 26 || [5, 6, 9, 6, 0, 0] 
+Ice: 21 || [1, 5, 8, 6, 0, 1] 
+Fighting: 19 || [1, 5, 5, 5, 3, 0] 
+Poison: 19 || [2, 0, 7, 8, 2, 0] 
+Ground: 25 || [1, 6, 10, 5, 1, 2] 
+Flying: 27 || [4, 3, 9, 5, 4, 1] 
+Psychic: 19 || [1, 5, 6, 4, 2, 0] 
+Bug: 20 || [2, 5, 7, 4, 2, 0] 
+Rock: 20 || [1, 6, 8, 3, 2, 0] 
+Ghost: 26 || [0, 6, 6, 8, 3, 1] 
+Dragon: 24 || [0, 3, 8, 5, 5, 1] 
+Dark: 23 || [1, 4, 3, 7, 3, 2] 
+Steel: 27 || [1, 6, 6, 8, 4, 0] 
+Fairy: 21 || [2, 4, 5, 6, 3, 1] 
+
+Very Low: 22
+Low: 45
+Medium: 69
+High: 64
+Very High: 26
+Ultra High: 6
+
+Custom: 39
+Snowchild ['Normal', 'Ice']
+Kuroseh ['Fighting', 'Fairy']
+Twinktwin ['Bug', 'Fairy']
+Gyutaro ['Poison', 'Ghost']
+Harshock ['Rock', 'Ghost']
+Landozer ['Fighting', 'Ground']
+Voltamelon ['Grass', 'Electric']
+Apoptoxitic ['Poison', 'Flying']
+Emmount ['Ground', 'Rock']
+Krusadian Flygon ['Bug', 'Dragon']
+Galveon ['Steel']
+Nightdaunter ['Ghost']
+Gyokko ['Water', 'Psychic']
+Maruka ['Fairy']
+Boneknight ['Steel', 'Ghost']
+Scorchrome ['Fire', 'Ground']
+Charmorin ['Normal', 'Fairy']
+Hantengu ['Electric', 'Flying']
+Sworphin ['Water']
+Psyvinstry ['Grass', 'Ice', 'Psychic']
+Fieritre ['Fire', 'Grass']
+Ygadr ['Ice', 'Dragon']
+Fairyflame ['Fire', 'Fairy']
+Tanjiro ['Water', 'Fire']
+Vindaxe ['Rock']
+Brambleblood ['Poison', 'Dark']
+Akaza ['Fighting']
+Chesiquen ['Ground', 'Flying']
+Krusadian Salamence ['Ground', 'Dragon']
+Dreadigo ['Dark', 'Fairy']
+Pianotic ['Normal', 'Ghost']
+Douma ['Ice']
+Faker-Greninja ['Water', 'Dark']
+Kogoshaka ['Dark', 'Psychic']
+Kokushibo ['Dark', 'Dragon']
+Poseidon ['Water', 'Electric']
+Memoraider ['Dark', 'Ghost']
+Armadragdon ['Dragon', 'Flying', 'Steel']
+Gambler ['Typeless']
+
+Total Number of Moves: 382
+Normal: 64
+Fire: 23
+Water: 24
+Electric: 20
+Grass: 25
+Ice: 19
+Fighting: 28
+Poison: 14
+Ground: 17
+Flying: 13
+Psychic: 18
+Bug: 16
+Rock: 15
+Ghost: 17
+Dragon: 14
+Dark: 27
+Steel: 13
+Fairy: 15
+
+By Attack Types:
+Physical: 170
+Special: 106
+Status: 106
+
+Custom: 45
+Cold Touch (Ice): 30 power, Physical
+Ground Slam (Ground): 100 power, Physical
+Depraved Shriek (Dark): 100 power, Special
+Corrosive Water (Water): 80 power, Special
+Adrenaline (Dark): 0 power, Status
+Wail (Ghost): 90 power, Special
+Cling (Fairy): 35 power, Physical
+Charming Tap (Fairy): 60 power, Physical
+Sparkling Punch (Fairy): 80 power, Physical
+Sweet Dreams (Fairy): 0 power, Status
+Double Sickle (Ghost): 50 power, Physical
+Fish Needle (Water): 90 power, Special
+Enragement (Flying): 70 power, Physical
+Annihilation (Fighting): 240 power, Physical
+Crystalline Clone (Ice): 0 power, Status
+Bodhisattva (Ground): 60 power, Special
+Lotus Petal (Grass): 60 power, Special
+Unbreakable Will (Fighting): 0 power, Status
+Moon Slash (Dark): 80 power, Physical
+Dragon Crescent (Dragon): 80 power, Physical
+First Strike (Steel): 60 power, Physical
+Total Concentration (Normal): 0 power, Status
+Nichirin Sword (Water): 90 power, Physical
+Tidal Surge (Water): 90 power, Special
+Boulder Smash (Rock): 100 power, Physical
+Thunderous Trident (Electric): 120 power, Special
+Cryokinesis (Psychic): 80 power, Special
+Revenant Charge (Ghost): 100 power, Physical
+Battle Axe (Rock): 65 power, Physical
+Thunderclap (Electric): 80 power, Physical
+Chaotic Shockwave (Electric): 80 power, Physical
+History Rewritten (Normal): 0 power, Status
+Soul Harvest (Dark): 40 power, Special
+Reign of Terror (Ghost): 90 power, Special
+Empyrean Glory (Flying): 0 power, Status
+Draconic Blade (Dragon): 75 power, Physical
+Glissando (Flying): 70 power, Special
+Eerie Rhythm (Ghost): 70 power, Special
+3-Hand Trick (Fairy): 20 power, Special
+Cannibalism (Dark): 80 power, Physical
+Time Pressure (Ground): 40 power, Special
+Gambit (Normal): 0 power, Status
+Twin Shadows (Normal): 0 power, Status
+Faerie Fire (Fire): 70 power, Special
+Fluid Spray (Grass): 50 power, Special
+
+Total Number of Abilities: 150
+Custom: 12
+Formation
+Landlord
+Materialize
+Improvise
+Poisonous Blow
+Divine Power
+Divine Aegis
+Dead Calm
+Scorch
+Goredrinker
+Instrumental
+Strong Roots
+
+
+Ability Usage: 
+
+Immunity: 0
+Magma Armor: 0
+Water Veil: 0
+Shadow Tag: 0
+Drizzle: 1
+Anticipation: 1
+Illusion: 1
+Marvel Scale: 1
+Overgrow: 1
+Blaze: 1
+Formation: 1
+Landlord: 1
+Victory Star: 1
+Compound Eyes: 1
+Pixelate: 1
+Materialize: 1
+Soul-Heart: 1
+Grim Neigh: 1
+Improvise: 1
+Iron Barbs: 1
+Weak Armor: 1
+Aftermath: 1
+Stamina: 1
+Sand Spit: 1
+Justified: 1
+Shed Skin: 1
+Bad Dreams: 1
+Poisonous Blow: 1
+Arena Trap: 1
+Battle Armor: 1
+Rain Dish: 1
+Pure Power: 1
+Insomnia: 1
+Sweet Veil: 1
+Motor Drive: 1
+Water Compaction: 1
+Trace: 1
+White Smoke: 1
+Wonder Guard: 1
+Divine Power: 1
+Divine Aegis: 1
+Solid Rock: 1
+Hydration: 1
+Defeatist: 1
+Multiscale: 1
+Competitive: 1
+Gale Wings: 1
+Unaware: 1
+Dead Calm: 1
+Berserk: 1
+Scrappy: 1
+Libero: 1
+Scorch: 1
+Steelworker: 1
+Goredrinker: 1
+Screen Cleaner: 1
+Dazzling: 1
+Tough Claws: 1
+Fluffy: 1
+Heatproof: 1
+Mummy: 1
+Punk Rock: 1
+Instrumental: 1
+Battle Bond: 1
+Water Bubble: 1
+Super Luck: 1
+Liquid Ooze: 1
+Strong Roots: 1
+Surge Surfer: 1
+Download: 2
+Stance Change: 2
+Mega Launcher: 2
+Torrent: 2
+Refrigerate: 2
+Rough Skin: 2
+Slush Rush: 2
+Effect Spore: 2
+Guts: 2
+Huge Power: 2
+Hustle: 2
+Keen Eye: 2
+Vital Spirit: 2
+Own Tempo: 2
+Lightning Rod: 2
+Storm Drain: 2
+Sap Sipper: 2
+Volt Absorb: 2
+Sand Force: 2
+Reckless: 2
+Regenerator: 2
+Simple: 2
+Disguise: 2
+Ice Scales: 2
+Protean: 2
+Long Reach: 2
+Analytic: 2
+Queenly Majesty: 2
+Illuminate: 2
+Magic Guard: 2
+Cloud Nine: 3
+Drought: 3
+Sand Stream: 3
+Natural Cure: 3
+Adaptability: 3
+Iron Fist: 3
+Shield Dust: 3
+Bulletproof: 3
+Serene Grace: 3
+Clear Body: 3
+Shell Armor: 3
+Chlorophyll: 3
+Ice Body: 3
+Flame Body: 3
+Hyper Cutter: 3
+Inner Focus: 3
+Soundproof: 3
+Synchronize: 3
+Tinted Lens: 3
+Moody: 3
+Sniper: 3
+No Guard: 3
+Prankster: 4
+Poison Point: 4
+Speed Boost: 4
+Early Bird: 4
+Sand Veil: 4
+Swarm: 4
+Thick Fat: 4
+Anger Point: 4
+Snow Warning: 5
+Rock Head: 5
+Strong Jaw: 5
+Flash Fire: 5
+Skill Link: 5
+Beast Boost: 5
+Static: 5
+Defiant: 5
+Cursed Body: 5
+Limber: 5
+Water Absorb: 5
+Snow Cloak: 5
+Sheer Force: 6
+Sturdy: 6
+Mold Breaker: 6
+Pressure: 6
+Technician: 7
+Infiltrator: 7
+Intimidate: 8
+Moxie: 8
+Swift Swim: 10
+Levitate: 13
+
+
+Move Usage: 
+
+Switching: 0
+Relic Song: 0
+Raging Fury: 0
+Self-Destruct: 0
+Splash: 1
+Accelerock: 1
+Acid Spray: 1
+Metal Sound: 1
+Aerial Ace: 1
+Swift: 1
+Shadow Punch: 1
+Spectral Thief: 1
+Anchor Shot: 1
+Spirit Shackle: 1
+Silver Wind: 1
+Blaze Kick: 1
+Clanging Scales: 1
+Shadow Bone: 1
+Cold Touch: 1
+Sweet Kiss: 1
+Cotton Spore: 1
+Crabhammer: 1
+Cross Poison: 1
+Double Hit: 1
+Bonemerang: 1
+Double Kick: 1
+Bug Bite: 1
+Mega Kick: 1
+Trop Kick: 1
+Dragon Darts: 1
+Dragon Hammer: 1
+Electro Ball: 1
+Mud-Slap: 1
+Fake Tears: 1
+False Surrender: 1
+Fiery Dance: 1
+Fire Spin: 1
+Flame Wheel: 1
+Depraved Shriek: 1
+Focus Blast: 1
+Corrosive Water: 1
+Glare: 1
+Growl: 1
+Baby-Doll Eyes: 1
+Gunk Shot: 1
+Gust: 1
+Ice Hammer: 1
+Dark Void: 1
+Steel Wing: 1
+Meteor Mash: 1
+Jaw Lock: 1
+Karate Chop: 1
+Fleur Cannon: 1
+Lovely Kiss: 1
+Low Sweep: 1
+Mean Look: 1
+Mind Blown: 1
+Mirror Coat: 1
+Night Daze: 1
+Parting Shot: 1
+Tearful Look: 1
+Poison Fang: 1
+Poison Tail: 1
+Pollen Puff: 1
+Power Trip: 1
+Psycho Cut: 1
+Tail Slap: 1
+Fireballs: 1
+Searing Shot: 1
+Shadow Claw: 1
+Frost Breath: 1
+Signal Beam: 1
+Slack Off: 1
+Solar Blade: 1
+Stored Power: 1
+Strange Steam: 1
+Dynamic Punch: 1
+Octazooka: 1
+Submission: 1
+Shift Gear: 1
+Adrenaline: 1
+Tail Glow: 1
+Take Down: 1
+Overdrive: 1
+Tickle: 1
+Snarl: 1
+Vacuum Wave: 1
+Wail: 1
+Cling: 1
+Charming Tap: 1
+Sweet Dreams: 1
+Aromatherapy: 1
+Double Sickle: 1
+Fish Needle: 1
+Annihilation: 1
+Crystalline Clone: 1
+Bodhisattva: 1
+Lotus Petal: 1
+Unbreakable Will: 1
+Clangorous Soul: 1
+Moon Slash: 1
+Fishious Rend: 1
+Total Concentration: 1
+Nichirin Sword: 1
+Techno Blast: 1
+Tidal Surge: 1
+Boulder Smash: 1
+Thunderous Trident: 1
+Cryokinesis: 1
+Clear Smog: 1
+Court Change: 1
+Revenant Charge: 1
+Battle Axe: 1
+Thunderclap: 1
+Chaotic Shockwave: 1
+History Rewritten: 1
+Soul Harvest: 1
+Reign of Terror: 1
+Empyrean Glory: 1
+Draconic Blade: 1
+Glissando: 1
+Eerie Rhythm: 1
+3-Hand Trick: 1
+Time Pressure: 1
+Gambit: 1
+Twin Shadows: 1
+Snore: 1
+Fire Lash: 1
+Dive: 1
+Body Press: 1
+Petal Blizzard: 1
+Apple Acid: 1
+Faerie Fire: 1
+Sing: 1
+Shell Trap: 1
+Cosmic Power: 1
+Fluid Spray: 1
+Baneful Bunker: 2
+King's Shield: 2
+Screech: 2
+Amnesia: 2
+Aqua Tail: 2
+Belly Drum: 2
+Bite: 2
+Pyro Ball: 2
+Bone Rush: 2
+Brick Break: 2
+Mystical Fire: 2
+Icy Wind: 2
+Bullet Punch: 2
+Mach Punch: 2
+Charge Beam: 2
+Cross Chop: 2
+Dual Wingbeat: 2
+Overheat: 2
+Dragon Claw: 2
+Breaking Swipe: 2
+Dragon Rush: 2
+Drill Run: 2
+Dual Chop: 2
+Scorching Sands: 2
+Ground Slam: 2
+Electroweb: 2
+Mud Shot: 2
+Extreme Speed: 2
+First Impression: 2
+Flame Charge: 2
+Fire Blast: 2
+Fly: 2
+Flying Press: 2
+Force Palm: 2
+Glaciate: 2
+High Horsepower: 2
+Aqua Ring: 2
+Thunder Fang: 2
+Icicle Spear: 2
+Cotton Guard: 2
+Jump Kick: 2
+Leaf Storm: 2
+Horn Leech: 2
+Muddy Water: 2
+Nuzzle: 2
+Parabolic Charge: 2
+Petal Dance: 2
+Rain Dance: 2
+Razor Shell: 2
+Water Shuriken: 2
+Sacred Sword: 2
+Sandstorm: 2
+Sleep Powder: 2
+Spark: 2
+Spikes: 2
+Spirit Break: 2
+Spore: 2
+Rock Climb: 2
+Strength: 2
+Struggle Bug: 2
+Work Up: 2
+Thrash: 2
+Torment: 2
+Fell Stinger: 2
+Sparkling Punch: 2
+Zap Cannon: 2
+Heal Bell: 2
+Smack Down: 2
+Magnet Rise: 2
+Octolock: 2
+Enragement: 2
+Dragon Crescent: 2
+Lock-On: 2
+Metronome: 2
+Forest's Curse: 2
+Cannibalism: 2
+Perish Song: 3
+Smart Strike: 3
+Agility: 3
+Rock Polish: 3
+Aqua Jet: 3
+Baton Pass: 3
+Rock Tomb: 3
+Bullet Seed: 3
+Charm: 3
+Coil: 3
+Drain Punch: 3
+Facade: 3
+Bounce: 3
+Dig: 3
+Dream Eater: 3
+Hail: 3
+Heat Wave: 3
+Ice Punch: 3
+Fire Fang: 3
+Leaf Blade: 3
+Leech Life: 3
+Lunge: 3
+Megahorn: 3
+Payback: 3
+Pin Missile: 3
+Protect: 3
+Quick Attack: 3
+Rock Blast: 3
+Sand Tomb: 3
+Seed Bomb: 3
+Sludge Wave: 3
+Thunder Punch: 3
+Thunder: 3
+Noble Roar: 3
+Tri Attack: 3
+Flip Turn: 3
+Waterfall: 3
+Whirlpool: 3
+Wild Charge: 3
+Will-O-Wisp: 3
+First Strike: 3
+Haze: 3
+Feint: 3
+Swagger: 3
+Metal Burst: 3
+Icicle Crash: 4
+Boomburst: 4
+Draco Meteor: 4
+Draining Kiss: 4
+Brine: 4
+Hex: 4
+Acupressure: 4
+Venoshock: 4
+Extrasensory: 4
+Focus Energy: 4
+Foul Play: 4
+Freeze-Dry: 4
+Hammer Arm: 4
+Head Smash: 4
+Hone Claws: 4
+Hydro Pump: 4
+Ingrain: 4
+Ice Fang: 4
+Ice Shard: 4
+Iron Defense: 4
+Iron Tail: 4
+Hyper Voice: 4
+Memento: 4
+Night Slash: 4
+Pain Split: 4
+Power Whip: 4
+Power-Up Punch: 4
+Quiver Dance: 4
+Rapid Spin: 4
+Revenge: 4
+Slash: 4
+Shell Smash: 4
+Skull Bash: 4
+Sunny Day: 4
+Scary Face: 4
+Double Team: 4
+Water Pulse: 4
+X-Scissor: 4
+Triple Axel: 4
+Ancient Power: 5
+Aurora Veil: 5
+Avalanche: 5
+Bulldoze: 5
+Darkest Lariat: 5
+Discharge: 5
+Double-Edge: 5
+Endeavor: 5
+Explosion: 5
+Fire Punch: 5
+Flare Blitz: 5
+Liquidation: 5
+Power Gem: 5
+Tailwind: 5
+Solar Beam: 5
+Taunt: 5
+Thunder Wave: 5
+Volt Switch: 5
+Aura Sphere: 6
+Body Slam: 6
+Close Combat: 6
+Confuse Ray: 6
+Counter: 6
+Dazzling Gleam: 6
+Earth Power: 6
+Flash Cannon: 6
+High Jump Kick: 6
+Phantom Force: 6
+Psychic Fangs: 6
+Shadow Sneak: 6
+Sticky Web: 6
+Throat Chop: 6
+Hurricane: 6
+Toxic Spikes: 6
+Zen Headbutt: 6
+Blizzard: 7
+Brave Bird: 7
+Bug Buzz: 7
+Disable: 7
+Energy Ball: 7
+Outrage: 7
+Psyshock: 7
+Recover: 7
+Scald: 7
+Superpower: 7
+Toxic: 7
+Wood Hammer: 7
+Yawn: 7
+Destiny Bond: 8
+Dragon Dance: 8
+Moonblast: 8
+Poison Jab: 8
+Rock Slide: 8
+Surf: 8
+Trick Room: 8
+Defog: 9
+Encore: 9
+Fake Out: 9
+Flamethrower: 9
+Sludge Bomb: 9
+Crunch: 10
+Curse: 10
+Dark Pulse: 10
+Leech Seed: 10
+Play Rough: 10
+Stealth Rock: 10
+Sucker Punch: 10
+Bulk Up: 11
+Calm Mind: 11
+Dragon Pulse: 11
+Hypnosis: 11
+Nasty Plot: 11
+Giga Drain: 12
+Psychic: 12
+Reflect: 12
+Stone Edge: 12
+U-Turn: 12
+Air Slash: 13
+Ice Beam: 13
+Thunderbolt: 14
+Iron Head: 15
+Light Screen: 15
+Swords Dance: 15
+Shadow Ball: 16
+Earthquake: 17

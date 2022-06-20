@@ -1,0 +1,9 @@
+- long-term goals
+    1. playable in website/app
+    2. basic graphics (partial obtained)
+
+- revitalize current code
+    14. renew music (uniformity and preferably royalty-free) (partial done)
+    19. organize print text (partial done)
+    24. achievements
+

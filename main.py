@@ -1,21 +1,24 @@
-import random
-from pokemon import *
-from moves import *
-from battlefield import *
-from copy import deepcopy
-from type_chart import *
-from text_color import *
-from battle_cycle import *
-from music import *
-from art import *
-from start_interface import *
-from competitors import *
-from game_procedure import *
-from abilities import *
-from before_battle import *
 import pickle
 import os
 import sys
+import random
+from copy import deepcopy
+
+from Scripts.Game import *
+from Scripts.Data.pokemon import *
+from Scripts.Data.moves import *
+from Scripts.Data.battlefield import *
+from Scripts.Data.abilities import *
+from Scripts.Data.competitors import *
+from Scripts.Battle.type_chart import *
+from Scripts.Battle.battle_cycle import *
+from Scripts.Art.text_color import *
+from Scripts.Art.music import *
+from Scripts.Art.art import *
+from Scripts.Game.start_interface import *
+from Scripts.Game.game_system import *
+from Scripts.Game.game_procedure import *
+from Scripts.Game.before_battle import *
 
 
 def main():
@@ -23,14 +26,13 @@ def main():
     start_game()
 
     while True:
-        music(audio=f'music/start{random.randint(1, 4)}.wav', loop=True)
-
+        music(audio=f'Assets/music/start{random.randint(1, 6)}.mp3', loop=True)
         # win the tournament
         if list_of_competitors['Protagonist'].stage == 6:
             print("Congratulations! You have won the Pokemon World Championship!!!")
             print(f"You have obtained {list_of_competitors['Protagonist'].championship + 1} World Champion Title(s) in your career!\n")
-            music(audio='music/credits.mp3', loop=False)
-            with open('credits.txt', 'r') as f:
+            music(audio='Assets/music/credits.mp3', loop=False)
+            with open('Documentation/credits.txt', 'r') as f:
                 for line in f:
                     print(line.rstrip())
             input("\nPress any key to proceed.")
