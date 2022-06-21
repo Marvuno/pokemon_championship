@@ -16,4 +16,6 @@ class Battleground:
         self.field_effect = {
             "Trick Room": 0,
         }
+        # text
+        self.ability_text = ""
 

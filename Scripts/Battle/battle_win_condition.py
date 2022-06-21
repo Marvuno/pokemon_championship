@@ -44,6 +44,7 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         competitor.result = sum(1 for pokemon in player_team if pokemon.status == "Fainted")
         protagonist.score += protagonist.result - competitor.result
         competitor.score += competitor.result - protagonist.result
+        print(weather_del[battleground.weather_effect])
         choose_pokemon(protagonist, competitor, battleground)
         end_battle(protagonist, competitor, player_team, opponent_team, battleground)
 
@@ -102,8 +103,6 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         for mon in protagonist.unused_team:
             protagonist.team.append(mon)
         protagonist.unused_team = []
-
-        print(weather_del[battleground.weather_effect])
 
         input("Press any key to continue.")
         os.system('cls' if os.name == 'nt' else 'clear')

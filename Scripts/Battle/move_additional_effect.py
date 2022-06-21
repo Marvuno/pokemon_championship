@@ -113,11 +113,12 @@ def check_move_target_modifier(user_side, target_side, user, target, battlegroun
     target.applied_modifier = special_effect if random.random() <= move.effect_accuracy else [0] * 9
     target.modifier = list(map(operator.add, target.applied_modifier, target.modifier))
     target.modifier = check_modifier_limit(target)
-    print(target.name, end='')
-    for index, stats in enumerate(target.applied_modifier):
-        if stats != 0:
-            print(f" | {MODIFIER[index]} {stats}", end='')
-    print()
+    if sum(target.applied_modifier) > 0:
+        print(target.name, end='')
+        for index, stats in enumerate(target.applied_modifier):
+            if stats != 0:
+                print(f" | {MODIFIER[index]} {stats}", end='')
+        print()
 
 
 # check if the move affects the user (+ve/-ve)
@@ -126,11 +127,12 @@ def check_move_user_modifier(user_side, target_side, user, target, battleground,
     user.applied_modifier = special_effect if random.random() <= move.effect_accuracy else [0] * 9
     user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
     user.modifier = check_modifier_limit(user)
-    print(user.name, end='')
-    for index, stats in enumerate(user.applied_modifier):
-        if stats != 0:
-            print(f" | {MODIFIER[index]} {stats}", end='')
-    print()
+    if sum(user.applied_modifier) > 0:
+        print(user.name, end='')
+        for index, stats in enumerate(user.applied_modifier):
+            if stats != 0:
+                print(f" | {MODIFIER[index]} {stats}", end='')
+        print()
 
 
 # check if the move heals the user

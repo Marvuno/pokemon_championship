@@ -135,7 +135,7 @@ list_of_moves = {
                           crit=0, priority=0, recoil=0,
                           effect_type="self_modifier", special_effect=[0, 1, 1, 1, 1, 1, 0, 0, 0], effect_accuracy=0.1),
 
-    'Silver Wind': Move(name="Silver Wind", power=60, attack_type="Special", type="Rock", accuracy=1, pp=15,
+    'Silver Wind': Move(name="Silver Wind", power=60, attack_type="Special", type="Bug", accuracy=1, pp=15,
                           crit=0, priority=0, recoil=0,
                           effect_type="self_modifier", special_effect=[0, 1, 1, 1, 1, 1, 0, 0, 0], effect_accuracy=0.1),
 

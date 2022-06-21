@@ -195,46 +195,48 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             move.type, move.power = "Ice", move.power * 1.2
 
     def moxie(*args):
-        if target.status == "Fainted":
+        if target.status == "Fainted" and battleground.reality:
             user.applied_modifier = [0, 1, 0, 0, 0, 0, 0, 0, 0]
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def soulheart(*args):
-        if target.battle_stats[0] <= 0:  # fainted
+        if target.battle_stats[0] <= 0 and battleground.reality:  # fainted
             user.applied_modifier = [0, 0, 0, 1, 0, 0, 0, 0, 0]
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def grimneigh(*args):
-        if target.status == "Fainted":
+        if target.status == "Fainted" and battleground.reality:
             user.applied_modifier = [0, 0, 0, 1, 0, 0, 0, 0, 0]
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def improvise(*args):
-        if target.status == "Fainted":
+        if target.status == "Fainted" and battleground.reality:
             user.applied_modifier = [0, 0, 0, 0, 0, 1, 1, 0, 0]
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def beastboost(*args):
-        if target.status == "Fainted":
+        if target.status == "Fainted" and battleground.reality:
             best_stat = user.nominal_base_stats.index(max(user.nominal_base_stats[1:6]))
             user.applied_modifier = [0, 0, 0, 0, 0, 0, 0, 0, 0]
             user.applied_modifier[best_stat] += 1
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
 
     def roughskin(*args):
-        damage = max(1, target.hp // 8) if ('a' in move.flags and move.damage > 0) else 0
-        target.battle_stats[0] -= damage
-        if damage > 0:
-            print(f"{user.ability} dealt {damage} damage to {target.name}.")
+        if battleground.reality:
+            damage = max(1, target.hp // 8) if ('a' in move.flags and move.damage > 0) else 0
+            target.battle_stats[0] -= damage
+            if damage > 0:
+                print(f"{user.ability} dealt {damage} damage to {target.name}.")
 
     def ironbarbs(*args):
-        damage = max(1, target.hp // 8) if ('a' in move.flags and move.damage > 0) else 0
-        target.battle_stats[0] -= damage
-        if damage > 0:
-            print(f"{user.ability} dealt {damage} damage to {target.name}.")
+        if battleground.reality:
+            damage = max(1, target.hp // 8) if ('a' in move.flags and move.damage > 0) else 0
+            target.battle_stats[0] -= damage
+            if damage > 0:
+                print(f"{user.ability} dealt {damage} damage to {target.name}.")
 
     def clearbody(*args):
-        if "opponent_modifier" in move.effect_type:
+        if "opponent_modifier" in move.effect_type and battleground.reality:
             new_modifier = [x * -1 if x < 0 else 0 for x in user.applied_modifier]
             print(f"{user.name}'s stats cannot be lowered.")
             user.modifier = list(map(operator.add, new_modifier, user.modifier))
@@ -669,7 +671,7 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
             move.damage = math.floor(move.damage * 1.3)
 
     def goredrinker(*args):
-        if user.battle_stats[0] < user.hp // 2:
+        if user.battle_stats[0] < user.hp // 2 and battleground.reality:
             user.battle_stats[0] += math.floor(min(user.hp - user.battle_stats[0], move.damage * 0.5))
             print(f"Goredrinker ability drains {math.floor(min(user.hp - user.battle_stats[0], move.damage * 0.5))} HP.")
 

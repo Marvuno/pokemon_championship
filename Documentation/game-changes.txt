@@ -134,6 +134,7 @@ Abilities
 3. Some abilities are nerfed, including:
 - Heatproof: it will no longer prevent Burn status ailment
 - Battle Bond: it now only multiplies the power of Water Shuriken by 1.5
+- Anticipation: it no longer detects any explosive moves
 
 4. Some abilities are altered, including:
 - Magic Guard: it will now prevent damage from binding move, but also disable regeneration from ingrain, leech seed and aqua ring

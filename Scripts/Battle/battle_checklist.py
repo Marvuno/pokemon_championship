@@ -178,6 +178,7 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         # check if the game can end here
                         if max(sum(1 for pokemon in user_team if pokemon.status == "Fainted"),
                                sum(1 for pokemon in target_team if pokemon.status == "Fainted")) == ROUND_LIMIT[GameSystem.stage]:
+                            fail = False
                             break
 
                         # excluding no effect moves, trigger move additional effect

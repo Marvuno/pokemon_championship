@@ -78,9 +78,11 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     # triggering abilities when switched out
     UseAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)
     UseCharacterAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)
-
     user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
-    print(f"{user.side_color}{user_team[0].name} is switched in!{CEND}")
+
+    # grounded
+    if not ("Flying" in user.type or user.ability == "Levitate"):
+        user.volatile_status['Grounded'] = 1
 
     # triggering entry hazard
     entry_hazard_effect(user, user_team[0])

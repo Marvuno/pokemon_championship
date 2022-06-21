@@ -71,7 +71,7 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
 
     def monkey(*args):
         # monkey just being monkey
-        if random.random() <= 0.2:
+        if random.random() <= 0.05:
             if target_side.main and not battleground.auto_battle:
                 input(f"{user_side.name}: Ook-ook! Eeek-aak-eek! (P.S. you may enter any key to proceed.)\n{target_side.name}: ")
                 notice(battleground)
@@ -81,8 +81,9 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
         if random.random() <= 0.1:
             move.accuracy = 0
             if target_side.main and not battleground.auto_battle:
-                input(f"{user_side.name}: Do I look {random.choice(['cute', 'charming', 'gorgeous', 'dazzling'])} today? (P.S. you may enter any key to proceed.)\n{target_side.name}: ")
-                notice(battleground)
+                if random.random() <= 0.5:
+                    input(f"{user_side.name}: Do I look {random.choice(['cute', 'charming', 'gorgeous', 'dazzling'])} today? (P.S. you may enter any key to proceed.)\n{target_side.name}: ")
+                    notice(battleground)
 
     def experienced(*args):
         # half recoil damage
@@ -179,6 +180,7 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
         elif random.random() >= 0.8:
             target.battle_stats[0] -= target.hp // 4
             user.battle_stats[0] -= user.hp // 8
+            notice(battleground)
 
     def outlier(*args):
         # apply super luck to every pokemon

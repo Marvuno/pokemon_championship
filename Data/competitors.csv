@@ -2,7 +2,7 @@ ID,Nickname,Name,Strength,Ability,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6
 0,,Protagonist,5,,"Currently {} years old. You have won the U15 Pokemon Amateur Tournament 2022,
 being the youngest winner of the said tournament in history. You have been widely acknowledged as
 the best prodigy of the decade. As people proclaimed, you are very good at reading others' mind and often
-won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,Vanilluxe,,,,,,,,Green,,
+won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,,,,,,,,,Green,,
 1,Goblin,Goblin,1,Dim,"Goblin is simply a goblin. Dim, old, and weak.",Low,,,,,,,low.mp3,ace.mp3,,I may be old. I may be weak. But I am certainly not blind.,"Ace: Grimmsnarl
 Ability: Dim
 Dim: decrease speed, but increase accuracy."
@@ -70,7 +70,7 @@ Gluttony: consume unfavorable entry hazard and target's barrier (e.g. Tailwind, 
 19,Aphelios,Aphelios,40,Fireworks,"Aphelios has lived in the world for 200 years. He is sick of staying in the world of League and instead seeks to find joy in
 Pokemon Battle. Due to his experience and time, he has developed several prominent Pokemon.",Intermediate,Blacephalon,,,,,,intermediate.mp3,ace.mp3,,"I may have lived for 200 years, but there is still so much to learn and master.","Ace: Blacephalon
 Ability: Fireworks
-Fireworks: deduct-HP moves no longer deduct HP (e.g. Mind Blown, Belly Drum, Explosion) and boost power for Mind Blown by 20%."
+Fireworks: deduct-HP moves deduct 50% less HP (e.g. Mind Blown, Belly Drum, Explosion) and boost power for Mind Blown by 20%."
 20,Mindfield,Mindfield,42,Brain Wave,"Mindfield is a Professor specializing in Neuroscience. His main contribution includes
 successfully encouraging his University to open up the first-ever Pokemon major in the world.",Intermediate,Bruxish,,,,,,intermediate.mp3,ace.mp3,,"Neuroscience is by far the most exciting branch of science because the brain is the most fascinating object in the universe.
 Every human brain is different - the brain makes each human unique and defines who he or she is.","Ace: Bruxish
@@ -85,7 +85,7 @@ Buggy: grant Speed Boost ability to bug-type pokemon."
 main series franchise.",Intermediate,Gardevoir,,,,,,intermediate.mp3,ace.mp3,,Witnessing the noble spirits of you and your Pokemon in battle has really touched my heart...,"Ace: Gardevoir
 Ability: Champion
 Champion: increase Atk and SpA by 1 stage for Ace."
-23,Rum,Rum,52,Impatient,"Rum is the second-in-hand of the Black Organization. He is known to be ruthless and crafty, but he is also inpatient.",Intermediate,Crobat,,,,,,intermediate.mp3,ace.mp3,,"After 25 years, they finally decided to introduce me, the Second-in-hand of the Black Organization,
+23,Rum,Rum,52,Impatient,"Rum is the second-in-hand of the Black Organization. He is known to be ruthless and crafty, but he is also impatient.",Intermediate,Crobat,,,,,,intermediate.mp3,ace.mp3,,"After 25 years, they finally decided to introduce me, the Second-in-hand of the Black Organization,
 even before the ""Final Boss"". They even decided to create suspicion between me and 2 insane yet
 normal characters. I have had enough of this.","Ace: Crobat
 Ability: Impatient

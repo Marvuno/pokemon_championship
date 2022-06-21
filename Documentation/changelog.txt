@@ -1,3 +1,20 @@
+Pokemon Championship v1.1.0.1
+
+Changed
+- reduced frequency of pop-up message from Monkey and Charm character ability
+- Nerf: Fireworks
+
+Fixed
+- pokemon get Grounded status if applicable once they are switched in
+- entry hazard will work as usual now
+- provide some ratings protection for player
+- pokemon with Illusion ability now switches with fake name
+- pokemon will no longer suffer from crash damage upon game ended
+- pokemon in-game turn will now display when switched in
+- fixed some minor issues
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.1.0 (Official Release)
 
 In-Game Changes

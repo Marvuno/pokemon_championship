@@ -7,3 +7,9 @@
     19. organize print text (partial done)
     24. achievements
 
+bug-to-fix:
+- when switched in, doesnt receive "Grounded" Status (fixed)
+- goredrinker text (fixed)
+- AI text should not display (?)
+- does not get poisoned due to not getting Grounded (fixed)
+- pokemon with illusion should switch with fake name

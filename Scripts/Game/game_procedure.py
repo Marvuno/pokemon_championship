@@ -190,6 +190,7 @@ def elo_rating():
             proportion = (opponent.strength / match_rating) if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else (list_of_competitors['Protagonist'].strength / match_rating)
             result = 1 if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else -1
             individual_rating_change = int(round(math.sqrt(match_rating) * proportion * result))
+            individual_rating_change += 1 if individual_rating_change < 0 else 0  # starter protection
             rating_change += individual_rating_change
 
             print(f"{colors[opponent.color]}{opponent.nickname}: {'Win' if list_of_competitors['Protagonist'].win_order[list_of_competitors['Protagonist'].opponent.index(opponent)] == 1 else 'Lose'} [{'+' if individual_rating_change >= 0 else '-'}{abs(individual_rating_change)}]{CEND}")

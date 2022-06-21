@@ -38,7 +38,7 @@ class Pokemon:
             "FlashFire": 0,
             "TakeAim": 0,
             "Grounded": 0,
-            "Turn": 1,
+            "Turn": 0,
         }
         # in-battle move history
         self.move_order = []
