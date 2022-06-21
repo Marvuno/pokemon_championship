@@ -60,9 +60,9 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
         # initialization when switched in
-        if player.volatile_status['Turn'] <= 1:
+        if player.volatile_status['Turn'] == 0:
             switched_in_initialization(protagonist, competitor, player, opponent, battleground)
-        if opponent.volatile_status['Turn'] <= 1:
+        if opponent.volatile_status['Turn'] == 0:
             switched_in_initialization(competitor, protagonist, opponent, player, battleground)
 
         print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect)} [{battleground.weather_effect}]\n"
@@ -118,7 +118,7 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
               opponent.name, opponent.type,
               "\nStatus:", opponent.status,
               "\nStats Change:", opponent.modifier,
-              "\nVolatile Status:", [f"{key}{': ' + str(value) if key == 'Turn' else ''}" for key, value in player.volatile_status.items() if value > 0],
+              "\nVolatile Status:", [f"{key}{': ' + str(value) if key == 'Turn' else ''}" for key, value in opponent.volatile_status.items() if value > 0],
               "\nIn-battle Effects:", [f"{key}: {value}" for key, value in competitor.in_battle_effects.items() if value > 0],
               "|| Entry Hazard:", [f"{key}: {value}" for key, value in competitor.entry_hazard.items() if value > 0],
               "|| Protection:", opponent.protection,

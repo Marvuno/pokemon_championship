@@ -81,8 +81,8 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
 
     # grounded
-    if not ("Flying" in user.type or user.ability == "Levitate"):
-        user.volatile_status['Grounded'] = 1
+    if not ("Flying" in user_team[0].type or user_team[0].ability == "Levitate"):
+        user_team[0].volatile_status['Grounded'] = 1
 
     # triggering entry hazard
     entry_hazard_effect(user, user_team[0])

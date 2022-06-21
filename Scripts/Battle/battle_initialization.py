@@ -7,7 +7,7 @@ def switched_in_initialization(user_side, opponent_side, user, opponent, battleg
     # grounded
     if not ("Flying" in user.type or user.ability == "Levitate"):
         user.volatile_status['Grounded'] = 1
-    user.volatile_status['Turn'] = 1
+    user.volatile_status['Turn'] += 1
     # switched in ability
     UseCharacterAbility(user_side, opponent_side, user, opponent, battleground, "", abilityphase=1)
     UseAbility(user_side, opponent_side, user, opponent, battleground, "", abilityphase=1)
