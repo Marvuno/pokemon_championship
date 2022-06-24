@@ -33,11 +33,11 @@ def fainting(pokemon, move):
 
 
 def sleeping(pokemon, move):
+    pokemon.volatile_status["NonVolatile"] -= 1
     if pokemon.volatile_status["NonVolatile"] == 0:
         pokemon.status = "Normal"
         print(f"{pokemon.name} woke up.")
         return False
-    pokemon.volatile_status["NonVolatile"] -= 1
     print(f"{pokemon.name} is fast asleep.")
     return True
 

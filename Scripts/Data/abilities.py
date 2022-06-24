@@ -684,12 +684,12 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
                 target_side.in_battle_effects[effect] = 0
 
     def queenlymajesty(*args):
-        if move.priority > 0:
+        if move.priority > 0 and battleground.reality:
             print(f"{target.name} cannot use {move.name} due to the Majesty's pressure!")
             move.accuracy = 0
 
     def dazzling(*args):
-        if move.priority > 0:
+        if move.priority > 0 and battleground.reality:
             print(f"{target.name} cannot use {move.name}!")
             move.accuracy = 0
 
@@ -723,12 +723,12 @@ def UseAbility(user_side, target_side, user, target, battleground, move="", abil
     def instrumental(*args):
         if abilityphase == 4:
             if 'f' in move.flags:
-                move.damage *= 1.5
+                move.damage *= 1.3
         elif abilityphase == 5:
             if 'f' in move.flags:
-                move.damage = 0
+                move.damage *= 0.5
             if move.type == "Fire" or move.type == "Water":
-                move.damage *= 2
+                move.damage *= 1.5
 
     def illuminate(*args):
         # this ability does nothing in battle

@@ -1,8 +1,24 @@
-Pokemon Championship v1.1.0.1
+Pokemon Championship v1.1.0.1 (bugfix)
+
+In-Game Changes
+Character Abilities
+Buff: Musical, Last Stand, Curse of Forest. Silhouette, Old Legends
+Nerf: Fireworks, Nimble
+
+Abilities
+Changed: Instrumental
+
+Moves
+Buff: Adrenaline
+
+Pokemon
+Buff: Kogoshaka
+
 
 Changed
 - reduced frequency of pop-up message from Monkey and Charm character ability
-- Nerf: Fireworks
+- updated ratings and team order for some characters
+- now display total win, lose and win rate for each character at History
 
 Fixed
 - pokemon get Grounded status if applicable once they are switched in
@@ -11,6 +27,15 @@ Fixed
 - pokemon with Illusion ability now switches with fake name
 - pokemon will no longer suffer from crash damage upon game ended
 - pokemon in-game turn will now display when switched in
+- disabled moves now disappear when reaching turn 0
+- pokemon now faints when reaching < 0HP when using switching moves (e.g. U-Turn and Rough Skin)
+- AI now considers move priority in its algorithm when considering best attacking move
+- ground type moves no longer hit levitating pokemon
+- grounding move should now ground pokemon
+- sleeping turns appropriately adjusted and displayed
+- weather-effect moves will no longer overlap
+- weather-effect moves will now work again when the weather reverted back
+- rearranged text order
 - fixed some minor issues
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------

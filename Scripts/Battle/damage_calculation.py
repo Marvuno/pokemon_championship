@@ -107,11 +107,11 @@ def check_type_effectiveness(target_side, target, move):
     # special condition to override type chart (e.g. mold breaker, lock-on, grounded etc)
     if move.type == "Ground":
         # grounded
-        if target.volatile_status['Grounded'] == 1:
+        if target.volatile_status['Grounded'] >= 1:
             initial_type_effectiveness = [1 if effective == 0 else effective for effective in initial_type_effectiveness]
             extra_type_effectiveness = [1 if effective == 0 else effective for effective in extra_type_effectiveness]
         # ungrounded
-        elif target.volatile_status['Grounded'] == 0 and "Flying" not in target.type:
+        elif target.volatile_status['Grounded'] == 0 or "Flying" in target.type:
             initial_type_effectiveness += [0]
             extra_type_effectiveness += [0]
 

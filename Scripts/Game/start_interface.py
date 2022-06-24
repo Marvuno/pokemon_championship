@@ -91,41 +91,46 @@ def main_screen():
             for parti, hist in list_of_competitors['Protagonist'].history.items():
                 print(f"#{parti + 1}: {hist[0]}")
             print(CEND)
-
-            char_dict = {}
-            for index, competitor in enumerate(list_of_competitors):
-                competitor = list_of_competitors[competitor]
-                print(f"{index + 1}: {competitor.nickname}")
-                char_dict[index + 1] = competitor.name
             while True:
-                with suppress(IndexError, KeyError, TypeError, ValueError):
-                    choice = int(input("Choose the participant you are interested in (Enter 0 to return to home screen): "))
-                    if choice == 0:
-                        break
-                    op = list_of_competitors[char_dict[choice]]
-                    print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc}") if not op.main else print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc.format(10 + len(op.history))}")
-                    print(f"\n{op.nickname} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).{CEND}")
-                    print(f"\n{op.nickname}'s Pokemon Championship history: ")
-                    for parti, hist in op.history.items():
-                        print(f"#{parti + 1}: Rank {hist[1]}")
-                    # favourite opponent
-                    battle_list = dict(sorted(op.opponent_history.items(), key=lambda x: (x[1][0]+x[1][1], x[1][0]), reverse=True)[:5])
-                    print("\nFavorite Opponent:")
-                    for i, (name, record) in enumerate(battle_list.items()):
-                        print(f"#{i+1}. {list_of_competitors[name].nickname}: {record[0]} Win {record[1]} Lose")
+                first_confirmation = input("\nWanna read the stats of a selected character? (Very Long) Enter 'Y' to confirm: ").upper()
+                if first_confirmation == 'Y':
+                    char_dict = {}
+                    for index, competitor in enumerate(list_of_competitors):
+                        competitor = list_of_competitors[competitor]
+                        print(f"{index + 1}: {competitor.nickname}")
+                        char_dict[index + 1] = competitor.name
+                    with suppress(IndexError, KeyError, TypeError, ValueError):
+                        choice = int(input("Choose the participant you are interested in (Enter 0 to return to home screen): "))
+                        if choice == 0:
+                            break
+                        op = list_of_competitors[char_dict[choice]]
+                        total_win, total_lose = sum(value[0] for value in op.opponent_history.values()), sum(value[1] for value in op.opponent_history.values())
+                        print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc}") if not op.main else print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc.format(10 + len(op.history))}")
+                        print(f"\n{op.nickname} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).")
+                        print(f"Total Wins: {total_win} | Total Lose: {total_lose} | Win Rate: {round(total_win / (total_win + total_lose) * 100, 2)}%{CEND}")
+                        print(f"\n{op.nickname}'s Pokemon Championship history: ")
+                        for parti, hist in op.history.items():
+                            print(f"#{parti + 1}: Rank {hist[1]}")
+                        # favourite opponent
+                        battle_list = dict(sorted(op.opponent_history.items(), key=lambda x: (x[1][0]+x[1][1], x[1][0]), reverse=True)[:5])
+                        print("\nFavorite Opponent:")
+                        for i, (name, record) in enumerate(battle_list.items()):
+                            print(f"#{i+1}. {list_of_competitors[name].nickname}: {record[0]} Win {record[1]} Lose")
 
-                    confirmation = input("\nWanna know his/her match history against individuals? (Quite Long!) Enter 'Y' to confirm: ").upper()
-                    if confirmation == 'Y':
-                        print(f"\n{op.nickname}'s match history against individuals:\n")
-                        print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 4}WR{' ' * 4}{CEND}")
-                        for i, (opponent, record) in enumerate(op.opponent_history.items()):
-                            if opponent != op.name:
-                                opponent = list_of_competitors[opponent].nickname
-                                win_rate = "N/A"
-                                with suppress(ZeroDivisionError):
-                                    win_rate = str(int(record[0] / (record[0] + record[1]) * 100)) + '%'
-                                print(f"{CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}") if i % 2 == 0 else \
-                                print(f"{CBEIGE+CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}")
+                        second_confirmation = input("\nWanna know his/her match history against individuals? (Very Long) Enter 'Y' to confirm: ").upper()
+                        if second_confirmation == 'Y':
+                            print(f"\n{op.nickname}'s match history against individuals:\n")
+                            print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 4}WR{' ' * 4}{CEND}")
+                            for i, (opponent, record) in enumerate(op.opponent_history.items()):
+                                if opponent != op.name:
+                                    opponent = list_of_competitors[opponent].nickname
+                                    win_rate = "N/A"
+                                    with suppress(ZeroDivisionError):
+                                        win_rate = str(int(record[0] / (record[0] + record[1]) * 100)) + '%'
+                                    print(f"{CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}") if i % 2 == 0 else \
+                                    print(f"{CBEIGE+CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}")
+                else:
+                    break
             main_screen()
         # no savefile
         else:
@@ -145,7 +150,7 @@ def main_screen():
         # index = GameSystem.participants.index('Protagonist')
         # opponent = index + 1 if index % 2 == 0 else index - 1
         # for i in range(len(GameSystem.participants)):
-        #     if GameSystem.participants[i] == "Shuka":
+        #     if GameSystem.participants[i] == "Emperor Marvuno":
         #         GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
         #         break
 

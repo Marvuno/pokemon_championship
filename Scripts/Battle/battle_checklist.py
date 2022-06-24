@@ -21,6 +21,7 @@ from Scripts.Battle.switching import *
 from Scripts.Battle.battle_move_execution import *
 from Scripts.Battle.battle_win_condition import *
 from Scripts.Battle.battle_initialization import *
+from Scripts.Battle.weather import *
 
 
 def hp_bar_display(pokemon):
@@ -146,10 +147,10 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         # check if the charging move double counts the special effect
                         doublecount = onChargingMove(user, target, move)
 
-                        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
-                        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
                         UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
                         UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
+                        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
+                        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
 
                         # no effect move and not a charging move
                         if move.damage <= 0 and move.attack_type != "Status" and move.charging not in ("Charging", "Semi-invulnerable"):
@@ -175,7 +176,7 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
 
                         # check if any pokemon fainted
                         check_fainted(user, target)
-                        # check if the game can end here
+                        # check if the turn can end here
                         if max(sum(1 for pokemon in user_team if pokemon.status == "Fainted"),
                                sum(1 for pokemon in target_team if pokemon.status == "Fainted")) == ROUND_LIMIT[GameSystem.stage]:
                             fail = False
@@ -270,6 +271,10 @@ def check_weather_persist(battleground):
     if battleground.artificial_weather:
         if battleground.weather_turn == WEATHER_EFFECT_TURNS:
             battleground.artificial_weather = False
+            battleground.weather_turn = 0
+            if battleground.weather_effect != battleground.starting_weather_effect:
+                print(weather_del[battleground.weather_effect])
+                print(weather_desc[battleground.starting_weather_effect])
             return battleground.starting_weather_effect
         battleground.weather_turn += 1
     return battleground.weather_effect

@@ -46,6 +46,9 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
     UseCharacterAbility(protagonist, competitor, player, opponent, battleground, "", abilityphase=0)
     UseCharacterAbility(competitor, protagonist, opponent, player, battleground, "", abilityphase=0)
 
+    switched_in_initialization(protagonist, competitor, player, opponent, battleground)
+    switched_in_initialization(competitor, protagonist, opponent, player, battleground)
+
     # music on
     music(audio=f"Assets/music/{competitor.music}", loop=True)
 
@@ -58,12 +61,6 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
                               [math.floor(0.01 * 2 * player.nominal_base_stats[x] * modifierChart[x][player.modifier[x]] * 100 + 5) for x in range(1, 6)]
         opponent.battle_stats = [opponent.battle_stats[0]] + \
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
-
-        # initialization when switched in
-        if player.volatile_status['Turn'] == 0:
-            switched_in_initialization(protagonist, competitor, player, opponent, battleground)
-        if opponent.volatile_status['Turn'] == 0:
-            switched_in_initialization(competitor, protagonist, opponent, player, battleground)
 
         print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect)} [{battleground.weather_effect}]\n"
               f"{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")

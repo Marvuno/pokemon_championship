@@ -33,8 +33,10 @@ def user_turn_in_battle_stats(user_side, user):
     # for status in increment_volatile_status:
     #     user.volatile_status[status] += 1 if user.volatile_status[status] > 0 else 0
     with suppress(IndexError, TypeError, KeyError):
-        for move_name in user.disabled_moves.keys():
+        for move_name in user.disabled_moves.copy():
             user.disabled_moves[move_name] -= 1
+            if user.disabled_moves[move_name] <= 0:
+                del user.disabled_moves[move_name]
         user.disabled_moves = {k: v for k, v in user.disabled_moves.items() if k > 0}
     for key, values in user_side.in_battle_effects.items():
         user_side.in_battle_effects[key] -= 1 if values > 0 else 0

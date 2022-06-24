@@ -49,6 +49,7 @@ Move Special Effect
 24 target_disable
 25 swap_barrier
 26 add_target_type
+27 team_status_heal
 
 Ability Phase
 0 Battle Initialization (Character Ability only)

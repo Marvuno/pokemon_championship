@@ -14,6 +14,7 @@ from Scripts.Battle.type_chart import *
 from Scripts.Battle.ai import *
 from Scripts.Battle.constants import *
 from Scripts.Battle.battle_initialization import *
+import Scripts.Battle.battle_move_execution as battle_move_execution
 
 
 # switching
@@ -53,6 +54,7 @@ def switching_criteria(protagonist, competitor, user_team, opponent_team, battle
 
 
 def switching_mechanism(user, opponent, battleground, user_team, opponent_team, position_change, transfer):
+    battle_move_execution.check_fainted(user_team[0], opponent_team[0])
     # only happen in baton pass
     if transfer:
         user_team[position_change].modifier = user_team[0].modifier
@@ -80,9 +82,8 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     UseCharacterAbility(user, opponent, user_team[0], opponent_team[0], battleground, "", abilityphase=9)
     user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
 
-    # grounded
-    if not ("Flying" in user_team[0].type or user_team[0].ability == "Levitate"):
-        user_team[0].volatile_status['Grounded'] = 1
+    switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
+    print(f"{user.side_color}{user.team[0].name} is switched in!{CEND}")
 
     # triggering entry hazard
     entry_hazard_effect(user, user_team[0])

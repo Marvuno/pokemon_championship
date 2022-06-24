@@ -83,7 +83,7 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
             if target_side.main and not battleground.auto_battle:
                 if random.random() <= 0.5:
                     input(f"{user_side.name}: Do I look {random.choice(['cute', 'charming', 'gorgeous', 'dazzling'])} today? (P.S. you may enter any key to proceed.)\n{target_side.name}: ")
-                    notice(battleground)
+                notice(battleground)
 
     def experienced(*args):
         # half recoil damage
@@ -128,14 +128,14 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
 
     def nimble(*args):
         # move faster but hit less for physical moves
-        user.applied_modifier = [0, -1, 0, 0, 0, 2, 0, 0, 0]
+        user.applied_modifier = [0, -2, 0, 0, 0, 2, 0, 0, 0]
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
         notice(battleground)
 
     def fireworks(*args):
-        # deduct-HP moves no longer deduct HP (e.g. Mind Blown, Belly Drum!) and boost power for Mind Blown
+        # deduct-HP moves deduct 50% less HP (e.g. Mind Blown, Belly Drum!) and boost power for Mind Blown
         if move.deduct > 0:
-            move.deduct = 0
+            move.deduct *= 0.5
             if move.name == 'Mind Blown':
                 move.power *= 1.2
             notice(battleground)
@@ -313,10 +313,16 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
         notice(battleground)
 
     def curse_of_forest(*args):
-        # apply grass type to every target pokemon
-        if 'Grass' not in target.type:
-            target.type += ['Grass']
-            notice(battleground)
+        # apply grass type to every target pokemon at the end of the turn
+        # may flinch using attacking moves
+        if abilityphase == 8:
+            if 'Grass' not in target.type:
+                target.type += ['Grass']
+                notice(battleground)
+        elif abilityphase == 4:
+            if move.damage > 0 and user_side.faster and random.random() <= 0.2:
+                target.volatile_status['Flinch'] = 1
+                notice(battleground)
 
     def blunders(*args):
         # random chance for target to damage himself instead (its move damage applies to itself)
@@ -327,10 +333,9 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
 
     def musical(*args):
         # random chance for special moves to paralyze, freeze and hypnotize target
-        if random.random() <= 0.1:
+        if random.random() <= 0.2:
             if target.status == "Normal" and move.attack_type == "Special":
                 temporary_effect = random.choices([Freeze(1), Sleep(1), Paralysis(1)], weights=[1, 2, 3], k=1)[0]
-                print(temporary_effect)
                 target.status = status_effect_immunity_check(user, target, move, temporary_effect[0])
                 target.volatile_status['NonVolatile'] = temporary_effect[1]
                 notice(battleground)
@@ -345,19 +350,32 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
 
     def silhouette(*args):
         # apply illusion to every pokemon and shuffle second pokemon
-        if 'Illusion' not in user.ability:
-            user.ability += ['Illusion']
-            non_fainted = [user_side.team.index(pokemon) for pokemon in user_side.team[2:] if pokemon.status != 'Fainted']
-            if len(non_fainted) > 0:
-                shuffle_choice = int(random.choice(non_fainted))
-                user_side.team[1], user_side.team[shuffle_choice] = user_side.team[shuffle_choice], user_side.team[1]
-            notice(battleground)
+        # halved damage with illusion on
+        if abilityphase == 1:
+            if 'Illusion' not in user.ability:
+                user.ability += ['Illusion']
+                non_fainted = [user_side.team.index(pokemon) for pokemon in user_side.team[2:] if pokemon.status != 'Fainted']
+                if len(non_fainted) > 0:
+                    shuffle_choice = int(random.choice(non_fainted))
+                    user_side.team[1], user_side.team[shuffle_choice] = user_side.team[shuffle_choice], user_side.team[1]
+                notice(battleground)
+        elif abilityphase == 5:
+            if user.disguise and move.damage > 0:
+                move.damage *= 0.5
+                notice(battleground)
 
     def old_legends(*args):
-        # pokemon immune to fairy type attacking moves
-        if 'Fairy' in move.type and move.damage > 0:
-            move.damage = 0
+        # pokemon immune to fairy type attacking moves and with ultra boost
+        if abilityphase == 1:
+            # increase random stats for each pokemon at start except crit-ratio
+            user.applied_modifier = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+            user.applied_modifier[random.randint(1, 7)] += 1
+            user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
             notice(battleground)
+        elif abilityphase == 5:
+            if 'Fairy' in move.type and move.damage > 0:
+                move.damage = 0
+                notice(battleground)
 
     def blood_magic(*args):
         # pokemon drains 20% HP for every attacking move
@@ -375,12 +393,11 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
             notice(battleground)
 
     def last_stand(*args):
-        # at the last pokemon, massive buff and renegerate all HP but suffer from BadPoison (start at 2/16)
+        # at the last pokemon, massive buff and renegerate all HP
         if sum(1 for pokemon in user_side.team if pokemon.status != 'Fainted') == 1:
             user.battle_stats[0] = user.hp
             user.applied_modifier = [0, 1, 1, 1, 1, 1, 1, 1, 1]
             user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
-            user.status, user.volatile_status['NonVolatile'] = 'BadPoison', 2
             notice(battleground)
 
     list_of_character_abilities = {
@@ -425,12 +442,12 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
         "Helper": (0, helper),
         "Wanderer": (0, wanderer),
         "Motivator": (0, motivator),
-        "Curse of Forest": ((1, 8), curse_of_forest),
+        "Curse of Forest": ((4, 8), curse_of_forest),
         "Blunders": (5, blunders),
         "Musical": (6, musical),
         "Infiltration": (1, infiltration),
-        "Silhouette": (1, silhouette),
-        "Old Legends": (5, old_legends),
+        "Silhouette": ((1, 5), silhouette),
+        "Old Legends": ((1, 5), old_legends),
         "Blood Magic": (6, blood_magic),
         "Primordial": ((0, 1), primordial),
         "Last Stand": (1, last_stand),

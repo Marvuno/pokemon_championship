@@ -8,7 +8,6 @@ from Scripts.Art.text_color import *
 from Scripts.Art.music import *
 from Scripts.Data.pokemon import *
 from Scripts.Data.competitors import *
-from Scripts.Battle.weather import *
 from Scripts.Battle.move_additional_effect import *
 from Scripts.Battle.constants import *
 from Scripts.Game.game_system import *
@@ -44,7 +43,6 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         competitor.result = sum(1 for pokemon in player_team if pokemon.status == "Fainted")
         protagonist.score += protagonist.result - competitor.result
         competitor.score += competitor.result - protagonist.result
-        print(weather_del[battleground.weather_effect])
         choose_pokemon(protagonist, competitor, battleground)
         end_battle(protagonist, competitor, player_team, opponent_team, battleground)
 

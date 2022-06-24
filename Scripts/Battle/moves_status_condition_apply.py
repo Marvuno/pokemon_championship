@@ -30,7 +30,7 @@ def Burn(effect_accuracy):
 
 
 def Sleep(effect_accuracy):
-    return ["Sleep", random.randint(1, 3)] if random.random() <= effect_accuracy else ["Normal", 0]
+    return ["Sleep", random.randint(2, 4)] if random.random() <= effect_accuracy else ["Normal", 0]
 
 
 def Freeze(effect_accuracy):

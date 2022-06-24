@@ -1046,7 +1046,7 @@ list_of_moves = {
 
     'Adrenaline': Move(name="Adrenaline", power=0, attack_type="Status", type="Dark", accuracy=GUARANTEE_ACCURACY, pp=10,
                        crit=0, priority=0, recoil=0, flags='b', custom=True,
-                       effect_type=["self_modifier", "opponent_modifier"], special_effect=[[0, 2, -2, 2, -2, 1, 0, 0, 0], [0, 1, 0, 1, 0, 1, 0, 0, 0]]),
+                       effect_type=["self_modifier", "opponent_modifier"], special_effect=[[0, 2, -2, 2, -2, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0, 0, 0]]),
 
     'Tail Glow': Move(name="Tail Glow", power=0, attack_type="Status", type="Bug", accuracy=GUARANTEE_ACCURACY, pp=20,
                       crit=0, priority=0, recoil=0, flags='b',
@@ -1316,7 +1316,7 @@ list_of_moves = {
                          effect_type=["opponent_modifier", "target_volatile"], special_effect=[[0, 0, 0, 0, 0, -1, 0, -1, 0], Frighten], effect_accuracy=0.3),
 
     'Empyrean Glory': Move(name="Empyrean Glory", power=0, attack_type="Status", type="Flying", accuracy=GUARANTEE_ACCURACY, pp=5, flags='b', custom=True,
-                              effect_type=["self_modifier", "team_status_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 0, 0, 0], "", 'Clear']),
+                              effect_type=["self_modifier", "team_status_heal", "weather_effect"], special_effect=[[0, 0, 1, 0, 1, 0, 0, 0, 0], '', 'Clear']),
 
     'Draconic Blade': Move(name="Draconic Blade", power=75, attack_type="Physical", type="Dragon", accuracy=1, pp=10, flags='a', custom=True,
                            effect_type="target_volatile", special_effect=Frighten, effect_accuracy=0.3),

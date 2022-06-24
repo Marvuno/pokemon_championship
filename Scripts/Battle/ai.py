@@ -129,11 +129,11 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
         # special condition to override type chart (e.g. mold breaker, lock-on, grounded etc)
         if move.type == "Ground":
             # grounded
-            if target.volatile_status['Grounded'] == 1:
+            if target.volatile_status['Grounded'] >= 1:
                 initial_type_effectiveness = [1 if effective == 0 else effective for effective in initial_type_effectiveness]
                 extra_type_effectiveness = [1 if effective == 0 else effective for effective in extra_type_effectiveness]
             # ungrounded
-            elif target.volatile_status['Grounded'] == 0 and "Flying" not in target.type:
+            elif target.volatile_status['Grounded'] == 0 or "Flying" in target.type:
                 initial_type_effectiveness += [0]
                 extra_type_effectiveness += [0]
 
@@ -645,17 +645,16 @@ def smart_ai_select_move(battleground, protagonist, ai):
                             print(f"{CREDBG}2{CEND}")
                         if ai_best_attack == 0:
                             # use best attacking move instead
-                            ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][1]))[0]
+                            ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][1]))[0]
                             if ai_best_attack == 0:
-                                ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][1]))[1]
+                                ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][1]))[1]
 
-                        # debug
-                        if battleground.verbose:
-                            print(f'\n{CBOLD}Final: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
-                            for i, (key, value) in enumerate(ai_move_score.items()):
-                                with suppress(IndexError):
-                                    print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | "
-                                          f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
+                        # # debug
+                        # print(f'\n{CBOLD}Final: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
+                        # for i, (key, value) in enumerate(ai_move_score.items()):
+                        #     with suppress(IndexError):
+                        #         print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | "
+                        #               f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
 
                         return list_of_moves[ai_pokemon.moveset[ai_best_attack]]
 
@@ -663,13 +662,13 @@ def smart_ai_select_move(battleground, protagonist, ai):
     # converting move damage and move additional effect into one single metric
     for index in range(5):
         ai_move_score = move_score_finalization(ai_pokemon, protagonist_pokemon, ai_move_score, index)
-    # debug
-    if battleground.verbose:
-        print(f'\n{CBOLD}Final: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
-        for i, (key, value) in enumerate(ai_move_score.items()):
-            with suppress(IndexError):
-                print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | "
-                      f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
+
+    # # debug
+    # print(f'\n{CBOLD}Final: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
+    # for i, (key, value) in enumerate(ai_move_score.items()):
+    #     with suppress(IndexError):
+    #         print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | "
+    #               f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
 
     ai_best_move = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[0]
     if ai.position_change == 0 and ai_best_move == 0:

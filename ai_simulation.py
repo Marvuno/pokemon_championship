@@ -14,7 +14,7 @@ from Scripts.Game.game_system import *
 
 GameSystem.stage = 5
 repeat = 1
-mode = 2
+mode = 1
 
 side1_victory, side2_victory = 0, 0
 side1_score, side2_score = 0, 0
@@ -29,11 +29,11 @@ if mode == 0:  # all vs all
     side1_participants = all_participants
     side2_participants = all_participants
 elif mode == 1:  # one vs all
-    side1_participants = ['Animenz']
+    side1_participants = ['Reaper Conan']
     side2_participants = all_participants
 else:  # one vs one
-    side1_participants = ['Trasher']
-    side2_participants = ['Dulunga']
+    side1_participants = ['Elias Ainsworth']
+    side2_participants = ['Reaper Conan']
 
 winner_name = []
 winner_count = dict.fromkeys(all_participants, 0)
@@ -42,6 +42,9 @@ for k in side1_participants:
     for j in side2_participants:
         if all_participants.index(j) <= all_participants.index(k) and mode == 0:
             continue
+        elif all_participants.index(j) == all_participants.index(k) and mode == 1:
+            continue
+
         for i in range(repeat):
             side1 = deepcopy(list_of_competitors[k])
             side2 = deepcopy(list_of_competitors[j])
@@ -54,7 +57,10 @@ for k in side1_participants:
             with suppress(RecursionError):
                 battle_setup(side1, side2, side1.team, side2.team, battleground)
 
+            # reset
             for pokemon, pokemon2 in zip(side1.team, side2.team):
+                pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
+                pokemon2.name, pokemon2.ability, pokemon2.type = pokemon2.default_name, pokemon2.default_ability, pokemon2.default_type
                 side1_pokemon[pokemon.tier] += 1
                 side2_pokemon[pokemon2.tier] += 1
 

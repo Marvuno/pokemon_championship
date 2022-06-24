@@ -124,7 +124,7 @@ Abilities
 - Landlord: buff user Ground-type move damage by 30%
 - Divine Power: if not super-effective against target, move damage * 1.5
 - Divine Aegis: if not super-effective against user, move damage * 0.75 (Ignored by Mold Breaker)
-- Instrumental: immune to sound-based moves, sound-based moves against target buff move damage by 50%, take double damage from fire and water types attack
+- Instrumental: halved damage to sound-based moves, sound-based moves against target buff move damage by 30%, take 50% more damage from fire and water types attack
 - Strong Roots: start with Ingrain
 
 2. Some abilities are buffed, including:
@@ -135,6 +135,7 @@ Abilities
 - Heatproof: it will no longer prevent Burn status ailment
 - Battle Bond: it now only multiplies the power of Water Shuriken by 1.5
 - Anticipation: it no longer detects any explosive moves
+- No Guard: it no longer hits pokemon in semi-invulnerability
 
 4. Some abilities are altered, including:
 - Magic Guard: it will now prevent damage from binding move, but also disable regeneration from ingrain, leech seed and aqua ring
