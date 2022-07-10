@@ -15,8 +15,8 @@ from Scripts.Game.single_elimination_bracket import *
 
 
 def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battleground):
-    player_side = True if len(player_team) == sum(1 for pokemon in player_team if pokemon.status == "Fainted") else False
-    opponent_side = True if len(opponent_team) == sum(1 for pokemon in opponent_team if pokemon.status == "Fainted") else False
+    player_side = all(pokemon.status == "Fainted" for pokemon in player_team)
+    opponent_side = all(pokemon.status == "Fainted" for pokemon in opponent_team)
 
     if player_side and opponent_side:
         battleground.battle_continuation = False
@@ -51,20 +51,7 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
 # reset every in-battle state
 def end_battle(protagonist, competitor, player_team, opponent_team, battleground):
     if battleground.verbose:
-        for pokemon in player_team:
-            pokemon.modifier = [0] * 9
-            pokemon.status = "Normal"
-            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
-            pokemon.protection = [0, 0]
-            pokemon.charging = ["", "", 0]
-            pokemon.moveset = pokemon.moveset[1:5]
-            pokemon.move_order = []
-            pokemon.previous_move = None
-            pokemon.disabled_moves = {}
-            pokemon.disguise, pokemon.transform = False, False
-            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
-
-        for pokemon in opponent_team:
+        for pokemon in player_team + opponent_team:
             pokemon.modifier = [0] * 9
             pokemon.status = "Normal"
             pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
