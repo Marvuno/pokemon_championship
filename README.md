@@ -17,8 +17,4 @@ Last, you cannot choose particular moves for the Pokemon (or it will be too time
 ## How to Play
 Download the zip file from releases and extract it. Click on the main.exe. That's it! However, there may be some unknown issues that render the game unplayable for some users. Please do not hesitate to give me feedback if it happens.
 Right now, it is probably a Windows-only game (maybe Linux too, haven't tried) as Apple may not support .exe file. You may need a virtual box or do extra work on the source code to play it.
-## Purpose of This Post
-1. I regard myself as a novice coder, and hence any sort of professional help would be appreciated. I am especially in need of Graphics Designers for Custom Pokemon, and people who are familiar with Javascript and Python. Please DM if you are interested in this project and would like to contribute.
-2. I appreciate any suggestions/feedback given from any pioneers in this community. I am sure this game will have a lot of bugs or problems I haven't been able to fix. Hence, I would request for your help.
-3. I just want to share it and hopefully some people will find it fun.
 
