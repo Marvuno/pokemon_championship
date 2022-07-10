@@ -12,7 +12,7 @@ Pokemon Championship introduces features including:
 - Intelligent AI
 - Full Demon Slayer themed Team (If you are a fan of it)
 
-Basic Info:
+## Basic Info
 Each attempt will be a 5-round Swiss format tournament. In other words, you will have to play 5 rounds
 every time to determine the results. However, you are free to quit early. Each round, you have the option
 to receive different Pokemon for your team, so you have the opportunity to use different Pokemon, and
@@ -22,8 +22,8 @@ Aside from ranking, your result will be justified with a Rating system. If you p
 get higher ratings and thus better Pokemon over the time.
 More will be covered in the Tutorial inside the game.
 
-How to Play
-Download the zip file and extract it. Click on the main.exe. That's it!
+## How to Play
+Download the zip file from releases and extract it. Click on the main.exe. That's it!
 However, there may be some unknown issues that render the game unplayable for some users. Please
 do not hesitate to give me feedback if it happens.
 
