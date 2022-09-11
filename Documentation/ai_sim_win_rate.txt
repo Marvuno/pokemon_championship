@@ -1,0 +1,233 @@
+Win Rate:
+Pianotic:                 74.0% || Round: 96  || Tier: Ultra High
+Genesect:                 68.9% || Round: 106 || Tier: Very High
+Garchomp:                 68.8% || Round: 96  || Tier: Very High
+Douma:                    68.3% || Round: 101 || Tier: Ultra High
+Scorchrome:               67.6% || Round: 105 || Tier: High
+Charizard:                66.4% || Round: 110 || Tier: High
+Krusadian Salamence:      66.0% || Round: 103 || Tier: Ultra High
+Chesiquen:                64.8% || Round: 108 || Tier: Ultra High
+Dracovish:                63.5% || Round: 104 || Tier: High
+Mamoswine:                63.2% || Round: 106 || Tier: Medium
+Dreadigo:                 63.2% || Round: 95  || Tier: Ultra High
+Volcarona:                62.9% || Round: 97  || Tier: Very High
+Heliolisk:                62.7% || Round: 102 || Tier: Medium
+Lucario:                  62.7% || Round: 110 || Tier: High
+Mimikyu:                  62.5% || Round: 104 || Tier: High
+Faker-Greninja:           62.2% || Round: 98  || Tier: Ultra High
+Sworphin:                 61.6% || Round: 99  || Tier: High
+Cinderace:                61.4% || Round: 88  || Tier: High
+Tanjiro:                  61.3% || Round: 124 || Tier: Very High
+Naganadel:                61.1% || Round: 95  || Tier: High
+Metagross:                61.1% || Round: 108 || Tier: Very High
+Azumarill:                61.0% || Round: 100 || Tier: Medium
+Bewear:                   60.6% || Round: 99  || Tier: High
+Drampa:                   60.6% || Round: 104 || Tier: Medium
+Ribombee:                 60.3% || Round: 116 || Tier: Low
+Togekiss:                 60.0% || Round: 115 || Tier: Very High
+Copperajah:               59.5% || Round: 84  || Tier: High
+Gliscor:                  59.4% || Round: 101 || Tier: Medium
+Masquerain:               58.3% || Round: 96  || Tier: Medium
+Marshadow:                58.1% || Round: 105 || Tier: Very High
+Bisharp:                  58.1% || Round: 86  || Tier: High
+Noivern:                  57.7% || Round: 97  || Tier: Medium
+Nihilego:                 57.5% || Round: 113 || Tier: Very High
+Yanmega:                  57.4% || Round: 101 || Tier: High
+Milotic:                  57.4% || Round: 108 || Tier: High
+Celesteela:               57.3% || Round: 110 || Tier: Very High
+Boneknight:               57.3% || Round: 96  || Tier: High
+Kommo-o:                  57.1% || Round: 91  || Tier: High
+Pyroar:                   57.0% || Round: 86  || Tier: High
+Brambleblood:             57.0% || Round: 121 || Tier: Very High
+Blaziken:                 57.0% || Round: 100 || Tier: Very High
+Galarian Rapidash:        56.9% || Round: 116 || Tier: Medium
+Cloyster:                 56.9% || Round: 123 || Tier: High
+Galveon:                  56.6% || Round: 113 || Tier: Medium
+Tyranitar:                56.6% || Round: 122 || Tier: High
+Dragapult:                56.4% || Round: 101 || Tier: Very High
+Gardevoir:                55.8% || Round: 86  || Tier: Medium
+Vanilluxe:                55.8% || Round: 113 || Tier: High
+Victini:                  55.7% || Round: 88  || Tier: Very High
+Lycanroc (Midnight):      55.5% || Round: 119 || Tier: Medium
+Krookodile:               55.3% || Round: 94  || Tier: Medium
+Porygon-Z:                55.3% || Round: 94  || Tier: Very High
+Magearna:                 55.3% || Round: 85  || Tier: Very High
+Clawitzer:                55.3% || Round: 94  || Tier: High
+Primeape:                 55.2% || Round: 96  || Tier: Very Low
+Cinccino:                 55.2% || Round: 105 || Tier: Medium
+Hippowdon:                55.2% || Round: 87  || Tier: Medium
+Weavile:                  55.1% || Round: 89  || Tier: Medium
+Glalie:                   55.0% || Round: 109 || Tier: Low
+Sylveon:                  54.9% || Round: 102 || Tier: High
+Incineroar:               54.7% || Round: 95  || Tier: High
+Trevenant:                54.7% || Round: 106 || Tier: Low
+Vikavolt:                 54.6% || Round: 108 || Tier: High
+Hydreigon:                54.5% || Round: 99  || Tier: Very High
+Lapras:                   54.5% || Round: 101 || Tier: Medium
+Gengar:                   54.5% || Round: 110 || Tier: High
+Harshock:                 54.4% || Round: 103 || Tier: Medium
+Vindaxe:                  54.4% || Round: 103 || Tier: Very High
+Klefki:                   54.4% || Round: 103 || Tier: Medium
+Emmount:                  54.3% || Round: 105 || Tier: Medium
+Darkrai:                  54.3% || Round: 105 || Tier: Very High
+Roserade:                 54.1% || Round: 98  || Tier: High
+Charmorin:                54.0% || Round: 113 || Tier: High
+Gyutaro:                  53.8% || Round: 117 || Tier: Medium
+Gyarados:                 53.6% || Round: 112 || Tier: Very High
+Jellicent:                53.6% || Round: 110 || Tier: Medium
+Fairyflame:               53.3% || Round: 92  || Tier: Very High
+Scizor:                   53.2% || Round: 94  || Tier: High
+Psyvinstry:               53.2% || Round: 111 || Tier: High
+Barraskewda:              53.2% || Round: 94  || Tier: High
+Blastoise:                53.2% || Round: 94  || Tier: Medium
+Cradily:                  53.1% || Round: 113 || Tier: High
+Zoroark:                  53.1% || Round: 98  || Tier: Low
+Sawsbuck:                 53.1% || Round: 98  || Tier: Medium
+Starmie:                  52.7% || Round: 112 || Tier: High
+Nidoqueen:                52.7% || Round: 129 || Tier: High
+Akaza:                    52.6% || Round: 114 || Tier: Very High
+Aurorus:                  52.5% || Round: 99  || Tier: Medium
+Swampert:                 52.5% || Round: 99  || Tier: High
+Excadrill:                52.5% || Round: 101 || Tier: High
+Galvantula:               52.2% || Round: 92  || Tier: High
+Donphan:                  52.2% || Round: 90  || Tier: Low
+Beartic:                  52.0% || Round: 98  || Tier: Low
+Heracross:                51.9% || Round: 106 || Tier: Medium
+Kangaskhan:               51.6% || Round: 93  || Tier: Low
+Centiskorch:              51.5% || Round: 101 || Tier: Medium
+Chandelure:               51.5% || Round: 99  || Tier: High
+Frosmoth:                 51.4% || Round: 107 || Tier: Medium
+Arcanine:                 51.4% || Round: 105 || Tier: Very High
+Gigalith:                 51.3% || Round: 117 || Tier: Medium
+Talonflame:               51.2% || Round: 86  || Tier: Medium
+Nightdaunter:             51.2% || Round: 123 || Tier: High
+Avalugg:                  51.1% || Round: 90  || Tier: Medium
+Tauros:                   51.1% || Round: 94  || Tier: Medium
+Alakazam:                 51.0% || Round: 98  || Tier: Medium
+Hantengu:                 50.9% || Round: 116 || Tier: High
+Nidoking:                 50.9% || Round: 110 || Tier: High
+Torkoal:                  50.9% || Round: 114 || Tier: Low
+Dedenne:                  50.5% || Round: 91  || Tier: Very Low
+Ludicolo:                 50.5% || Round: 97  || Tier: Medium
+Machamp:                  50.5% || Round: 103 || Tier: High
+Empoleon:                 50.5% || Round: 107 || Tier: Medium
+Blacephalon:              50.5% || Round: 105 || Tier: High
+Krusadian Flygon:         50.5% || Round: 95  || Tier: Medium
+Shiftry:                  50.4% || Round: 121 || Tier: Low
+Torterra:                 50.4% || Round: 115 || Tier: Medium
+Ferrothorn:               50.0% || Round: 112 || Tier: Low
+Luxray:                   50.0% || Round: 108 || Tier: Low
+Crobat:                   50.0% || Round: 104 || Tier: Medium
+Gyokko:                   50.0% || Round: 110 || Tier: High
+Mudsdale:                 50.0% || Round: 96  || Tier: Low
+Kingdra:                  50.0% || Round: 92  || Tier: High
+Electivire:               49.6% || Round: 113 || Tier: High
+Infernape:                49.5% || Round: 107 || Tier: High
+Maruka:                   49.5% || Round: 95  || Tier: High
+Ninetales:                49.5% || Round: 109 || Tier: High
+Eelektross:               49.1% || Round: 112 || Tier: High
+Kuroseh:                  49.0% || Round: 104 || Tier: Low
+Greninja:                 48.9% || Round: 94  || Tier: High
+Durant:                   48.9% || Round: 92  || Tier: Medium
+Landozer:                 48.9% || Round: 94  || Tier: Medium
+Magnezone:                48.8% || Round: 121 || Tier: High
+Duraludon:                48.8% || Round: 121 || Tier: Medium
+Maractus:                 48.6% || Round: 107 || Tier: Very Low
+Hawlucha:                 48.5% || Round: 101 || Tier: Medium
+Palossand:                48.4% || Round: 93  || Tier: Low
+Alolan Ninetales:         48.3% || Round: 118 || Tier: High
+Sceptile:                 48.3% || Round: 89  || Tier: Medium
+Voltamelon:               48.1% || Round: 104 || Tier: Medium
+Alolan Raichu:            48.0% || Round: 100 || Tier: Medium
+Drapion:                  48.0% || Round: 100 || Tier: High
+Flygon:                   47.8% || Round: 115 || Tier: Medium
+Spectrier:                47.7% || Round: 88  || Tier: Very High
+Haxorus:                  47.5% || Round: 99  || Tier: Very High
+Honchkrow:                47.4% || Round: 114 || Tier: High
+Xurkitree:                47.4% || Round: 114 || Tier: Very High
+Drednaw:                  47.3% || Round: 91  || Tier: Medium
+Crustle:                  47.3% || Round: 91  || Tier: Low
+Venusaur:                 47.3% || Round: 91  || Tier: Medium
+Garbodor:                 47.2% || Round: 125 || Tier: Very Low
+Abomasnow:                47.1% || Round: 102 || Tier: Medium
+Perrserker:               46.9% || Round: 98  || Tier: Low
+Medicham:                 46.9% || Round: 113 || Tier: Low
+Sandaconda:               46.8% || Round: 126 || Tier: Low
+Araquanid:                46.8% || Round: 109 || Tier: Medium
+Altaria:                  46.7% || Round: 92  || Tier: Low
+Toxtricity:               46.6% || Round: 88  || Tier: High
+Mr.Rime:                  46.6% || Round: 118 || Tier: Low
+Boltund:                  46.6% || Round: 103 || Tier: Medium
+Emolga:                   46.5% || Round: 86  || Tier: Very Low
+Umbreon:                  46.5% || Round: 114 || Tier: Low
+Froslass:                 46.4% || Round: 125 || Tier: Low
+Ygadr:                    46.2% || Round: 93  || Tier: High
+Dragonite:                46.2% || Round: 91  || Tier: Very High
+Galarian Weezing:         46.1% || Round: 102 || Tier: Medium
+Snorlax:                  45.8% || Round: 107 || Tier: Medium
+Alolan Marowak:           45.8% || Round: 107 || Tier: Medium
+Fieritre:                 45.8% || Round: 107 || Tier: High
+Swoobat:                  45.7% || Round: 94  || Tier: Very Low
+Breloom:                  45.5% || Round: 99  || Tier: Low
+Bronzong:                 45.5% || Round: 112 || Tier: Low
+Sigilyph:                 45.5% || Round: 101 || Tier: Medium
+Beedrill:                 44.9% || Round: 89  || Tier: Very Low
+Claydol:                  44.8% || Round: 125 || Tier: Medium
+Diggersby:                44.8% || Round: 105 || Tier: Low
+Sudowoodo:                44.6% || Round: 101 || Tier: Low
+Alolan Exeggutor:         44.6% || Round: 112 || Tier: Low
+Bruxish:                  44.6% || Round: 92  || Tier: High
+Mienshao:                 44.5% || Round: 110 || Tier: Medium
+Apoptoxitic:              44.3% || Round: 97  || Tier: Medium
+Corviknight:              44.2% || Round: 113 || Tier: Low
+Alolan Raticate:          43.9% || Round: 107 || Tier: Very Low
+Crabominable:             43.8% || Round: 105 || Tier: Low
+Decidueye:                43.6% || Round: 110 || Tier: High
+Pikachu:                  43.2% || Round: 95  || Tier: Very Low
+Tsareena:                 43.2% || Round: 111 || Tier: High
+Kingler:                  43.2% || Round: 95  || Tier: Very Low
+Alolan Sandslash:         43.2% || Round: 88  || Tier: Medium
+Rhyperior:                42.9% || Round: 98  || Tier: Medium
+Scrafty:                  42.7% || Round: 96  || Tier: Medium
+Tentacruel:               42.5% || Round: 87  || Tier: High
+Appletun:                 42.4% || Round: 99  || Tier: Medium
+Ampharos:                 42.4% || Round: 118 || Tier: Medium
+Twinktwin:                42.3% || Round: 104 || Tier: Low
+Mawile:                   42.3% || Round: 111 || Tier: Very Low
+Grapploct:                42.3% || Round: 123 || Tier: Low
+Pelipper:                 42.3% || Round: 104 || Tier: Medium
+Aerodactyl:               41.9% || Round: 105 || Tier: High
+Grimmsnarl:               41.7% || Round: 103 || Tier: High
+Parasect:                 41.4% || Round: 99  || Tier: Very Low
+Bastiodon:                41.2% || Round: 102 || Tier: Low
+Psyduck:                  41.2% || Round: 102 || Tier: Very Low
+Cofagrigus:               41.0% || Round: 100 || Tier: Medium
+Dusknoir:                 40.9% || Round: 127 || Tier: Low
+Dhelmise:                 40.9% || Round: 93  || Tier: Medium
+Snowchild:                40.4% || Round: 109 || Tier: Very Low
+Stunfisk:                 40.2% || Round: 107 || Tier: Low
+Probopass:                40.0% || Round: 100 || Tier: Low
+Noctowl:                  39.8% || Round: 118 || Tier: Low
+Rotom (Frost):            39.5% || Round: 114 || Tier: High
+Dragalge:                 39.3% || Round: 89  || Tier: Medium
+Onix:                     38.8% || Round: 121 || Tier: Very Low
+Ambipom:                  38.8% || Round: 103 || Tier: Medium
+Relicanth:                38.7% || Round: 93  || Tier: Low
+Sunkern:                  38.6% || Round: 114 || Tier: Very Low
+Whimsicott:               38.5% || Round: 104 || Tier: Low
+Luvdisc:                  38.1% || Round: 105 || Tier: Very Low
+Aegislash (Shield Forme): 38.1% || Round: 84  || Tier: High
+Orbeetle:                 37.4% || Round: 115 || Tier: Low
+Bibarel:                  37.3% || Round: 110 || Tier: Low
+Turtonator:               37.0% || Round: 119 || Tier: Low
+Toxapex:                  36.8% || Round: 95  || Tier: Medium
+Tyrantrum:                36.8% || Round: 95  || Tier: Medium
+Jumpluff:                 36.5% || Round: 104 || Tier: Very Low
+Chimecho:                 34.8% || Round: 92  || Tier: Low
+Watchog:                  34.3% || Round: 105 || Tier: Very Low
+Rampardos:                34.0% || Round: 106 || Tier: Low
+Spiritomb:                32.0% || Round: 122 || Tier: Low
+Farfetch'd:               31.4% || Round: 102 || Tier: Very Low
+Shedinja:                 30.9% || Round: 94  || Tier: Low
+Carnivine:                30.6% || Round: 111 || Tier: Very Low
+Magikarp:                 27.2% || Round: 103 || Tier: Very Low
