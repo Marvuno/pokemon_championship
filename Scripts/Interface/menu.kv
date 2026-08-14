@@ -1,0 +1,75 @@
+<MenuScreen>:
+    id: menu
+    name: "menu"
+
+    canvas.before:
+        Rectangle:
+            source: "Assets/image/menu.png"
+            pos: self.pos
+            size: root.width, root.height
+
+    BoxLayout:
+
+        orientation: "vertical"
+        padding: 50
+        spacing: 10
+
+        Image:
+            source: 'Assets/image/title.png'
+            pos_hint: {'center_x': 0.5, 'top': 0.5}
+            size_hint: (0.6, 0.5)
+            allow_stretch: True
+
+            Label:
+                id: title
+                text: "Pokemon Championship"
+                font_size: root.width / 25
+                font_name: 'Assets/font/trebucbd.ttf'
+                pos: self.parent.center_x - 50, self.parent.center_y - 75
+
+        Button:
+            text: "New Game"
+            font_size: 24
+            font_name: 'Assets/font/trebucbd.ttf'
+            pos_hint: {'center_x': 0.5, 'top': 0.5}
+            size_hint: (None, None)
+            width: 200
+            height: 50
+            on_release: app.game_menu()
+
+        Button:
+            text: "Continue"
+            font_size: 24
+            font_name: 'Assets/font/trebucbd.ttf'
+            pos_hint: {'center_x': 0.5, 'top': 0.5}
+            size_hint: (None, None)
+            width: 200
+            height: 50
+
+        Button:
+            text: "Options"
+            font_size: 24
+            font_name: 'Assets/font/trebucbd.ttf'
+            pos_hint: {'center_x': 0.5, 'top': 0.5}
+            size_hint: (None, None)
+            width: 200
+            height: 50
+
+        Button:
+            text: "History"
+            font_size: 24
+            font_name: 'Assets/font/trebucbd.ttf'
+            pos_hint: {'center_x': 0.5, 'top': 0.5}
+            size_hint: (None, None)
+            width: 200
+            height: 50
+
+        Button:
+            text: "Quit"
+            font_size: 24
+            font_name: 'Assets/font/trebucbd.ttf'
+            pos_hint: {'center_x': 0.5, 'top': 0.5}
+            size_hint: (None, None)
+            width: 200
+            height: 50
+            on_release: app.stop()

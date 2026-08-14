@@ -1,0 +1,403 @@
+Pokemon Champion - Graphical Interface Guide
+
+This is a desktop front end for the game, built with PySide6 (Qt). It
+runs the existing game logic in Scripts/ without changing any of it:
+same damage rolls, same AI, same tournament structure. What changes is
+that you click instead of typing numbers, and battle state that used to
+be scrolling text is now HP bars, chips, and a live weather-reactive
+arena.
+
+*********************************************************************************
+
+Starting the game
+
+Double-click PLAY.bat. It checks for Python, installs the libraries the
+game needs the first time (including PySide6, the GUI toolkit), then
+asks whether you want the graphical interface or the classic command
+line. Pick 1 for graphical, 2 for command line.
+
+From a terminal, the same two options are:
+    python play.py       graphical interface
+    python main.py       classic command line
+
+*********************************************************************************
+
+What the interface adds
+
+Move cards
+Each move is a card showing its type, category, power, accuracy, and the
+effectiveness the game itself calculated - SUPER, RESISTED, IMMUNE - with
+a type-coloured spine. Hover a card for recoil/multi-hit detail that
+doesn't fit on the card face. The bracketed number is its keyboard
+shortcut, though clicking is the primary way to play throughout.
+
+Live battle state
+HP bars animate down rather than jumping, with type and status chips,
+stat-stage changes, protection, charging moves and disabled moves shown
+on each Pokemon's card. A Pokemon at 0 HP is marked FAINTED with a red
+outline, not left showing a stale number.
+
+Weather-reactive arena
+The battleground's background changes with the field's weather - rain
+streaks, drifting sand haze, hail, a warm sunny glow - cross-fading
+between looks rather than cutting.
+
+Battle feed and log
+The panel on the right has two tabs. Battle (the default) shows a
+readable, colour-coded feed of what just happened - moves, abilities,
+status effects, turn dividers, weather changes - built from the same
+data the toast popups over the arena use. Log is the game's raw
+narration text, for when you want to see exactly what it said; a small
+count badge appears on the tab if something lands there while you're
+looking at Battle.
+
+Toasts
+The same events in the Battle feed also flash briefly over the arena as
+they happen, so you don't have to glance at the side panel mid-fight to
+notice something important.
+
+Team trimming and keeping Pokemon
+When a round asks you to pick exactly how many Pokemon to leave behind,
+or lets you choose which to keep between rounds, that's a proper
+multi-select screen - tap to toggle, a running count, one Confirm - not
+the game's real one-at-a-time prompt loop repeated on screen.
+
+Your Team, Scout Opponent, Match History
+"Your Team" (top right) opens a separate window with stats, ability and
+full moveset for every Pokemon on your team, kept live during battle.
+The opponent's side of that window stays hidden until you have earned
+it -- by winning the round, or by a successful scout in "Scout
+Opponent". Choosing "Scout Opponent" or "Check History" from the
+in-game menu opens a window rather than printing paragraphs into the
+log: Scout Opponent as the competitor's artwork with the scouting
+report beside it, Check History as your record against them plus the
+scoreline of every previous meeting. Neither goes to the log at all --
+the log is a transcript, not a screen you should have to read.
+
+Career History (the title screen's HISTORY option)
+One window, five tabs, all of it there when it opens:
+
+  Opponents      every competitor, clickable, with tier and rating
+  Champions      who won each championship
+  Career         the one you picked: portrait, titles, W/L, win rate
+  Tournaments    every championship they entered and where they came
+  Head to Head   their record against everybody, hardest opponent first
+
+Click a name and the last three tabs fill in; click another and they
+change. Everything scrolls vertically -- nothing is ever laid out wide
+enough to need a sideways drag. You are never asked to confirm anything:
+the interface answers the engine's own questions, and closing the window
+returns you to the title screen.
+
+Head to Head is ordered by the opponent's rating rather than by how
+often they were played, so it reads as "how far up the field have they
+actually beaten anyone" instead of reflecting who the bracket happened
+to keep drawing.
+
+A competitor who has never played says so on all three of those tabs,
+rather than leaving the last one's record on screen.
+
+The portraits are full illustrations with the name, write-up, quote and
+ace Pokemon set into them, so the career tab gives the picture the
+larger half of the window rather than repeating the write-up as text
+beside it.
+
+Pokedex (top bar, any time)
+One search box over three sections: Pokemon, Moves and Opponents. It is
+reference material only -- it reads a snapshot and touches no game state
+-- so it is available from the title screen, the pre-battle menu and
+mid-battle alike.
+
+The search takes one line of text rather than a screen of dropdowns.
+Bare words match a name, a type or an ability; anything else is
+`key:value` or `stat>number`, and a leading `-` excludes:
+
+    fire flying              both types
+    tier:ultra               by tier
+    spd>130                  by stat (spd is Speed, spdef the other one)
+    move:earthquake          learns it
+    ability:levitate
+    total>550 custom:yes
+    water -tier:boss
+    cat:special pwr>110      on the Moves tab
+    rating>300               on the Opponents tab
+
+An unknown key matches nothing rather than everything, so a typo shows
+an empty list instead of the whole roster.
+
+In the list on the left a Pokemon's typing is shown as small colour
+blocks rather than words -- "STEEL DRAGON" as two chips was most of the
+row and left the longer names nowhere to go, while two swatches say the
+same thing in a fifth of the width and three stack just as well. Hovering
+one names them. Long names elide rather than pushing the blocks out of
+sight.
+
+A Pokemon shows its sprite, typing, tier, abilities, base stats as bars
+filled to where each one sits across the whole roster, and its full move
+pool. Competitor portraits are sized from the display, so they are as
+large as the window can hold on a 1440p monitor and still fit a 1366x768
+laptop -- 576px on a 1280x800 screen, which is 864 real pixels of a
+1024px source. The search box carries its examples as a tooltip and the
+Close button shares the top row, because that hundred pixels of chrome is
+a hundred pixels the artwork can have instead. Clicking a portrait opens
+it full size: just the picture, centred on a dimmed screen with no panel
+or title bar around it, and a click anywhere puts it away again. A move
+shows type, category, power, accuracy, PP, priority, what it actually
+does in plain English, and everyone who learns it -- and is marked CUSTOM
+if it is one of this game's own rather than a real one. A competitor
+shows their portrait, rating, tier, character ability, quote, their
+write-up and their Strategy.
+
+What it deliberately does *not* show: which competitor brings which
+Pokemon, in either direction. That is what Scout Opponent's scouting
+roll is for, so it is not in the snapshot at all and no query can reach
+it.
+
+Compare (the reward screen)
+Winning a round opens this by itself -- there is no yes/no to answer
+first. One of yours sits beside one of theirs with name chips at the top
+of each column to switch which pair you are looking at, and each shows
+typing, tier, sprite, ability, every stat as base + IV = stat, the IV
+total, and the full moveset with type, category and power. It replaces
+the old separate team viewer, which had the same information one side at
+a time.
+
+Each stat bar is scaled to the better of the two, so the longer bar is
+the better Pokemon at that stat, and the totals are green or red by
+which side wins.
+
+One press does the whole thing. Underneath, the engine asks three
+questions in a row -- yes/no, then which of yours, then which of theirs --
+and as three identically-labelled Proceed buttons that was genuinely
+confusing: nothing said which press was the one that committed. Both
+sides are selectable on the one screen instead, and the single press
+answers all three; the two index questions are filled in from what was
+selected and never reach you.
+
+  Fast Comparison   your weakest against their strongest, for when you
+                    just want to know whether you are being offered an
+                    upgrade
+  Swap these two    give up the one selected on the left, take the one on
+                    the right ("Take it" when nothing has to be given up)
+  No thanks         keep your team as it is -- or, on the take offer, let
+                    the organiser hand you a random one instead
+
+Changing your mind works at any point: declining clears the choice, so
+any question the engine asks afterwards is answered with its go-back
+sentinel rather than a stale selection. A planned slot the engine is not
+actually offering is pulled back into range rather than sent, which used
+to make it ask the same question a second time.
+
+Shutting the window counts as declining. This screen empties the action
+bar and takes the whole question on itself, so a dismissal that said
+nothing left the engine blocked inside input() with no control on screen
+able to reach it -- the game stopped dead. It needed catching in two
+places, not one: the X arrives as a close event, but Escape never does,
+because QDialog turns Escape into reject() and hides the window through
+done(). Both routes now decline, and whichever runs first clears the flag
+so the answer is sent exactly once. Of the screens that empty the action
+bar this is the only one that hands the question to a window rather than
+putting its own buttons back, so it was the only one that could strand
+you; the HISTORY window has had the same guard from the start.
+
+The window is sized once from the display and its two halves are always
+the same width. It used to grow a little every time the selection changed
+-- six long names in the picker row, or a Pokemon with four long moves,
+widened one half and the window with it. The picker wraps to three names
+a row, long names on chips elide, and the explanation lines are allowed
+to be narrow, so nothing inside can stretch it. It is a resize rather
+than a fixed size, so it can still be dragged smaller.
+
+If your team is not yet full the round is a straight pick with nothing
+given up, and the window says so; with a full team it says that taking
+one of theirs means giving one of yours away.
+
+Proceeding closes the window and goes straight on to the next matchup.
+The "press any key to continue" the engine prints after a reward is
+answered for you -- it is a keypress between finishing a swap and seeing
+the next opponent that exists only because the terminal version needed
+it. Ordinary continue prompts still wait for you.
+
+When the other side switches
+A switch used to be silent: their sprite simply became a different
+Pokemon between one turn and the next, and you found out by looking. Now
+the moment the Pokemon on the field changes, that side's status card
+flashes its own colour for a second and a line goes into the turn feed
+naming who came in -- "Expert Cynthia sent out Milotic." Your own
+switches are announced the same way. The first Pokemon of a match is not
+a switch and is not announced, and a new match never announces its lead.
+Three switches inside one turn all get their own line.
+
+What is no longer printed
+The engine was written for a terminal, and printed its whole working
+state after every turn -- status, stat stages, volatile conditions,
+entry hazards, charging counters, base stats, a drawn HP bar, the
+occasional bare number, and the caret it used to show it wanted you to
+type. All of that is on screen as an actual widget now, so it is
+filtered out of the log on the way through the bridge. With the drawn
+artwork going the same way (below), that is now about half of everything
+the engine prints during a run -- 2,027 lines of 4,184 in a five-battle
+playthrough. The share moves about between runs, because it depends on
+how many turns a run takes against how many menus it opens. The
+narration -- who used what, what was effective, what fainted -- is
+untouched. The terminal build still prints the lot; nothing was removed
+from the engine, only from the window.
+
+The drawn artwork goes too. The engine prints a block-letter title and
+rules a frame around every bracket entry -- three lines per entry, two of
+them pure box characters, 640 lines of frame in a five-battle run. The
+log is a transcript to be read back and searched, not a screen, so the
+frames and the block letters are dropped and the row inside each frame is
+rewritten as its columns:
+
+    ╔====╦══════════════════╦===╦===╗
+    ║ 1  ║ Expert Cynthia   ║ A ║ 346 ║      becomes    1  Expert Cynthia  A  346
+    ╚====╩══════════════════╩===╩===╝
+
+Nothing that carries information is lost -- only the ruling around it. The
+test for a droppable line is that it contains no letters and no digits at
+all, so a line with any real text on it can never match, and the check
+runs on the colour-stripped line so a coloured frame is still a frame.
+
+This is the log alone. capture() takes its copy at the top of _write,
+before any of the filtering, and the title screen and the tutorial read
+through capture() -- so they still show the artwork as drawn. Only the
+transcript is plain.
+
+The caret needed catching twice. Most output reaches the log through
+_write, which scrubs it, but a question is put there by hand in
+Bridge._ask so it can be shown alongside its own answer buttons -- and
+that path skipped the scrub, so "--> " came through on the end of every
+prompt, 115 times in five battles. _ask scrubs its own copy now. The
+InputRequest still carries the prompt exactly as the engine wrote it,
+because the parser reads the option list out of it.
+
+One line *was* removed outright: after a Pokemon moved, the game
+reported the status of the Pokemon it had attacked -- "Garchomp is still
+Normal." It named the wrong side to be useful and said nothing at all in
+the usual case where the status was Normal.
+
+Hovering a Pokemon in battle
+Hover either sprite, or one of the little balls on a status card, and a
+small panel appears with that Pokemon's four moves (colour-coded by
+type, with category and power) and its six IVs, each IV shown over the
+stat it produced. A 31 is picked out in cyan.
+
+Your own side always shows. Theirs shows only once you have earned it,
+the same two ways as the team window -- until then the panel names what
+is on the field and tells you to try Scout Opponent. The balls are the
+only way to reach their *bench* mid-battle, which is most of what a
+successful scout buys you.
+
+Settings
+The "Settings" button (top right) has difficulty -- Normal, or Beginner
+where every opponent plays the simple attacking AI -- and it takes
+effect the next time you start the game. Music volume is on the same
+panel.
+
+The window is borderless fullscreen; there is no windowed mode and no
+size option, so the arena and the sprites are laid out once against the
+screen you actually have.
+
+Credits
+On the top bar, not thrown up automatically. They used to open themselves
+the moment a run ended, over the top of the final standings -- a window
+to dismiss before you could look at anything else. Whether you won, and
+how many titles you hold, is remembered from that moment so the closing
+note still reads correctly whenever you come to it.
+
+Fallback text entry
+Every screen has a small "or type a value" field in the action bar. It's
+deliberately understated - buttons are the primary way to play - but it
+stays available as an escape hatch if a button ever doesn't cover what
+you're trying to do.
+
+*********************************************************************************
+
+Requirements
+
+Python 3.8 or newer.
+PySide6 (Qt for Python) - required for the graphical interface.
+pygame, numpy, openpyxl - already required by the game.
+
+PLAY.bat installs all of these for you. Manually, that's:
+    pip install -r requirements.txt
+
+*********************************************************************************
+
+How it is wired up (for anyone touching the code)
+
+GUI/                toolkit-agnostic pieces, usable by any front end:
+  bridge.py           runs main() on a worker thread, redirects its I/O,
+                      and hooks a handful of game functions to know what
+                      is being asked and what just happened
+  prompt_parser.py    turns terminal prompts into structured choices
+  ansi.py             ANSI escape parsing for the raw log
+  theme.py            palette, type colours, status maps, size scale
+  codex.py            the Pokedex's data and its query language -- no Qt,
+                      so the search is testable on its own. sprite_key
+                      lives here: it is the one implementation, and
+                      bridge.py imports it rather than having a second
+
+GUI_qt/             the Qt rendering layer
+  main_window.py      the window: scoreboard, arena, tabbed feed/log,
+                      action bar, every prompt renderer
+  widgets.py          RoundedPanel base, HPBar, Chip, MoveCard,
+                      CombatantCard, Banner, FieldBoard, ScoutCard,
+                      ActionButton
+  panels.py           RosterDialog, OpponentInfoDialog, HistoryDialog,
+                      CareerDialog, CompareDialog, StandingsDialog,
+                      StoryDialog, SettingsDialog, CreditsDialog
+  pokedex.py          the Pokedex window (three sections, one search box)
+  arena.py            the weather-reactive battleground backdrop
+  sprites.py          sprite loading via QMovie
+  fonts.py            resolves theme.py's font stacks into QFonts
+  settings.py         persistent settings via QSettings (difficulty)
+
+Three redirections make a terminal program clickable: print() appends to
+the log/feed, input() blocks the game's worker thread until a button is
+clicked, and os.system('cls') clears the log. On top of that, bridge.py
+wraps a number of game functions - battle_setup, select_move,
+switching_criteria, check_win_or_lose, move_order_and_execution,
+UseAbility, team_selection, save_game, about_opponent, check_history,
+round_begin, scoreboard, elo_rating and others - so the interface knows
+what screen to show and when. Every wrapper calls the original function
+unchanged; none of the wrapped functions had their own behaviour altered.
+
+Two small behaviour changes exist, both to keep the game running rather
+than to change how it plays: a missing audio file or device can no
+longer end a run, and restart() signals the interface to relaunch
+cleanly instead of calling os.execl over the running process.
+
+Artwork is scaled to *device* pixels and stamped with the ratio
+(_FittedArt in panels.py), and the animated sprites decode at device
+resolution too (show_sprite in sprites.py -- QMovie has no
+setDevicePixelRatio, so the frames are scaled up and the label fits them
+back into its logical rect).
+
+Two rules follow from that, and both were learned the hard way. First,
+show_sprite gives its label the sprite's own size, because scaled
+contents in a label bigger than the sprite stretches it -- a 190px box
+was showing a 370px-wide distorted Pokemon. Callers wanting a stable
+box put the label inside a fixed-size container and centre it. Second,
+_FittedArt carries a QSizePolicy of Ignored so the layout sizes the
+picture rather than the reverse, which also means a layout will not
+reserve room for it: it needs the same container treatment, or the
+widget beside it is laid out straight over the top. Qt lays out in logical pixels, so on a
+150%-scaled display a portrait fitted to a 680px label was being
+stretched to 1020 real pixels by the compositor -- a third of the detail
+thrown away before the screen saw it, from 1024px source art that had
+it to spare. That, not the source resolution, was why the portraits
+looked soft.
+
+If the game itself raises an exception, the interface shows it in a
+dialog with a copy button instead of closing silently.
+
+The save
+savefile.json, written by Scripts/Game/savefile.py. It holds the facts
+that need to outlive a run -- your rating, participation, titles, the
+Pokemon you kept and what was rolled for them, and everyone's records
+-- and rebuilds the rest from Data/pokemon.csv and Data/competitors.csv
+on load, so it is safe to open and edit by hand. An older savefile.dat
+(the previous pickle format) still loads and is migrated on the way in;
+it is left alone afterwards, so it stays as a backup.

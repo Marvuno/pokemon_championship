@@ -13,6 +13,16 @@ from Scripts.Battle.entry_hazard import *
 from Scripts.Battle.type_chart import *
 from Scripts.Battle.constants import *
 from Scripts.Battle.battle_move_execution import *
+# The AI must estimate damage with the same rules the engine applies, so
+# these three come from the engine instead of being copied here. They were
+# byte-identical duplicates, which meant correcting a formula in
+# damage_calculation.py silently left the AI deciding by the old one. The
+# five helpers still defined inside estimated_damage_calculation genuinely
+# differ: an estimate has to be silent and deterministic where the real
+# calculation rolls dice and narrates.
+from Scripts.Battle.damage_calculation import (check_attack_power,
+                                               check_defense_strength,
+                                               check_if_weather_affect_moves)
 from Scripts.Battle.battle_win_condition import check_win_or_lose
 
 
@@ -49,29 +59,6 @@ def estimated_speed_adjustment(user_side, user, battleground):
 
 
 def estimated_damage_calculation(user_side, target_side, user, target, battleground, move):
-    # check whether Atk or SpA is used
-    def check_estimated_attack_power(user, target, move):
-        attack = 0
-        if move.attack_type == "Physical":  # physical
-            attack = (target.battle_stats[1] * 0.5 if target.status == "Burn" else target.battle_stats[1]) if move.targetAtk else \
-                (user.battle_stats[2] * 0.5 if user.status == "Burn" else user.battle_stats[2]) if move.DefAsAtk else \
-                    user.battle_stats[1] * 0.5 if user.status == "Burn" else user.battle_stats[1]
-        elif move.attack_type == "Special":  # special
-            attack = target.battle_stats[3] if move.targetAtk else user.battle_stats[4] if move.DefAsAtk else user.battle_stats[3]
-        return attack
-
-    # check whether Def or SpDef is used
-    def check_estimated_defense_strength(user, target, move):
-        if move.ignoreDef:
-            Def, SpDef = math.floor(0.01 * 2 * target.nominal_base_stats[2] * modifierChart[2][0] * 100 + 5), \
-                         math.floor(0.01 * 2 * target.nominal_base_stats[4] * modifierChart[4][0] * 100 + 5)
-        else:
-            Def, SpDef = target.battle_stats[2], target.battle_stats[4]
-        if move.attack_type == "Physical":  # physical
-            return SpDef if move.inverseDef else Def
-        elif move.attack_type == "Special":  # special
-            return Def if move.inverseDef else SpDef
-
     def check_estimated_power_modifier(user_side, target_side, user, target, move):
         power = move.power
         user_speed, target_speed = estimated_speed_adjustment(user_side, user, battleground), estimated_speed_adjustment(target_side, target, battleground)
@@ -102,14 +89,6 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
         if "retaliation" in move.effect_type:
             power *= sum(1 for pokemon in user_side.team if pokemon.status == "Fainted")
         return power
-
-    # check whether weather will affect certain types of moves
-    def check_if_estimated_weather_affect_moves(battleground, move):
-        if (battleground.weather_effect == 'Sunny' and move.type == "Water") or (battleground.weather_effect == 'Rain' and move.type == "Fire"):
-            return 0.5
-        elif (battleground.weather_effect == 'Sunny' and move.type == "Fire") or (battleground.weather_effect == 'Rain' and move.type == "Water"):
-            return 2
-        return 1
 
     # determine crit
     def check_estimated_crit(user, move):
@@ -178,13 +157,13 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
     if move.attack_type == "Status":
         return 0
 
-    attack = check_estimated_attack_power(user, target, move)
-    defense = check_estimated_defense_strength(user, target, move)
+    attack = check_attack_power(user, target, move)
+    defense = check_defense_strength(user, target, move)
     critical = check_estimated_crit(user, move)
     STAB = check_estimated_STAB(user, move)
     rand_factor = 0.9  # random
     type_effectiveness = check_estimated_type_effectiveness(target_side, target, move)
-    weather = check_if_estimated_weather_affect_moves(battleground, move)
+    weather = check_if_weather_affect_moves(battleground, move)
     other = check_estimated_other_factor(user_side, target_side, user, target, move)
     power = check_estimated_power_modifier(user_side, target_side, user, target, move)
 
@@ -274,10 +253,10 @@ def dumb_ai_select_move(battleground, protagonist, ai):
 
         move.damage = estimated_damage_calculation(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move)
 
-        UseAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
-        UseAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
         UseCharacterAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
         UseCharacterAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
+        UseAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
+        UseAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
 
         move_damage[index] = move.damage
 
@@ -337,10 +316,10 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
 
         move.damage = estimated_damage_calculation(user_side, target_side, user, target, battleground, move)
 
-        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
-        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
         UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
         UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
+        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
+        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
 
         # expected damage
         move_score[index][1] = min(move.damage, target.battle_stats[0] * 1.12) * move.accuracy
@@ -500,7 +479,16 @@ def smart_ai_select_move(battleground, protagonist, ai):
     # declare variables
     protagonist_pokemon, ai_pokemon = deepcopy(protagonist.team[0]), deepcopy(ai.team[0])
     protagonist_stats, ai_stats = protagonist_pokemon.battle_stats, ai_pokemon.battle_stats
-    ai_move_score, protagonist_move_score = {k: [0, 0, 0, 0] for k in range(5)}, {k: [0, 0, 0, 0] for k in range(5)}
+    # One score slot per move the Pokemon actually has, not a fixed five.
+    # Every "best move" below is chosen by sorting these *keys* and is then
+    # used to index moveset -- so five slots for a Pokemon with fewer moves
+    # left phantom entries that could win the sort and raise IndexError on
+    # `moveset[ai_best_attack]`. It needed a Pokemon with under four moves
+    # (Magikarp and friends), no move scoring above zero, and a failed
+    # switch, which is why it survived this long.
+    ai_move_score = {k: [0, 0, 0, 0] for k in range(len(ai_pokemon.moveset))}
+    protagonist_move_score = {k: [0, 0, 0, 0]
+                              for k in range(len(protagonist_pokemon.moveset))}
     ai_speed, protagonist_speed = estimated_speed_adjustment(ai, ai_pokemon, battleground), estimated_speed_adjustment(protagonist, protagonist_pokemon,
                                                                                                                        battleground)
 
@@ -645,9 +633,11 @@ def smart_ai_select_move(battleground, protagonist, ai):
                             print(f"{CREDBG}2{CEND}")
                         if ai_best_attack == 0:
                             # use best attacking move instead
-                            ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][1]))[0]
-                            if ai_best_attack == 0:
-                                ai_best_attack = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][1]))[1]
+                            ranked = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][1]))
+                            ai_best_attack = ranked[0]
+                            if ai_best_attack == 0 and len(ranked) > 1:
+                                # index 0 is Switching, which is not an attack
+                                ai_best_attack = ranked[1]
 
                         # # debug
                         # print(f'\n{CBOLD}Final: {ai_pokemon.name} | Turns: {turns_diff} | Player Move: {protagonist_pokemon.moveset[protagonist_best_move]}{CEND}')
@@ -660,7 +650,7 @@ def smart_ai_select_move(battleground, protagonist, ai):
 
     # will keep for now
     # converting move damage and move additional effect into one single metric
-    for index in range(5):
+    for index in list(ai_move_score):
         ai_move_score = move_score_finalization(ai_pokemon, protagonist_pokemon, ai_move_score, index)
 
     # # debug
@@ -670,9 +660,11 @@ def smart_ai_select_move(battleground, protagonist, ai):
     #         print(f"{ai_pokemon.moveset[key]}: Prio: {ai_move_score[i][0]} | "
     #               f"Dmg: {ai_move_score[i][1]} | Eff: {ai_move_score[i][2]} | Score: {ai_move_score[i][3]}")
 
-    ai_best_move = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[0]
-    if ai.position_change == 0 and ai_best_move == 0:
-        ai_best_move = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))[1]
+    ranked = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))
+    ai_best_move = ranked[0]
+    if ai.position_change == 0 and ai_best_move == 0 and len(ranked) > 1:
+        # staying in, so Switching is not an option -- take the next best
+        ai_best_move = ranked[1]
 
     if ai_best_move != 0:
         ai.switching = 0

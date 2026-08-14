@@ -14,21 +14,34 @@ from Scripts.Game.game_system import *
 from Scripts.Game.single_elimination_bracket import *
 
 
+def wins_a_draw(one, two):
+    """Who takes a mutual knockout: the lower-rated of the two.
+
+    Both sides being wiped out on the same turn is a real outcome -- recoil,
+    entry hazards, a self-KO move -- and it has to resolve the same way
+    everywhere. It did not: this function's rule sets the winner's points,
+    while round_end() separately decided the line shown in the matchup, the
+    head-to-head record and the rating change, and round_end broke a tie by
+    "whichever came second in the pairing". So a draw could award the point
+    to one competitor and the win to the other, and the matchup disagreed
+    with the standings. Both now call this.
+    """
+    if one.strength != two.strength:
+        return one if one.strength < two.strength else two
+    return one          # dead level: settle it deterministically
+
+
 def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battleground):
-    player_side = True if len(player_team) == sum(1 for pokemon in player_team if pokemon.status == "Fainted") else False
-    opponent_side = True if len(opponent_team) == sum(1 for pokemon in opponent_team if pokemon.status == "Fainted") else False
+    player_side = all(pokemon.status == "Fainted" for pokemon in player_team)
+    opponent_side = all(pokemon.status == "Fainted" for pokemon in opponent_team)
 
     if player_side and opponent_side:
-        battleground.battle_continuation = False
-        # tiebreaks
-        if protagonist.strength > competitor.strength:
-            print("Opponent emerges victorious. You have lost.")
-            competitor.stage += 1
-        else:
-            protagonist.stage += 1
-            print("Congratulations! You have won.")
-            music(audio='Assets/music/victory.mp3', loop=False)
-    elif player_side:
+        # player_side means "your team is gone", i.e. you lost
+        winner = wins_a_draw(protagonist, competitor)
+        player_side, opponent_side = (winner is competitor,
+                                      winner is protagonist)
+
+    if player_side:
         battleground.battle_continuation = False
         print("Opponent emerges victorious. You have lost.")
         competitor.stage += 1
@@ -50,54 +63,23 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
 # battle ended
 # reset every in-battle state
 def end_battle(protagonist, competitor, player_team, opponent_team, battleground):
-    if battleground.verbose:
-        for pokemon in player_team:
-            pokemon.modifier = [0] * 9
-            pokemon.status = "Normal"
-            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
-            pokemon.protection = [0, 0]
-            pokemon.charging = ["", "", 0]
-            pokemon.moveset = pokemon.moveset[1:5]
-            pokemon.move_order = []
-            pokemon.previous_move = None
-            pokemon.disabled_moves = {}
-            pokemon.disguise, pokemon.transform = False, False
-            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
-
-        for pokemon in opponent_team:
-            pokemon.modifier = [0] * 9
-            pokemon.status = "Normal"
-            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
-            pokemon.protection = [0, 0]
-            pokemon.charging = ["", "", 0]
-            pokemon.moveset = pokemon.moveset[1:5]
-            pokemon.move_order = []
-            pokemon.previous_move = None
-            pokemon.disabled_moves = {}
-            pokemon.disguise, pokemon.transform = False, False
-            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
-
+    for pokemon in player_team + opponent_team:
+        pokemon.modifier = [0] * 9
+        pokemon.status = "Normal"
+        pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
         protagonist.entry_hazard = dict.fromkeys(protagonist.entry_hazard.keys(), 0)
         protagonist.in_battle_effects = dict.fromkeys(protagonist.in_battle_effects.keys(), 0)
-        competitor.entry_hazard = dict.fromkeys(competitor.entry_hazard.keys(), 0)
-        competitor.in_battle_effects = dict.fromkeys(competitor.in_battle_effects.keys(), 0)
-    else:
-        for pokemon in player_team:
-            pokemon.modifier = [0] * 9
-            pokemon.status = "Normal"
-            pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
-            protagonist.entry_hazard = dict.fromkeys(protagonist.entry_hazard.keys(), 0)
-            protagonist.in_battle_effects = dict.fromkeys(protagonist.in_battle_effects.keys(), 0)
-            pokemon.protection = [0, 0]
-            pokemon.charging = ["", "", 0]
-            pokemon.moveset = pokemon.moveset[1:5]
-            pokemon.move_order = []
-            pokemon.previous_move = None
-            pokemon.disabled_moves = {}
-            pokemon.disguise, pokemon.transform = False, False
-            with suppress(AttributeError):
-                pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
+        pokemon.protection = [0, 0]
+        pokemon.charging = ["", "", 0]
+        pokemon.moveset = [x for x in pokemon.moveset if x != 'Switching']
+        pokemon.move_order = []
+        pokemon.previous_move = None
+        pokemon.disabled_moves = {}
+        pokemon.disguise, pokemon.transform = False, False
+        with suppress(AttributeError):
+            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
 
+    if not battleground.verbose:
         for mon in protagonist.unused_team:
             protagonist.team.append(mon)
         protagonist.unused_team = []
@@ -109,119 +91,164 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
 
 
 def choose_pokemon(protagonist, opponent, battleground):
+    if battleground.verbose:
+        return
+
+    def pokemon_init(pokemon):
+        pokemon.iv = [random.randint(PLAYER_IV(protagonist.strength), 31) for _ in range(6)]
+        pokemon.total_iv = sum(pokemon.iv)
+        pokemon.nominal_base_stats = list(map(operator.add, pokemon.base_stats, pokemon.iv))
+        pokemon.total_base_stats = sum(pokemon.base_stats)
+        pokemon.ability = [random.choice(pokemon.ability)]
+        pokemon.moveset = random.sample(pokemon.moveset, min(4, len(pokemon.moveset)))
+        pokemon.moveset = ["Switching"] + pokemon.moveset
+        return pokemon
+
+    def info_display(participant, team=None):
+        print()
+        for i, pokemon in enumerate(team if team is not None else participant.team):
+            print(f"{participant.side_color}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
+            print(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
+            print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}" for x in range(len(pokemon.nominal_base_stats))])
+            print(f"Moveset: {pokemon.moveset}{CEND}\n")
+
+    #: Entering this instead of an index backs out of a pick and asks the
+    #: Y/N question again, so changing your mind part-way through is no
+    #: longer a dead end. A team can never hold more than MAX_POKEMON (6),
+    #: so 9 is never a real slot -- the same sentinel the keep-team screen
+    #: already uses for "I am done".
+    GO_BACK = 9
+
+    def ask_index(question, team):
+        """An index into `team`, or None if the player backed out."""
+        while True:
+            with suppress(ValueError):
+                answer = int(input(question))
+                if answer == GO_BACK:
+                    return None
+                if 0 <= answer < len(team):
+                    return answer
+
+    def my_roster():
+        """Everyone on your books, not just the ones who played.
+
+        team_selection() parks the Pokemon you held back from this round in
+        unused_team and end_battle() folds them home again -- but that
+        happens *after* this function runs, so `team` here is only the ones
+        that fought. Offering just those made the Pokemon you benched
+        impossible to trade away: bring five of six and the sixth could
+        never be swapped out.
+        """
+        return list(protagonist.team) + list(protagonist.unused_team)
+
+    def replace_mine(index, incoming):
+        """Put `incoming` in roster slot `index`, in whichever list it lives."""
+        if index < len(protagonist.team):
+            protagonist.team[index] = incoming
+        else:
+            protagonist.unused_team[index - len(protagonist.team)] = incoming
+
     choice, obtained_pokemon, thrown_pokemon = None, -1, -1
-    current_pokemon = [pokemon.name for pokemon in protagonist.team]
-    if not battleground.verbose:
-        if (len(protagonist.team) + len(protagonist.unused_team)) < ROUND_LIMIT[GameSystem.stage + 1] or len(protagonist.team) == MAX_POKEMON:
-            # win the round
-            if protagonist.stage > opponent.stage:
-                print(f"{CGREEN2}{CBOLD}Your Team: {[pokemon.name for pokemon in protagonist.team]}\n"
-                      f"{CRED2}Opponent Team: {[pokemon.name for pokemon in opponent.team]}{CEND}")
-                # not yet full team, can get extra pokemon
-                if (len(protagonist.team) + len(protagonist.unused_team)) != MAX_POKEMON:
-                    while choice != "Y" and choice != "N":
-                        choice = input(f"Input Y if you want to take from the opponent, and N to get a random pokemon from the organizer (No going back when "
-                                       f"you have chosen). ").upper()
+    current_pokemon = [pokemon.name for pokemon in my_roster()]
 
-                        if choice == "Y":
-                            # pokemon info
-                            print()
-                            for i, pokemon in enumerate(opponent.team):
-                                print(f"{CBOLD}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
-                                print(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
-                                print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}" for x in range(len(pokemon.nominal_base_stats))])
-                                print(f"Moveset: {pokemon.moveset}{CEND}\n")
-                            while not (0 <= obtained_pokemon < len(opponent.team)):
-                                with suppress(IndexError, ValueError):
-                                    obtained_pokemon = int(input(f"You may take one pokemon from the opponent:\n"
-                                                                 f"{CRED2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
-                                                                 f"--> "))
-                                    protagonist.team.append(opponent.team[obtained_pokemon])
-                        elif choice == "N":
-                            defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Ultra High'}
-                            pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
-                                                         list_of_pokemon[pokemon].tier == defeating_tier_list[opponent.level] and pokemon not in current_pokemon]
-                            obtained_pokemon = random.choice(pokemon_availability_list)
-                            obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
-                            obtained_pokemon.iv = [random.randint(min(31, int(protagonist.strength / 250 * 31)), 31) for _ in range(6)]
-                            obtained_pokemon.total_iv = sum(obtained_pokemon.iv)
-                            obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
-                            obtained_pokemon.total_base_stats = sum(obtained_pokemon.base_stats)
-                            obtained_pokemon.ability = [random.choice(obtained_pokemon.ability)]
-                            obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
-                            obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
-                            print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
-                            protagonist.team.append(obtained_pokemon)
-                # swap pokemon
-                else:
-                    # when full team
-                    while choice != "Y" and choice != "N":
-                        choice = input(f"Input Y if you want to swap, and N otherwise (No going back when you have chosen). ").upper()
+    # win the round
+    if protagonist.stage > opponent.stage:
+        print(f"{protagonist.side_color}Your Team: {[pokemon.name for pokemon in protagonist.team]}\n"
+              f"{opponent.side_color}Opponent Team: {[pokemon.name for pokemon in opponent.team]}{CEND}")
+        # not yet full team, can get extra pokemon
+        if len(protagonist.team + protagonist.unused_team) < MAX_POKEMON:
+            while choice != "Y" and choice != "N":
+                choice = input(f"Input Y if you want to take from the opponent, and N to get a random pokemon from the organizer. ").upper()
 
-                        if choice == "Y":
-                            # pokemon info
-                            print()
-                            # player team
-                            for i, pokemon in enumerate(protagonist.team):
-                                print(f"{CGREEN2+CBOLD}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
-                                print(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
-                                print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}" for x in range(len(pokemon.nominal_base_stats))])
-                                print(f"Moveset: {pokemon.moveset}{CEND}\n")
-                            # enemy team
-                            for i, pokemon in enumerate(opponent.team):
-                                print(f"{CRED2+CBOLD}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
-                                print(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
-                                print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}" for x in range(len(pokemon.nominal_base_stats))])
-                                print(f"Moveset: {pokemon.moveset}{CEND}\n")
-                            while not (0 <= obtained_pokemon < len(opponent.team) and (0 <= thrown_pokemon < len(protagonist.team))):
-                                with suppress(IndexError, ValueError):
-                                    thrown_pokemon = int(input(f"Choose the pokemon you don't want on your team:\n"
-                                                               f"{CGREEN2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}{CEND}\n"
-                                                               f"--> "))
-                                    obtained_pokemon = int(input(f"Take the pokemon you want on the other team:\n"
-                                                                 f"{CRED2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
-                                                                 f"--> "))
-                                    protagonist.team[thrown_pokemon] = opponent.team[obtained_pokemon]
-            # lose the round
-            else:
-                # when lost
-                if len(protagonist.team) != MAX_POKEMON:
+                if choice == "Y":
+                    # pokemon info
+                    info_display(opponent)
+                    obtained_pokemon = ask_index(f"You may take one pokemon from the opponent, or {GO_BACK} to go back:\n"
+                                                 f"{CRED2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
+                                                 f"--> ", opponent.team)
+                    if obtained_pokemon is None:
+                        choice = None
+                    else:
+                        protagonist.team.append(opponent.team[obtained_pokemon])
+                elif choice == "N":
+                    defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Ultra High'}
                     pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
-                                                 list_of_pokemon[pokemon].tier in ['Very Low', 'Low', 'Medium'] and pokemon not in current_pokemon]
-                    obtained_pokemon = random.choice(pokemon_availability_list)
-                    obtained_pokemon = deepcopy(list_of_pokemon[obtained_pokemon])
-                    obtained_pokemon.iv = [random.randint(min(31, int(protagonist.strength / 250 * 31)), 31) for _ in range(6)]
-                    obtained_pokemon.total_iv = sum(obtained_pokemon.iv)
-                    obtained_pokemon.nominal_base_stats = list(map(operator.add, obtained_pokemon.base_stats, obtained_pokemon.iv))
-                    obtained_pokemon.ability = [random.choice(obtained_pokemon.ability)]
-                    obtained_pokemon.moveset = random.sample(obtained_pokemon.moveset, min(4, len(obtained_pokemon.moveset)))
-                    obtained_pokemon.moveset = ["Switching"] + obtained_pokemon.moveset
+                                                 list_of_pokemon[pokemon].tier == defeating_tier_list[opponent.level] and pokemon not in current_pokemon]
+                    obtained_pokemon = pokemon_init(deepcopy(list_of_pokemon[random.choice(pokemon_availability_list)]))
                     print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
                     protagonist.team.append(obtained_pokemon)
+        # swap pokemon
+        else:
+            # when full team
+            while choice != "Y" and choice != "N":
+                choice = input(f"Input Y if you want to swap, and N otherwise. ").upper()
+
+                if choice == "Y":
+                    mine = my_roster()
+                    info_display(protagonist, mine), info_display(opponent)
+                    thrown_pokemon = ask_index(f"Choose the pokemon you don't want on your team, or {GO_BACK} to go back:\n"
+                                               f"{CGREEN2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(mine)]}{CEND}\n"
+                                               f"--> ", mine)
+                    obtained_pokemon = None if thrown_pokemon is None else \
+                        ask_index(f"Take the pokemon you want on the other team, or {GO_BACK} to go back:\n"
+                                  f"{CRED2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(opponent.team)]}{CEND}\n"
+                                  f"--> ", opponent.team)
+                    # backing out of either pick leaves the team untouched and
+                    # returns to the swap-or-not question
+                    if thrown_pokemon is None or obtained_pokemon is None:
+                        choice = None
+                    else:
+                        replace_mine(thrown_pokemon,
+                                     opponent.team[obtained_pokemon])
+    # lose the round
+    else:
+        # when lost
+        if len(protagonist.team + protagonist.unused_team) < MAX_POKEMON:
+            pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
+                                         list_of_pokemon[pokemon].tier in ['Very Low', 'Low', 'Medium'] and pokemon not in current_pokemon]
+            obtained_pokemon = pokemon_init(deepcopy(list_of_pokemon[random.choice(pokemon_availability_list)]))
+            print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
+            protagonist.team.append(obtained_pokemon)
 
 
 def round_end(stage):
     colors = {"": CWHITE2, "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
 
     def result_announcement(victor, loser, main):
+        """Print the matchup line, and return it as (winner, loser) scores.
+
+        The pair is what Check History shows -- "you beat them 6-5" rather
+        than only "you are 2-1 against them" -- and it is deliberately the
+        same two numbers the boxes below print, so the two screens can never
+        disagree about how a match went.
+        """
         level_order = {"Low": 1, "Intermediate": 2, "Advanced": 3, "Elite": 4, "Champion": 5, "Protagonist": 6}
+        # for world champ
         victor_crown, loser_crown = f' |{victor.championship}|' if victor.championship > 0 else '', f' |{loser.championship}|' if loser.championship > 0 else ''
         victor_bold, loser_bold = CBOLD if victor.championship > 0 else '', CBOLD if loser.championship > 0 else ''
         print(colors[victor.color] + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
         if main:  # the protagonist battle
-            print(CGREY + loser_bold + EntryBox(loser.id, f"{loser.nickname} [{loser.strength}]{loser_crown}",
+            print((CGREEN if loser.main else CGREY) + loser_bold + EntryBox(loser.id, f"{loser.nickname} [{loser.strength}]{loser_crown}",
                                    loser.stage - 1, loser.result).structure, "\n" + CEND)
+            return ROUND_LIMIT[stage], loser.result
         else:  # others' battle
             result = ROUND_LIMIT[stage] * loser.strength / (victor.strength + loser.strength)
             result = int(min(round(result * random.uniform(1.25, 1.75), 0), ROUND_LIMIT[stage] - 1))
             victor.score += ROUND_LIMIT[stage] - result
             loser.score += result - ROUND_LIMIT[stage]
             print(CGREY + loser_bold + EntryBox(loser.id, f"{loser.nickname} [{loser.strength}]{loser_crown}", loser.stage - 1, result).structure, "\n" + CEND)
+            return ROUND_LIMIT[stage], result
 
     for i in range(0, int(math.pow(2, 5)), 2):
         one, two = list_of_competitors[GameSystem.participants[i]], list_of_competitors[GameSystem.participants[i + 1]]
         main = True
-        victor = i if one.result > two.result else i + 1
+        if one.result == two.result:
+            # A draw. Same rule check_win_or_lose used to award the point, so
+            # the matchup line, the head-to-head record and the rating change
+            # all agree with the standings.
+            victor = i if wins_a_draw(one, two) is one else i + 1
+        else:
+            victor = i if one.result > two.result else i + 1
         loser = i + 1 if victor == i else i
         if not (one.main or two.main):
             victor = i if random.random() < one.strength / (one.strength + two.strength) else i + 1
@@ -229,14 +256,27 @@ def round_end(stage):
 
             list_of_competitors[GameSystem.participants[victor]].stage += 1
             main = False
-        result_announcement(list_of_competitors[GameSystem.participants[victor]],
-                            list_of_competitors[GameSystem.participants[loser]], main)
+        winner_score, loser_score = result_announcement(
+            list_of_competitors[GameSystem.participants[victor]],
+            list_of_competitors[GameSystem.participants[loser]], main)
 
         # save opponent in-game record
         list_of_competitors[GameSystem.participants[victor]].opponent.append(list_of_competitors[GameSystem.participants[loser]])
-        list_of_competitors[GameSystem.participants[loser]].opponent.append(list_of_competitors[GameSystem.participants[victor]])
         list_of_competitors[GameSystem.participants[victor]].win_order.append(1)
+        list_of_competitors[GameSystem.participants[loser]].opponent.append(list_of_competitors[GameSystem.participants[victor]])
         list_of_competitors[GameSystem.participants[loser]].win_order.append(0)
-        # save opponent match history record
-        list_of_competitors[GameSystem.participants[victor]].opponent_history[GameSystem.participants[loser]][0] += 1
-        list_of_competitors[GameSystem.participants[loser]].opponent_history[GameSystem.participants[victor]][1] += 1
+        # save opponent match history record, tally and scoreline both -- the
+        # tally alone said "2-1 against them" without ever saying how close
+        # any of the three were
+        winner = list_of_competitors[GameSystem.participants[victor]]
+        beaten = list_of_competitors[GameSystem.participants[loser]]
+        winner.opponent_history[GameSystem.participants[loser]][0] += 1
+        beaten.opponent_history[GameSystem.participants[victor]][1] += 1
+        for side, them, mine, theirs in (
+                (winner, GameSystem.participants[loser],
+                 winner_score, loser_score),
+                (beaten, GameSystem.participants[victor],
+                 loser_score, winner_score)):
+            if not hasattr(side, "opponent_scores"):
+                side.opponent_scores = {}
+            side.opponent_scores.setdefault(them, []).append([mine, theirs])

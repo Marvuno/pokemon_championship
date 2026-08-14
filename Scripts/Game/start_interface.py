@@ -2,7 +2,6 @@ import sys
 sys.path.insert(1, '/.../Pokemon Arena/Scripts/')
 
 import random
-import pickle
 import os.path
 import sys
 import re
@@ -16,6 +15,103 @@ from Scripts.Data.competitors import *
 from Scripts.Data.pokemon import *
 from Scripts.Game.game_system import *
 from Scripts.Game.game_procedure import *
+from Scripts.Game import savefile
+
+
+#: The main menu's HISTORY screen, pulled out of main_screen() so each piece
+#: is a function with a name. That is what lets the interface hook them and
+#: show one window instead of leaving a whole career as paragraphs in the log
+#: -- the same way About Opponent and Check History work. The text printed is
+#: unchanged, so the terminal version reads exactly as before.
+def history_screen(protagonist):
+    """The HISTORY screen: the champion roll, then a competitor at a time.
+
+    Deliberately not wrapped around main_screen() the way it used to be --
+    the recursive call back to the title screen now happens in the caller,
+    so the interface can quiet this screen's output without also silencing
+    the menu it returns to.
+    """
+    champion_roll(protagonist)
+    while True:
+        first_confirmation = input("\nWanna read the stats of a selected character? (Very Long) Enter 'Y' to confirm: ").upper()
+        if first_confirmation != 'Y':
+            break
+        char_dict = participant_list()
+        with suppress(IndexError, KeyError, TypeError, ValueError):
+            choice = int(input("Choose the participant you are interested in (Enter 0 to return to home screen): "))
+            if choice == 0:
+                break
+            op = list_of_competitors[char_dict[choice]]
+            if not competitor_report(op):
+                continue
+            second_confirmation = input("\nWanna know his/her match history against individuals? (Very Long) Enter 'Y' to confirm: ").upper()
+            if second_confirmation == 'Y':
+                individual_records(op)
+
+
+def participant_list():
+    """The numbered roster, and the {number: name} it is picked by."""
+    char_dict = {}
+    for index, competitor in enumerate(list_of_competitors):
+        competitor = list_of_competitors[competitor]
+        print(f"{index + 1}: {competitor.nickname}")
+        char_dict[index + 1] = competitor.name
+    return char_dict
+
+
+def champion_roll(protagonist):
+    """Who won each championship, oldest run first."""
+    print(f"\n{CBOLD}The Champion of the Pokemon Championship: ")
+    for parti, hist in (protagonist.history or {}).items():
+        print(f"#{parti + 1}: {hist[0]}")
+    print(CEND)
+
+
+def career_totals(op):
+    """(wins, losses) across every opponent on record."""
+    history = getattr(op, "opponent_history", None) or {}
+    return (sum(value[0] for value in history.values()),
+            sum(value[1] for value in history.values()))
+
+
+def competitor_report(op):
+    """One competitor's career. False if there is nothing on record yet."""
+    total_win, total_lose = career_totals(op)
+    print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc}") if not op.main else print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc.format(10 + len(op.history))}")
+    print(f"\n{op.nickname} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).")
+    # Someone drawn into the bracket for the first time has played nobody, so
+    # there is no win rate to compute -- dividing by their zero matches raised
+    # ZeroDivisionError, which is not one of the errors suppressed around the
+    # caller, so looking them up crashed the game. Say there is nothing on
+    # record and skip the sections that would all be empty.
+    if total_win + total_lose == 0:
+        print(f"There is no match history on record for "
+              f"{op.nickname} yet.{CEND}")
+        return False
+    print(f"Total Wins: {total_win} | Total Lose: {total_lose} | Win Rate: {round(total_win / (total_win + total_lose) * 100, 2)}%{CEND}")
+    print(f"\n{op.nickname}'s Pokemon Championship history: ")
+    for parti, hist in op.history.items():
+        print(f"#{parti + 1}: Rank {hist[1]}")
+    # favourite opponent
+    battle_list = dict(sorted(op.opponent_history.items(), key=lambda x: (x[1][0]+x[1][1], x[1][0]), reverse=True)[:5])
+    print("\nFavorite Opponent:")
+    for i, (name, record) in enumerate(battle_list.items()):
+        print(f"#{i+1}. {list_of_competitors[name].nickname}: {record[0]} Win {record[1]} Lose")
+    return True
+
+
+def individual_records(op):
+    """Their record against every competitor, one row each."""
+    print(f"\n{op.nickname}'s match history against individuals:\n")
+    print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 4}WR{' ' * 4}{CEND}")
+    for i, (opponent, record) in enumerate(op.opponent_history.items()):
+        if opponent != op.name:
+            opponent = list_of_competitors[opponent].nickname
+            win_rate = "N/A"
+            with suppress(ZeroDivisionError):
+                win_rate = str(int(record[0] / (record[0] + record[1]) * 100)) + '%'
+            print(f"{CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}") if i % 2 == 0 else \
+            print(f"{CBEIGE+CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}")
 
 
 def start_game():
@@ -26,37 +122,90 @@ def start_game():
 
 def main_screen():
     def load_data():
-        with open('savefile.dat', 'rb') as f:
-            data = pickle.load(f)
-            for competitor in data:
-                # # debug
-                # print(competitor.__dict__)
-                op = list_of_competitors['Protagonist'] if competitor.main else list_of_competitors[competitor.name]
-                if competitor.main:
-                    op.team = competitor.team
-                    op.nickname = competitor.nickname
-                    op.strength = competitor.strength
-                op.history = competitor.history
-                op.opponent_history = competitor.opponent_history
-                op.participation = competitor.participation
-                op.championship = competitor.championship
+        """Restore the save. JSON, or an old pickle migrated on the way in.
 
-    print(f"┏------------┓\n"
-          f"| 0 NEW GAME |\n"
-          f"|------------|\n"
-          f"| 1 CONTINUE |\n"
-          f"|------------|\n"
-          f"| 2 OPTIONS  |\n"
-          f"|------------|\n"
-          f"| 3 HISTORY  |\n"
-          f"|------------|\n"
-          f"| 4 QUIT     |\n"
-          f"┗------------┛")
+        Both paths default every competitor to a clean head-to-head and skip
+        records for anyone the roster no longer has, so renaming a competitor
+        in Data/competitors.csv cannot make an older save unloadable.
+        """
+        return savefile.load(list_of_competitors, list_of_pokemon)
 
-    option = -1
-    while not 0 <= option <= 4:
-        with suppress(ValueError):
-            option = int(input(f"Your Option: "))
+    # A loop, not recursion. Every "back to the menu" here used to be a fresh
+    # call to main_screen() from inside the old one, so each visit to OPTIONS
+    # or HISTORY left a frame on the stack for good -- open HISTORY enough
+    # times in one sitting and the interpreter runs out of C stack and the
+    # process dies with an access violation and no traceback. It showed up as
+    # three crashes in twelve automated runs of that screen.
+    def pick_slot(purpose, need_used):
+        """Which of the four careers. None if there is nothing to pick from.
+
+        `need_used` filters to slots that have something in them, for
+        continuing and for reading a history; starting a new game offers all
+        four and says what it would overwrite.
+        """
+        entries = [entry for entry in savefile.slots()
+                   if entry.get("used") or not need_used]
+        if not entries:
+            return None
+        print(f"\n{purpose}")
+        for entry in entries:
+            print(f"{entry['slot']}: {savefile.describe(entry)}")
+        print("0: back")
+        while True:
+            with suppress(ValueError):
+                choice = int(input("Which save slot? "))
+                if choice == 0:
+                    return None
+                if any(entry["slot"] == choice for entry in entries):
+                    return choice
+
+    # OPTIONS and QUIT are gone from here. OPTIONS never did anything but
+    # print "feature not available yet" -- the window's Settings panel is the
+    # real thing, and it is reachable at any time rather than only from this
+    # screen. QUIT is what the window's own close button is for, and having it
+    # on the menu meant one mis-click could end a run.
+    while True:
+        # A career from before there were slots becomes slot 1, by copy, so
+        # the original file is still there afterwards. Done here rather than
+        # on import so it happens once the game is actually being played.
+        savefile.adopt_single_save()
+        print(f"┏------------┓\n"
+              f"| 0 NEW GAME |\n"
+              f"|------------|\n"
+              f"| 1 CONTINUE |\n"
+              f"|------------|\n"
+              f"| 2 HISTORY  |\n"
+              f"┗------------┛")
+
+        option = -1
+        while not 0 <= option <= 2:
+            with suppress(ValueError):
+                option = int(input(f"Your Option: "))
+
+        # the one that comes back to this menu rather than starting a game
+        if option == 2:
+            slot = pick_slot("Whose history?", need_used=True)
+            if slot is None:
+                print("No save file!") if not savefile.any_exists() else None
+                continue
+            savefile.select(slot)
+            load_data()
+            history_screen(list_of_competitors['Protagonist'])
+            continue
+        if option == 1:
+            slot = pick_slot("Continue which career?", need_used=True)
+            if slot is None:
+                print("No save file!") if not savefile.any_exists() else None
+                continue
+            savefile.select(slot)
+            break
+        slot = pick_slot("Start a new career in which slot? "
+                         "(anything already there is replaced)",
+                         need_used=False)
+        if slot is None:
+            continue
+        savefile.select(slot)
+        break
 
     # new game
     if option == 0:
@@ -68,76 +217,13 @@ def main_screen():
         # name input
         name_list = [list_of_competitors[competitor].nickname for competitor in list_of_competitors]
         list_of_competitors['Protagonist'].nickname = input("\nWhat is your name? (within 18 char.) ")
-        while re.search("^\s*$", list_of_competitors['Protagonist'].nickname) or len(list_of_competitors['Protagonist'].nickname) > 18 or list_of_competitors['Protagonist'].nickname in name_list:
+        while re.search(r"^\s*$", list_of_competitors['Protagonist'].nickname) or len(list_of_competitors['Protagonist'].nickname) > 18 or list_of_competitors['Protagonist'].nickname in name_list:
             print("Sorry. Your name is either too long or too short, or it has already been taken.")
             list_of_competitors['Protagonist'].nickname = input("What is your name? (within 18 char.) ")
-    # continue
+    # continue -- the loop above already sent you back if there was no save,
+    # so getting here means there is one
     elif option == 1:
-        if os.path.exists('savefile.dat'):
-            load_data()
-        else:
-            print("No save file!")
-            main_screen()
-    # options
-    elif option == 2:
-        print("Sorry, feature not available yet. TBD")
-        main_screen()
-    # history record for savefile
-    elif option == 3:
-        # read savefile
-        if os.path.exists('savefile.dat'):
-            load_data()
-            print(f"\n{CBOLD}The Champion of the Pokemon Championship: ")
-            for parti, hist in list_of_competitors['Protagonist'].history.items():
-                print(f"#{parti + 1}: {hist[0]}")
-            print(CEND)
-            while True:
-                first_confirmation = input("\nWanna read the stats of a selected character? (Very Long) Enter 'Y' to confirm: ").upper()
-                if first_confirmation == 'Y':
-                    char_dict = {}
-                    for index, competitor in enumerate(list_of_competitors):
-                        competitor = list_of_competitors[competitor]
-                        print(f"{index + 1}: {competitor.nickname}")
-                        char_dict[index + 1] = competitor.name
-                    with suppress(IndexError, KeyError, TypeError, ValueError):
-                        choice = int(input("Choose the participant you are interested in (Enter 0 to return to home screen): "))
-                        if choice == 0:
-                            break
-                        op = list_of_competitors[char_dict[choice]]
-                        total_win, total_lose = sum(value[0] for value in op.opponent_history.values()), sum(value[1] for value in op.opponent_history.values())
-                        print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc}") if not op.main else print(f"\n{CBOLD}{op.nickname}\n\nDescription: {op.desc.format(10 + len(op.history))}")
-                        print(f"\n{op.nickname} has participated the Pokemon Championship for {op.participation} time(s), with {op.championship} World Champion title(s).")
-                        print(f"Total Wins: {total_win} | Total Lose: {total_lose} | Win Rate: {round(total_win / (total_win + total_lose) * 100, 2)}%{CEND}")
-                        print(f"\n{op.nickname}'s Pokemon Championship history: ")
-                        for parti, hist in op.history.items():
-                            print(f"#{parti + 1}: Rank {hist[1]}")
-                        # favourite opponent
-                        battle_list = dict(sorted(op.opponent_history.items(), key=lambda x: (x[1][0]+x[1][1], x[1][0]), reverse=True)[:5])
-                        print("\nFavorite Opponent:")
-                        for i, (name, record) in enumerate(battle_list.items()):
-                            print(f"#{i+1}. {list_of_competitors[name].nickname}: {record[0]} Win {record[1]} Lose")
-
-                        second_confirmation = input("\nWanna know his/her match history against individuals? (Very Long) Enter 'Y' to confirm: ").upper()
-                        if second_confirmation == 'Y':
-                            print(f"\n{op.nickname}'s match history against individuals:\n")
-                            print(f"{CURL}{CBOLD}{' ' * 10}NAME{' ' * 10} || {' ' * 4}RECORD{' ' * 4} || {' ' * 4}WR{' ' * 4}{CEND}")
-                            for i, (opponent, record) in enumerate(op.opponent_history.items()):
-                                if opponent != op.name:
-                                    opponent = list_of_competitors[opponent].nickname
-                                    win_rate = "N/A"
-                                    with suppress(ZeroDivisionError):
-                                        win_rate = str(int(record[0] / (record[0] + record[1]) * 100)) + '%'
-                                    print(f"{CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}") if i % 2 == 0 else \
-                                    print(f"{CBEIGE+CBOLD}{opponent}{' ' * (24 - len(opponent))} || {record[0]}{' ' * (2 - len(str(record[0])))} Win {record[1]}{' ' * (2 - len(str(record[1])))} Lose || {win_rate} ({record[0] + record[1]}){CEND}")
-                else:
-                    break
-            main_screen()
-        # no savefile
-        else:
-            print("No save file!")
-            main_screen()
-    else:
-        sys.exit()
+        load_data()
 
     if 0 <= option <= 1:
         list_of_competitors['Protagonist'].team = team_generation(list_of_competitors['Protagonist'])
@@ -200,14 +286,13 @@ def tutorial():
           f"╚====╩======╩========╩=======╝\n"
           f"Points: each win scores 1 point, and each defeat scores 0 point.\n"
           f"Score: the number of Pokemon defeated in that match. It will thus only display after the round. The purpose of it is for tiebreaks.\n\n"
-          f"As the Player, you may do 5 things before entering the battle:\n"
+          f"As the Player, you may do 4 things before entering the battle:\n"
           f"View My Pokemon: have a solid understanding of your team. You want to do this at least once at the start, since you will obtain new Pokemon.\n"
           f"Switch Pokemon Order: you may switch a Pokemon to be the starting Pokemon.\n"
-          f"About Opponent: know about your next opponent. It will show his/her Character Ability and Signature Pokemon.\n"
+          f"Scout Opponent: know about your next opponent. It will show his/her Character Ability and Signature Pokemon.\n"
           f"                If your ratings are high, you can even know about the starting Pokemon of the opponent, sometimes including its moveset!\n"
           f"                (TIPS: Pokemon with the ability Illuminate can increase the probability of this by 10 times, for ability Pressure 100 times.)\n"
-          f"Check History: check your match history against him/her. You may also know the opponent journey.\n"
-          f"Quit Game: you will withdraw early from the game, and you may only keep at most 3 Pokemon for the next round.\n"
+          f"Check History: your record against him/her, and the scoreline of every previous meeting.\n"
           f"If your team has more Pokemon than the round requires, you will have to select some Pokemon that you DO NOT need for this round.\n")
     input("Enter any key to continue...")
     print(f"\nTutorial #3: In Battle\n\n"

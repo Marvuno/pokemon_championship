@@ -846,7 +846,7 @@ list_of_moves = {
                        crit=0, priority=0, flags='a',
                        effect_type=["self_modifier", "clear_entry_hazard"], special_effect=[[0, 0, 0, 0, 0, 1, 0, 0, 0], None]),
 
-    'Razor Shell': Move(name="RazorShell", power=75, attack_type="Physical", type="Water", accuracy=0.95, pp=10,
+    'Razor Shell': Move(name="Razor Shell", power=75, attack_type="Physical", type="Water", accuracy=0.95, pp=10,
                         crit=0, priority=0, recoil=0, flags='a',
                         effect_type="opponent_modifier", special_effect=[0, 0, -1, 0, 0, 0, 0, 0, 0], effect_accuracy=0.5),
 

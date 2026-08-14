@@ -86,7 +86,7 @@ def check_move_target_volatile_status_effect(user_side, target_side, user, targe
     # for yawn only
     if temporary_status[0] == "Yawn" and target.status != "Normal":
         print("The move failed.")
-    elif temporary_status[0] == "Flinch" and user_side.faster:
+    elif temporary_status[0] == "Flinch" and target_side.faster:
         pass
     else:
         with suppress(KeyError):

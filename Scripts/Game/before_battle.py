@@ -10,23 +10,55 @@ from Scripts.Battle.constants import *
 
 
 
+#: pre-battle menu: value -> (handler name, label). Quit Game is gone -- the
+#: window has a close button and Escape, and the old option quietly committed
+#: the run (it called elo_rating() and save_game() on the way out), which is
+#: not what "quit" implies.
+MENU = ((0, "proceed_to_battle", "Battle"),
+        (1, "view_pokemon", "View My Pokemon"),
+        (2, "switch_order", "Switch Pokemon Order"),
+        (3, "about_opponent", "Scout Opponent"),
+        (4, "check_history", "Check History"))
+
+
 def before_battle_option(protagonist, opponent):
-    option = None
-    choices = {0: proceed_to_battle, 1: view_pokemon, 2: switch_order, 3: about_opponent, 4: check_history, 5: quit_game}
-    text = "What do you want to do?\n" \
-           "0: Battle || 1: View My Pokemon || 2: Switch Pokemon Order || 3: About Opponent || 4: Check History || 5: Quit Game\n" \
-           "--> "
-    while option != 0:
-        with suppress(ValueError, KeyError):
-            print("")
-            option = int(input(text))
-            print("")
-            choices[option](protagonist, opponent)
-            if option == 3:
-                del choices[3]
-                text = f"What do you want to do?\n" \
-                       f"0: Battle || 1: View My Pokemon || 2: Switch Pokemon Order || {CGREY}3: About Opponent{CEND} || 4: Check History || 5: Quit Game\n" \
-                       f"--> "
+    """The pre-battle menu, until the player picks Battle.
+
+    Errors are handled per case rather than by wrapping the whole thing in
+    suppress(ValueError, KeyError). That blanket used to swallow anything a
+    handler raised, so a real bug in one of these screens looked exactly like
+    a menu option that did nothing -- which is how a KeyError in Check
+    History went unnoticed. A bad number is now answered, and anything
+    unexpected is reported instead of vanishing.
+    """
+    handlers = {value: globals()[name] for value, name, _ in MENU}
+    text = ("What do you want to do?\n"
+            + " || ".join("%d: %s" % (value, label)
+                          for value, _, label in MENU)
+            + "\n--> ")
+    while True:
+        print("")
+        answer = input(text).strip()
+        print("")
+        if not answer.lstrip("-").isdigit():
+            print(f"{CGREY}Please enter one of the numbers above.{CEND}")
+            continue
+        option = int(answer)
+        if option not in handlers:
+            print(f"{CGREY}There is no option {option}. "
+                  f"Pick one of the numbers above.{CEND}")
+            continue
+        try:
+            handlers[option](protagonist, opponent)
+        except Exception as error:
+            # Report and carry on. Losing a run to a crash in an optional
+            # information screen would be far worse than showing less of it.
+            print(f"{CRED}Sorry -- that screen could not be shown "
+                  f"({type(error).__name__}). Nothing has been lost; "
+                  f"pick another option.{CEND}")
+            continue
+        if option == 0:
+            return
 
 
 def proceed_to_battle(protagonist, opponent):
@@ -57,56 +89,51 @@ def switch_order(protagonist, opponent):
                 print(f'New Order: {CVIOLET2}{CBOLD}{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}{CEND}\n')
 
 
-def about_opponent(protagonist, opponent):
-    print(f"{CBOLD}{opponent.nickname} | Tier: {opponent.level}\n{CYELLOW}{opponent.desc}{CEND}\n")
-    if opponent.reveal_ability:
-        print(f"{CBEIGE+CBOLD}{opponent.strategy}{CEND}\n")
-    print(f"Before the match begins, you approach your opponent {opponent.nickname} and introduce yourself.\nAfter a delightful chitchat...")
-    # illuminate ability increases prob. ten-fold to obtain information
+def scout_chance(protagonist, opponent):
+    """Odds of learning anything about this opponent.
+
+    Your rating against theirs, multiplied by Illuminate (x10) or Pressure
+    (x100) on any Pokemon you brought -- stackable, as before.
+    """
     prob = protagonist.strength / (opponent.strength + protagonist.strength)
     special_ability = {"Illuminate": 10, "Pressure": 100}
     for pokemon in protagonist.team:
         for ability in pokemon.ability:
-            if ability in special_ability.keys():
-                prob *= special_ability[ability]  # stackable
-    if random.random() <= prob:
-        revealed_pokemon = opponent.team[0]
-        print(f"You have found that {opponent.nickname} will be using {CVIOLET2}{CBOLD}{revealed_pokemon.name}{CEND} as the 1st Pokemon for the next round!")
-        if random.random() <= 0.5:
-            print(f"Not only that, but you found that {CVIOLET2}{CBOLD}{revealed_pokemon.name}{CEND} has the moveset {CVIOLET2}{CBOLD}{revealed_pokemon.moveset}{CEND}!!")
-        if not opponent.reveal_ability:
-            opponent.reveal_ability = True
-            print(f"\n{CBEIGE2 + CBOLD}{opponent.strategy}{CEND}")
+            if ability in special_ability:
+                prob *= special_ability[ability]
+    return prob
+
+
+def scout_result(protagonist, opponent):
+    """Whether the scouting worked, rolled once per round and remembered.
+
+    Scout Opponent can now be opened as often as you like, so the roll can't
+    happen per visit -- that would let you re-roll a failure by clicking
+    again. It is taken on the first visit of the round and kept on the
+    opponent, tagged with the round it belongs to so the next match rolls
+    fresh.
+    """
+    stamp = getattr(opponent, "scouted", None)
+    if isinstance(stamp, tuple) and stamp[0] == GameSystem.stage:
+        return stamp[1]
+    outcome = random.random() <= scout_chance(protagonist, opponent)
+    opponent.scouted = (GameSystem.stage, outcome)
+    return outcome
+
+
+def about_opponent(protagonist, opponent):
+    print(f"{CBOLD}{opponent.nickname} | Tier: {opponent.level}\n{CYELLOW}{opponent.desc}{CEND}\n")
+    print(f"Before the match begins, you approach your opponent {opponent.nickname} and introduce yourself.\nAfter a delightful chitchat...")
+    if scout_result(protagonist, opponent):
+        # A success now opens up their whole team rather than naming their
+        # lead: the interface has a team viewer that can show it properly,
+        # which is a far better prize than one name and a maybe-moveset.
+        print(f"You have sized up {CVIOLET2}{CBOLD}{opponent.nickname}{CEND}'s entire team:")
+        for index, pokemon in enumerate(opponent.team):
+            print(f"  {index}: {CVIOLET2}{CBOLD}{pokemon.name}{CEND}")
+        print(f"\n{CBEIGE2 + CBOLD}{opponent.strategy}{CEND}")
     else:
         print("Unfortunately, you fail to obtain any useful information.")
-
-
-def check_history(protagonist, opponent):
-    colors = {"": "", "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
-    print(f"{CBOLD}{protagonist.nickname} {protagonist.opponent_history[opponent.nickname][0]} : {protagonist.opponent_history[opponent.nickname][1]} {opponent.nickname}{CEND}")
-    print(f"\nYou have participated the Pokemon Championship for {protagonist.participation} time(s), with {protagonist.championship} World Champion title(s).")
-    for i in range(len(protagonist.opponent)):
-        print(f"{colors[protagonist.opponent[i].color]}{protagonist.opponent[i].nickname}: {'Win' if protagonist.win_order[i] == 1 else 'Lose'}{CEND}")
-    print(f"\nYour opponent {opponent.nickname} has participated the Pokemon Championship for {opponent.participation} time(s), with {opponent.championship} World Champion title(s).")
-    for i in range(len(opponent.opponent)):
-        print(f"{colors[opponent.opponent[i].color]}{opponent.opponent[i].nickname}: {'Win' if opponent.win_order[i] == 1 else 'Lose'}{CEND}")
-    confirmation = input("\nWanna know the Pokemon Championship history? Press Y to confirm: ").upper()
-    if confirmation == 'Y':
-        print(f"\nYour Pokemon Championship history: ")
-        for parti, hist in protagonist.history.items():
-            print(f"#{parti + 1}: Rank {hist[1]} | Ratings {hist[2]}")
-        print(f"\nYour opponent's Pokemon Championship history: ")
-        for parti, hist in opponent.history.items():
-            print(f"#{parti + 1}: Rank {hist[1]}")
-        print(f"\nThe Champion of the Pokemon Championship: ")
-        for parti, hist in protagonist.history.items():
-            print(f"#{parti + 1}: {hist[0]}")
-
-
-def quit_game(protagonist, opponent):
-    elo_rating()
-    save_game()
-    sys.exit()
 
 
 def team_selection(protagonist):
@@ -130,3 +157,54 @@ def team_selection(protagonist):
             protagonist.unused_team.append(protagonist.team[index])
             del protagonist.team[index]
     return protagonist.team
+
+
+def head_to_head(protagonist, opponent):
+    """Your record against this competitor, as [wins, losses].
+
+    opponent_history is keyed by competitor *name*, while almost everything
+    else in the game identifies a competitor by nickname -- and a saved copy
+    of the dict only covers the roster as it stood when that save was
+    written. Looking the record up by either key and falling back to a
+    clean slate is what stops "someone you have never faced" from being an
+    error: renaming a competitor in Data/competitors.csv used to make Check
+    History raise KeyError against every older save.
+    """
+    history = getattr(protagonist, "opponent_history", None) or {}
+    record = history.get(getattr(opponent, "name", None))
+    if record is None:
+        record = history.get(getattr(opponent, "nickname", None))
+    return record if record else [0, 0]
+
+
+def check_history(protagonist, opponent):
+    """Your record against this opponent, and how each meeting went.
+
+    Deliberately just that. It used to print both competitors' whole
+    tournament journeys and then offer another page of career history, none
+    of which is about the match you are seconds away from -- and all of which
+    is still on the main menu's HISTORY screen.
+    """
+    wins, losses = head_to_head(protagonist, opponent)
+    played = wins + losses
+    print(f"{CBOLD}{protagonist.nickname}  {wins} - {losses}  {opponent.nickname}{CEND}")
+    if not played:
+        print(f"{CGREY}You have never faced {opponent.nickname} before.{CEND}")
+        return
+
+    print(f"\nYou have met {played} time{'' if played == 1 else 's'}.")
+    scores = (getattr(protagonist, "opponent_scores", None) or {}).get(
+        getattr(opponent, "name", None)) or []
+    if not scores:
+        return
+    print(f"\n{CBOLD}Every meeting:{CEND}")
+    for index, pair in enumerate(scores, start=1):
+        mine, theirs = (list(pair) + [0, 0])[:2]
+        # Three-way, not won/lost: the tournament settles a level match on
+        # rating, so the recorded scoreline should never be equal -- but
+        # labelling an equal one "lost" would be simply untrue.
+        colour = CGREEN2 if mine > theirs else CGREY if mine == theirs else CRED
+        outcome = "won" if mine > theirs else "drew" if mine == theirs \
+            else "lost"
+        print(f"  #{index}: {colour}{mine} - {theirs}{CEND} "
+              f"({outcome})")

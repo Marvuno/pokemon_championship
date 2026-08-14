@@ -25,12 +25,29 @@ def multi_strike_move(move):
 
 
 def pre_move_adjustment(user_side, opponent_side, user, opponent, battleground, move):
+    """Settled before the turn runs: how many strikes, and what Metronome
+    turned into.
+
+    Deliberately no longer fires ability phase 2. compare_speed calls this for
+    *both* sides before either move executes, so a Protean or Libero user had
+    already changed type before it had moved -- and if the other side moved
+    first, its attack was worked out against the new type instead of the one
+    the Pokemon was still wearing. Phase 2 now fires in
+    on_move_used(), at the moment that Pokemon's own move goes off.
+    """
     if move.name != "Switching":
         if move.name == "Metronome":
             print(f"{user.name} used Metronome.")
             metronome_move_list = list(set(list_of_moves.keys()) - {"Baneful Bunker", "Counter", "Protect", "King's Shield", "Mirror Coat", "Metronome"})
             move = list_of_moves[random.choice(metronome_move_list)]
-        UseAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)
-        UseCharacterAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)
     user.move_order.append(move.name)
     return move
+
+
+def on_move_used(user_side, opponent_side, user, opponent, battleground, move):
+    """The abilities that fire as a Pokemon uses a move -- Protean and Libero
+    changing type to match it. Called when the move actually executes, so the
+    change lands in move order rather than before the turn."""
+    if move.name != "Switching":
+        UseAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)
+        UseCharacterAbility(user_side, opponent_side, user, opponent, battleground, move, abilityphase=2)

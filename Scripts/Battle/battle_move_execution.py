@@ -17,15 +17,12 @@ import Scripts.Battle.battle_checklist
 from Scripts.Game.game_system import *
 from Scripts.Data.pokemon import *
 from Scripts.Data.abilities import *
-from Scripts.Data.battlefield import *
-from Scripts.Data.moves import *
-from Scripts.Data.competitors import *
 from Scripts.Data.moves import *
 
 
 def user_turn_in_battle_stats(user_side, user):
     # decrease with turns
-    diminishing_volatile_status = ['Confused', 'Frighten', 'DestinyBond', 'Torment', 'Binding', 'Yawn']
+    diminishing_volatile_status = ['Confused', 'Frighten', 'DestinyBond', 'Torment', 'Binding']
     # increase with turns
     increment_volatile_status = []
     for status in diminishing_volatile_status:

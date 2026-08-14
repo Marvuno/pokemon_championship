@@ -35,6 +35,10 @@ class Competitor:
                              "Sticky Web": 0}
         # records
         self.history = {}
+        #: opponent name -> [[my score, their score], ...], one pair per
+        #: meeting, so Check History can show the scorelines and not just
+        #: the tally
+        self.opponent_scores = {}
         self.participation = 0
         self.championship = 0
         # in-game stats
@@ -57,5 +61,6 @@ with open('Data/competitors.csv', encoding="ISO-8859-1") as f:
 
     for competitor in list_of_competitors:
         list_of_competitors[competitor].opponent_history = {key: [0, 0] for key in list_of_competitors}
+        list_of_competitors[competitor].opponent_scores = {}
 
 list_of_competitors['Protagonist'].main = True

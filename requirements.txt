@@ -1,0 +1,10 @@
+pygame>=2.0
+numpy>=1.21
+openpyxl>=3.0
+
+# Required for the graphical interface (play.py).
+PySide6>=6.5
+
+# draws the custom Pokemon's animations with it. Also used by
+# GUI/wallpaper.py, a title-screen backdrop generator from an earlier build.
+pillow>=9.0

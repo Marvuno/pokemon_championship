@@ -1,5 +1,4 @@
 import random
-import pickle
 import sys
 from copy import deepcopy
 from contextlib import suppress
@@ -11,6 +10,7 @@ from Scripts.Game.single_elimination_bracket import *
 from Scripts.Game.game_system import *
 from Scripts.Battle.constants import *
 from Scripts.Battle.ai import *
+from Scripts.Game import savefile
 
 
 def next_battle():
@@ -25,11 +25,11 @@ def next_battle():
     return opponent
 
 
-def team_generation(participant):
+def team_generation(participant, rand=False):
     # pokemon is divided to 6 tier (very low, low, medium, high, very high, custom)
     # should be selected based on strength
     nominal_team, unavailable_pokemon = [], set()
-    random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": min(31, int(participant.strength / 250 * 31))}
+    random_iv_on_tier = {"Low": 0, "Intermediate": 8, "Advanced": 16, "Elite": 24, "Champion": 31, "Protagonist": PLAYER_IV(participant.strength)}
     custom_team(participant)
 
     # buff AI pokemon
@@ -43,9 +43,19 @@ def team_generation(participant):
     ultra_high = 0 if ratings < 100 else 2 if ratings < 120 else 4 if ratings < 140 else 6 if ratings < 160 \
         else 8 if ratings < 180 else 10 if ratings < 200 else 12
     # new version
-    tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High", "Ultra High"],
-                               weights=[very_low, low, medium, high, very_high, ultra_high],
-                               k=ROUND_LIMIT[GameSystem.stage] - len(participant.team))
+    # pokemon testing purpose
+    if rand:
+        tier_count = []
+        TIER = {0: 'Very Low', 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Very High', 5: 'Ultra High'}
+        for index, tier in TIER.items():
+            tier_count.append(sum([1 for pokemon in list_of_pokemon if tier == list_of_pokemon[pokemon].tier]))
+        participant.team = []
+        tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High", "Ultra High"],
+                                   weights=[tier_count[0], tier_count[1], tier_count[2], tier_count[3], tier_count[4], tier_count[5]], k=6)
+    else:
+        tier_list = random.choices(["Very Low", "Low", "Medium", "High", "Very High", "Ultra High"],
+                                   weights=[very_low, low, medium, high, very_high, ultra_high],
+                                   k=ROUND_LIMIT[GameSystem.stage] - len(participant.team))
     for pokemon in participant.team:
         unavailable_pokemon.add(pokemon) if isinstance(pokemon, str) else unavailable_pokemon.add(pokemon.name)
     for tier in tier_list:
@@ -105,7 +115,7 @@ def scoreboard():
     for participant in GameSystem.participants:
         participant = list_of_competitors[participant]
         for index, opponent in enumerate(participant.opponent):
-            participant.opponent_score += (opponent.stage - 1) * participant.win_order[index]
+            participant.opponent_score += (opponent.stage - 1) * (participant.win_order[index] + 1)
 
     print(f"{CBOLD}{CYELLOW2}Leaderboard:{CEND}")
     print(f"{CBOLD}|| RANK || NAME                   || PTS || OS || NKS ||{CEND}")
@@ -121,8 +131,8 @@ def scoreboard():
               f"|| {competitor.nickname}[{competitor.strength}]{' ' * (20 - len(competitor.nickname) - len(str(competitor.strength)))} "
               f"||  {competitor.stage - 1}  || {competitor.opponent_score}{' ' * (2 - len(str(competitor.opponent_score)))} "
               f"|| {competitor.score}{' ' * (3 - len(str(competitor.score)))} ||{CEND}")
-        trophy = ' 👑' if list_of_competitors[GameSystem.participants[0]].opponent_score >= 18 else ' 🥇' \
-            if list_of_competitors[GameSystem.participants[0]].opponent_score <= 12 else ''
+        trophy = ' 👑' if list_of_competitors[GameSystem.participants[0]].opponent_score >= 36 else ' 🥇' \
+            if list_of_competitors[GameSystem.participants[0]].opponent_score <= 24 else ''
         competitor.history[attendance] = (list_of_competitors[GameSystem.participants[0]].nickname + trophy, index + 1, competitor.strength)
         if index == 0:
             competitor.championship += 1
@@ -130,7 +140,10 @@ def scoreboard():
 
 
 def save_game():
-    # options to keep at most 3, 4, 6 pokemon and least 0 pokemon
+    # You may keep as many of your team as you like, up to a full six.
+    # It used to depend on how far you got -- 6 as World Champion, 4 in the
+    # semis, otherwise 3 -- which meant an early exit quietly threw away
+    # Pokemon you had chosen to keep.
     keep_team, keep_list = [], set()
     for pokemon in list_of_competitors['Protagonist'].team:
         print(f"\n{CBOLD}{pokemon.name}:")
@@ -141,19 +154,13 @@ def save_game():
         print(f"\n{[(index, pokemon.name) for index, pokemon in enumerate(list_of_competitors['Protagonist'].team)]}")
         with suppress(KeyError, ValueError):
             acceptable_values = list(range(0, len(list_of_competitors['Protagonist'].team)))
-            keep_number = KEEP_POKEMON_WIN if list_of_competitors['Protagonist'].stage == 6 else \
-                KEEP_POKEMON_SEMI if list_of_competitors['Protagonist'].stage == 5 else KEEP_POKEMON_LOST
-            if len(keep_list) == keep_number:
+            keep_number = min(MAX_POKEMON, len(list_of_competitors['Protagonist'].team))
+            if len(keep_list) >= keep_number:
                 break
-            keep = int(input(f"You can keep at most {keep_number} Pokemon for your next run. Enter 9 when you are done: ")) if list_of_competitors['Protagonist'].stage != 6 \
-            else int(input(f"You can keep at most {keep_number} Pokemon for your next run. Enter 9 when you are done and 10 to keep the whole team: "))
+            keep = int(input(f"You can keep at most {keep_number} Pokemon for your next run. Pick them one at a time, then enter 9 when you are done: "))
 
             if keep == 9:
                 break
-            elif keep == 10:
-                if list_of_competitors['Protagonist'].stage == 6:
-                    for i in range(6):
-                        keep_list.add(i)
             elif keep not in acceptable_values:
                 pass
             else:
@@ -164,20 +171,12 @@ def save_game():
     # preserved team
     list_of_competitors['Protagonist'].team = keep_team
 
-    # delete useless variables
-    for competitor in list_of_competitors:
-        competitor = list_of_competitors[competitor]
-        to_delete = ['match_id', 'id', 'stage', 'result', 'level', 'music', 'ace_music', 'faster', 'side_color', 'color', 'in_battle_effects', 'entry_hazard',
-                     'desc', 'opponent', 'opponent_score', 'win_order', 'score', 'quote', 'strategy']
-        for variable in to_delete:
-            delattr(competitor, variable)
-        if not competitor.main:
-            del competitor.team
-            with suppress(AttributeError):
-                del competitor.position_change
-
-    with open('savefile.dat', 'wb') as f:
-        pickle.dump([list_of_competitors[competitor] for competitor in list_of_competitors], f)
+    # The save is JSON now (see Scripts/Game/savefile.py). It stores the few
+    # facts that need to outlive a run, keyed by name, and rebuilds the rest
+    # from the CSVs on load -- so there is no longer a list of attributes to
+    # delete here just to make the objects picklable, and renaming a
+    # competitor no longer makes older saves unloadable.
+    savefile.save(list_of_competitors)
 
 
 def elo_rating():

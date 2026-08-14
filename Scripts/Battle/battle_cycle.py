@@ -16,25 +16,19 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
         for pokemon in opponent_team:
             print(f"{CRED2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
 
-    for pokemon, pokemon2 in zip(player_team, opponent_team):
-        # side 1
+    for pokemon in player_team + opponent_team:
+        # side 1 + side 2
         pokemon.hp = math.floor(0.01 * 2 * pokemon.nominal_base_stats[0] * 100) + 100 + 10 if pokemon.name != "Shedinja" else 1
         pokemon.battle_stats = [pokemon.hp] + [math.floor(0.01 * 2 * pokemon.nominal_base_stats[x] * 100 + 5) for x in range(1, 6)]
         pokemon.moveset = ['Switching'] + pokemon.moveset
-        pokemon.side_color = CGREEN2 + CBOLD
         pokemon.default_name, pokemon.default_ability, pokemon.default_type = deepcopy(pokemon.name), deepcopy(pokemon.ability), deepcopy(pokemon.type)
         pokemon.default_nominal_base_stats = deepcopy(pokemon.nominal_base_stats)
-        # side 2
-        pokemon2.hp = math.floor(0.01 * 2 * pokemon2.nominal_base_stats[0] * 100) + 100 + 10 if pokemon2.name != "Shedinja" else 1
-        pokemon2.battle_stats = [pokemon2.hp] + [math.floor(0.01 * 2 * pokemon2.nominal_base_stats[x] * 100 + 5) for x in range(1, 6)]
-        pokemon2.moveset = ['Switching'] + pokemon2.moveset
-        pokemon2.side_color = CRED2 + CBOLD
-        pokemon2.default_name, pokemon2.default_ability, pokemon2.default_type = deepcopy(pokemon2.name), deepcopy(pokemon2.ability), deepcopy(pokemon2.type)
-        pokemon2.default_nominal_base_stats = deepcopy(pokemon2.nominal_base_stats)
+
+    for side1, side2 in zip(player_team, opponent_team):
+        side1.side_color, side2.side_color = CGREEN2 + CBOLD, CRED2 + CBOLD
 
     # color for different side
-    protagonist.side_color = CGREEN2 + CBOLD
-    competitor.side_color = CRED2 + CBOLD
+    protagonist.side_color, competitor.side_color = CGREEN2 + CBOLD, CRED2 + CBOLD
 
     # select weather
     battleground.starting_weather_effect = random.choices(['Clear', 'Rain', 'Sunny', 'Sandstorm', 'Hail'], weights=[6, 1, 1, 1, 1], k=1)[0]
@@ -225,92 +219,55 @@ def move_execution(user_side, target_side, user_team, target_team, user, target,
 
 
 def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move):
+    def in_battle_changes(participant, pokemon, move):
+        # yawn
+        if pokemon.volatile_status['Yawn'] == 1:
+            if pokemon.status != "Normal":
+                print(f"{pokemon.name} is already {pokemon.status}!")
+            else:
+                status = Sleep(1)
+                pokemon.status, pokemon.volatile_status['NonVolatile'] = status[0], status[1]
+                print(f"{pokemon.name} is now {pokemon.status}!")
+        pokemon.volatile_status['Yawn'] = pokemon.volatile_status['Yawn'] - 1 if pokemon.volatile_status['Yawn'] > 0 else 0
+        # flinch (not necessarily needed but added just in case)
+        pokemon.volatile_status["Flinch"] = 0
+        # protect
+        pokemon.protection[1] = 0 if pokemon.protection[0] == 0 else pokemon.protection[1]
+        pokemon.protection[0] = 0
+        # disable destiny bond for the next turn after using it
+        if pokemon.volatile_status['DestinyBond'] > 0:
+            pokemon.disabled_moves[move.name] = 1
+        # perish count if fainted
+        if pokemon.volatile_status['PerishSong'] == 4:
+            pokemon.battle_stats[0] = 0
+            print(f"{pokemon.name} fainted due to perish song!")
+        # clear toxic spikes
+        if participant.entry_hazard["Toxic Spikes"] > 0:
+            if "Poison" in pokemon.type and pokemon.volatile_status['Grounded'] == 1:
+                participant.entry_hazard['Toxic Spikes'] = 0
+                print("Toxic Spikes has been cleared!")
+        # total concentration
+        if pokemon.volatile_status['TotalConcentration'] > 0:
+            pokemon.applied_modifier = [0, 1, 0, 1, 0, 0, 0, 0, 0]
+            pokemon.modifier = list(map(operator.add, pokemon.applied_modifier, pokemon.modifier))
+        # octolock effect
+        if pokemon.volatile_status['Octolock'] > 0:
+            pokemon.applied_modifier = [0, 0, -1, 0, -1, 0, 0, 0, 0]
+            pokemon.modifier = list(map(operator.add, pokemon.applied_modifier, pokemon.modifier))
+        # perish song
+        if pokemon.volatile_status['PerishSong'] > 0:
+            pokemon.volatile_status['PerishSong'] += 1
+            print(f"{CVIOLET2+CBOLD}{pokemon.name}'s perish count is at {5 - pokemon.volatile_status['PerishSong']}!")
+        # take aim
+        pokemon.volatile_status['TakeAim'] -= 1 if pokemon.volatile_status['TakeAim'] > 0 else 0
+
     check_win_or_lose(protagonist, competitor, player_team, opponent_team, battleground)
     if battleground.battle_continuation:
-        # reset pokemon
-        # yawn
-        if player.volatile_status['Yawn'] == 1:
-            if player.status != "Normal":
-                print(f"{player.name} is already {player.status}!")
-            else:
-                status = Sleep(1)
-                player.status, player.volatile_status['NonVolatile'] = status[0], status[1]
-                print(f"{player.name} is now {player.status}!")
-        player.volatile_status['Yawn'] = player.volatile_status['Yawn'] - 1 if player.volatile_status['Yawn'] > 0 else 0
-        if opponent.volatile_status['Yawn'] == 1:
-            if opponent.status != "Normal":
-                print(f"{opponent.name} is already {opponent.status}!")
-            else:
-                status = Sleep(1)
-                opponent.status, opponent.volatile_status['NonVolatile'] = status[0], status[1]
-                print(f"{opponent.name} is now {opponent.status}!")
-
-        # flinch
-        player.volatile_status["Flinch"], opponent.volatile_status["Flinch"] = 0, 0
-
-        # protect
-        player.protection[1] = 0 if player.protection[0] == 0 else player.protection[1]
-        opponent.protection[1] = 0 if opponent.protection[0] == 0 else opponent.protection[1]
-        player.protection[0], opponent.protection[0] = 0, 0
-
-        # disable destiny bond for the next turn after using it
-        if opponent.volatile_status['DestinyBond'] > 0:
-            opponent.disabled_moves[opponent_move.name] = 1
-        if player.volatile_status['DestinyBond'] > 0:
-            player.disabled_moves[player_move.name] = 1
-
-        # perish count if fainted
-        if player.volatile_status['PerishSong'] == 4:
-            player.battle_stats[0] = 0
-            check_fainted(player, opponent)
-            print(f"{player.name} fainted due to perish song!")
-        if opponent.volatile_status['PerishSong'] == 4:
-            opponent.battle_stats[0] = 0
-            check_fainted(opponent, player)
-            print(f"{opponent.name} fainted due to perish song!")
-
+        in_battle_changes(protagonist, player, player_move), in_battle_changes(competitor, opponent, opponent_move)
         # field effect
         for effect, turn in battleground.field_effect.items():
             if turn > 0:
                 battleground.field_effect[effect] -= 1
-
-        # clear toxic spikes
-        if protagonist.entry_hazard["Toxic Spikes"] > 0:
-            if "Poison" in player_team[0].type and player_team[0].volatile_status['Grounded'] == 1:
-                protagonist.entry_hazard['Toxic Spikes'] = 0
-                print("Toxic Spikes has been cleared!")
-        if competitor.entry_hazard["Toxic Spikes"] > 0:
-            if "Poison" in opponent_team[0].type and opponent_team[0].volatile_status['Grounded'] == 1:
-                competitor.entry_hazard['Toxic Spikes'] = 0
-                print("Toxic Spikes has been cleared!")
-
-        # buff attack and special attack with total concentration
-        if opponent.volatile_status['TotalConcentration'] > 0:
-            opponent.applied_modifier = [0, 1, 0, 1, 0, 0, 0, 0, 0]
-            opponent.modifier = list(map(operator.add, opponent.applied_modifier, opponent.modifier))
-        if player.volatile_status['TotalConcentration'] > 0:
-            player.applied_modifier = [0, 1, 0, 1, 0, 0, 0, 0, 0]
-            player.modifier = list(map(operator.add, player.applied_modifier, player.modifier))
-
-        # octolock effect
-        if player.volatile_status['Octolock'] > 0:
-            player.applied_modifier = [0, 0, -1, 0, -1, 0, 0, 0, 0]
-            player.modifier = list(map(operator.add, player.applied_modifier, player.modifier))
-        if opponent.volatile_status['Octolock'] > 0:
-            opponent.applied_modifier = [0, 0, -1, 0, -1, 0, 0, 0, 0]
-            opponent.modifier = list(map(operator.add, opponent.applied_modifier, opponent.modifier))
-
-        # perish song
-        if player.volatile_status['PerishSong'] > 0:
-            player.volatile_status['PerishSong'] += 1
-            print(f"{CVIOLET2+CBOLD}{player.name}'s perish count is at {5 - player.volatile_status['PerishSong']}!")
-        if opponent.volatile_status['PerishSong'] > 0:
-            opponent.volatile_status['PerishSong'] += 1
-            print(f"{CVIOLET2+CBOLD}{opponent.name}'s perish count is at {5 - opponent.volatile_status['PerishSong']}!")
-
-        # take aim
-        player.volatile_status['TakeAim'] -= 1 if player.volatile_status['TakeAim'] > 0 else 0
-        opponent.volatile_status['TakeAim'] -= 1 if opponent.volatile_status['TakeAim'] > 0 else 0
 
         # trigger ability at the end of each turn
         UseAbility(protagonist, competitor, player, opponent, battleground, "", abilityphase=8)
@@ -338,8 +295,7 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
 
         check_fainted(player, opponent)
         while player.status == "Fainted" or opponent.status == "Fainted":
-            if max(sum(1 for pokemon in player_team if pokemon.status == "Fainted"),
-                   sum(1 for pokemon in opponent_team if pokemon.status == "Fainted")) == ROUND_LIMIT[GameSystem.stage]:
+            if all(pokemon.status == "Fainted" for pokemon in player_team) or all(pokemon.status == "Fainted" for pokemon in opponent_team):
                 check_win_or_lose(protagonist, competitor, player_team, opponent_team, battleground)
                 break
 

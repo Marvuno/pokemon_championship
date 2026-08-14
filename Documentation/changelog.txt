@@ -1,8 +1,18 @@
-Pokemon Championship v1.1.0.1 (bugfix)
+Pokemon Championship v1.2.1 (graphics update)
+
+Changed
+- completely revamped the text-based interface with graphic-based application with Claude and Leonardo.ai
+- revised the rating for some characters
+- re-characterized Adolf Hitler to Rudolf due to legal issues
+- now allows player to keep as much as 6 pokemons regardless of win/loss record for the run
+- now allows player to view opponent team statistics when given the opportunity to swap
+- now allows player to view the match up results from the start and the journey
+
+Pokemon Championship v1.1.1 (bugfix)
 
 In-Game Changes
 Character Abilities
-Buff: Musical, Last Stand, Curse of Forest. Silhouette, Old Legends
+Buff: Musical, Last Stand, Curse of Forest, Silhouette, Old Legends
 Nerf: Fireworks, Nimble
 
 Abilities
@@ -14,6 +24,7 @@ Buff: Adrenaline
 Pokemon
 Buff: Kogoshaka
 
+*********************************************************************************
 
 Changed
 - reduced frequency of pop-up message from Monkey and Charm character ability

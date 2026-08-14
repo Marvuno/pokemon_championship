@@ -1,0 +1,1447 @@
+{
+ "competitors": {
+  "Albert Einstein": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 8, 128 ]
+   },
+   "opponents": {
+    "Bondrewd": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Leon": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    },
+    "Lusamine": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Misty": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Ash Ketchum": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 12, 87 ]
+   },
+   "opponents": {
+    "Expert Cynthia": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Lance": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Makise Kurisu": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Rudolf": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Yagami Light": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Berserker": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 14, 65 ]
+   },
+   "opponents": {
+    "Bondrewd": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Clown Marcus": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Elias Ainsworth": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Misty": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    },
+    "Steven": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Bojji": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 31, 35 ]
+   },
+   "opponents": {
+    "Bondrewd": {
+     "losses": 1,
+     "scores": [
+      [ 2, 5 ]
+     ],
+     "wins": 0
+    },
+    "King Bosse": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Leon": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Steven": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Bondrewd": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 23, 97 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    },
+    "Berserker": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Bojji": {
+     "losses": 0,
+     "scores": [
+      [ 5, 2 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Titan": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Bruno": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 28, 23 ]
+   },
+   "opponents": {
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 0, 6 ]
+     ],
+     "wins": 0
+    },
+    "King Bosse": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Lance": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Yagami Light": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Champion Marvin": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 5, 750 ]
+   },
+   "opponents": {
+    "Lusamine": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Makise Kurisu": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Mindfield": {
+     "losses": 0,
+     "scores": [
+      [ 5, 0 ]
+     ],
+     "wins": 1
+    },
+    "Misty": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Clown Marcus": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 22, 28 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "Expert Cynthia": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "King Bosse": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Trasher": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Diantha": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 16, 49 ]
+   },
+   "opponents": {
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 6, 0 ]
+     ],
+     "wins": 1
+    },
+    "Privy": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Steven": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Titan": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Dulunga": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 25, 18 ]
+   },
+   "opponents": {
+    "Elias Ainsworth": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 5, 0 ]
+     ],
+     "wins": 1
+    },
+    "Lance": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Titan": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Elias Ainsworth": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 6, 232 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Dulunga": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Expert Cynthia": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Mindfield": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Emperor Marvuno": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 4, 500 ]
+   },
+   "opponents": {
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 6, 0 ]
+     ],
+     "wins": 1
+    },
+    "Leon": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Rudolf": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Expert Cynthia": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 13, 346 ]
+   },
+   "opponents": {
+    "Ash Ketchum": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    },
+    "Clown Marcus": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Elias Ainsworth": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 5, 0 ]
+     ],
+     "wins": 1
+    },
+    "Titan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Goblin": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 30, 1 ]
+   },
+   "opponents": {
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 0, 6 ]
+     ],
+     "wins": 0
+    },
+    "Dulunga": {
+     "losses": 1,
+     "scores": [
+      [ 0, 5 ]
+     ],
+     "wins": 0
+    },
+    "Lusamine": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Vardy": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "King Bosse": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 26, 30 ]
+   },
+   "opponents": {
+    "Bojji": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Bruno": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    },
+    "Clown Marcus": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Vardy": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Lance": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 19, 90 ]
+   },
+   "opponents": {
+    "Ash Ketchum": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Dulunga": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    },
+    "Lusamine": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Mindfield": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Leon": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 15, 106 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    },
+    "Bojji": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    },
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mindfield": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Yagami Light": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Lusamine": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 3, 74 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Champion Marvin": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    },
+    "Lance": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Privy": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Makise Kurisu": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 9, 109 ]
+   },
+   "opponents": {
+    "Ash Ketchum": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Champion Marvin": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Privy": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 6, 0 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Mindfield": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 17, 42 ]
+   },
+   "opponents": {
+    "Champion Marvin": {
+     "losses": 1,
+     "scores": [
+      [ 0, 5 ]
+     ],
+     "wins": 0
+    },
+    "Elias Ainsworth": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Lance": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Leon": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Rudolf": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Misty": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 10, 103 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Berserker": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Champion Marvin": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 6, 0 ]
+     ],
+     "wins": 1
+    },
+    "Yagami Light": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Mivy Wenceslas": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 2, 200 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Emperor Marvuno": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Privy": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 6, 0 ]
+     ],
+     "wins": 1
+    },
+    "Vardy": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Privy": {
+   "championship": 1,
+   "history": {
+    "0": [ "Privy", 1, 148 ]
+   },
+   "opponents": {
+    "Diantha": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    },
+    "Lusamine": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Makise Kurisu": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Rudolf": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Rudolf": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 7, 118 ]
+   },
+   "opponents": {
+    "Ash Ketchum": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mindfield": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Privy": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    },
+    "Titan": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Solanum": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 29, 8 ]
+   },
+   "opponents": {
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Expert Cynthia": {
+     "losses": 1,
+     "scores": [
+      [ 0, 5 ]
+     ],
+     "wins": 0
+    },
+    "King Bosse": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Makise Kurisu": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Steven": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 21, 69 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Bojji": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Vardy": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Yagami Light": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Therion": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 27, 57 ]
+   },
+   "opponents": {
+    "Bondrewd": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "Clown Marcus": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Dulunga": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    },
+    "Vardy": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Titan": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 11, 112 ]
+   },
+   "opponents": {
+    "Bondrewd": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Diantha": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    },
+    "Dulunga": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Expert Cynthia": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Rudolf": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Trasher": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 18, 4 ]
+   },
+   "opponents": {
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Clown Marcus": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Makise Kurisu": {
+     "losses": 1,
+     "scores": [
+      [ 0, 6 ]
+     ],
+     "wins": 0
+    },
+    "Misty": {
+     "losses": 1,
+     "scores": [
+      [ 0, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mivy Wenceslas": {
+     "losses": 1,
+     "scores": [
+      [ 0, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Vardy": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 24, 10 ]
+   },
+   "opponents": {
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "King Bosse": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Steven": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Therion": {
+     "losses": 1,
+     "scores": [
+      [ 1, 5 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Yagami Light": {
+   "championship": 0,
+   "history": {
+    "0": [ "Privy", 20, 94 ]
+   },
+   "opponents": {
+    "Ash Ketchum": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Leon": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Misty": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    },
+    "Steven": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  }
+ },
+ "player": {
+  "championship": 0,
+  "history": {
+   "0": [ "Privy", 32, 5 ]
+  },
+  "nickname": "harness",
+  "opponents": {
+   "Bojji": {
+    "losses": 1,
+    "scores": [
+     [ 2, 6 ]
+    ],
+    "wins": 0
+   },
+   "Champion Marvin": {
+    "losses": 1,
+    "scores": [
+     [ 1, 4 ]
+    ],
+    "wins": 0
+   },
+   "Elias Ainsworth": {
+    "losses": 1,
+    "scores": [
+     [ 1, 5 ]
+    ],
+    "wins": 0
+   },
+   "Goblin": {
+    "losses": 1,
+    "scores": [
+     [ 5, 6 ]
+    ],
+    "wins": 0
+   },
+   "Solanum": {
+    "losses": 1,
+    "scores": [
+     [ 3, 6 ]
+    ],
+    "wins": 0
+   }
+  },
+  "participation": 1,
+  "rating": 4,
+  "team": [
+   {
+    "ability": [ "Early Bird" ],
+    "iv": [ 29, 1, 13, 13, 28, 24 ],
+    "moveset": [ "Fake Out", "Sucker Punch", "Swords Dance", "Explosion" ],
+    "name": "Shiftry"
+   },
+   {
+    "ability": [ "Snow Cloak" ],
+    "iv": [ 6, 4, 23, 14, 16, 13 ],
+    "moveset": [ "Avalanche", "Slash", "Hail", "Superpower" ],
+    "name": "Beartic"
+   },
+   {
+    "ability": [ "Stamina" ],
+    "iv": [ 12, 25, 2, 1, 15, 12 ],
+    "moveset": [ "Smack Down", "Strength", "Revenge", "High Horsepower" ],
+    "name": "Mudsdale"
+   },
+   {
+    "ability": [ "Sand Veil" ],
+    "iv": [ 12, 30, 5, 12, 26, 0 ],
+    "moveset": [ "Giga Drain", "Destiny Bond", "Shadow Ball", "Sludge Bomb" ],
+    "name": "Palossand"
+   },
+   {
+    "ability": [ "Anticipation" ],
+    "iv": [ 14, 15, 11, 30, 20, 3 ],
+    "moveset": [ "Drill Run", "Megahorn", "Play Rough", "Psycho Cut" ],
+    "name": "Galarian Rapidash"
+   }
+  ]
+ },
+ "version": 1
+}

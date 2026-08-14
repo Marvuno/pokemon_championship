@@ -124,6 +124,9 @@ def select_move(pokemon, target, battleground):
 # the whole move execution order and procedure
 def move_order_and_execution(user_side, target_side, user_team, target_team, user, target, battleground, move, target_move):
     user_turn_in_battle_stats(user_side, user)
+    # Type-changing abilities fire here, as this Pokemon takes its turn --
+    # not before the turn for both sides at once. See on_move_used().
+    on_move_used(user_side, target_side, user, target, battleground, move)
     # status condition
     user_health_condition = check_volatile_status(user, move)
     fail, immune = True, False
@@ -147,6 +150,7 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         # check if the charging move double counts the special effect
                         doublecount = onChargingMove(user, target, move)
 
+                        # this order exclusive for ability Illusion
                         UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
                         UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
                         UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
@@ -177,11 +181,9 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         # check if any pokemon fainted
                         check_fainted(user, target)
                         # check if the turn can end here
-                        if max(sum(1 for pokemon in user_team if pokemon.status == "Fainted"),
-                               sum(1 for pokemon in target_team if pokemon.status == "Fainted")) == ROUND_LIMIT[GameSystem.stage]:
+                        if all(pokemon.status == "Fainted" or pokemon2.status == "Fainted" for pokemon, pokemon2 in zip(user_team, target_team)):
                             fail = False
                             break
-
                         # excluding no effect moves, trigger move additional effect
                         if not immune:
                             if not doublecount:
@@ -199,8 +201,12 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
         if fail:
             move_fail_consequence_upon_execution(user, target, move)
 
-    else:
-        print(f"{target.name} is still {target.status}.")
+    # Nothing is printed on the else branch any more. It used to say
+    # "<target> is still <status>." -- about the *target*, when the branch is
+    # reached because the *user* could not move, and on every switch as well.
+    # Most of the time that read "Garchomp is still Normal.", which says
+    # nothing at all; when there really is a reason (asleep, paralysed,
+    # flinched, frozen) check_volatile_status has already said so properly.
 
     user.previous_move = move
     user.modifier, target.modifier = check_modifier_limit(user), check_modifier_limit(target)

@@ -54,8 +54,8 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
             notice(battleground)
 
     def energy_imbalance(*args):
-        # trigger sudden death at the last pokemon
-        if sum(1 for pokemon in user_side.team if pokemon.status != 'Fainted') == 1:
+        # trigger sudden death when opponent only has the last pokemon
+        if sum(1 for pokemon in target_side.team if pokemon.status != 'Fainted') == 1:
             battleground.sudden_death = True
             print("Sudden Death is activated!!!")
             sound(audio="Assets/music/sudden_death.mp3")
@@ -293,7 +293,7 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
 
     def killer_instinct(*args):
         # random chance to deal double damage
-        if random.random() <= 0.1:
+        if random.random() <= 0.2:
             move.damage *= 2
             notice(battleground)
 
@@ -327,7 +327,7 @@ def UseCharacterAbility(user_side, target_side, user, target, battleground, move
     def blunders(*args):
         # random chance for target to damage himself instead (its move damage applies to itself)
         if random.random() <= 0.1:
-            user.battle_stats[0] -= move.damage
+            target.battle_stats[0] -= move.damage
             move.damage = 0
             notice(battleground)
 

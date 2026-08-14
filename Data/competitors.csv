@@ -170,8 +170,7 @@ Gargantuan: half damage from incoming attack (25%)."
 In both criminal case files and the contemporary journalistic accounts, the killer was called the Whitechapel Murderer and Leather Apron.",Advanced,Darkrai,,,,,,advanced.mp3,ace.mp3,,Ninety years ago I was a freak. Today I'm an amateur. Ninety years later I will be a Pokemon professional.,"Ace: Darkrai
 Ability: Irrational
 Irrational: increase Atk, SpA, Spd by 1 stage, but confused for 2-5 turns."
-41,Adolf Hitler,Adolf Hitler,118,Irrational,"Adolf Hitler is widely known as the Fuhrer who persuded Nazism. He was the main cause of the Second World War. To these days,
-there are people that like him and also those that despise him.",Advanced,Ygadr,,,,,,advanced.mp3,ace.mp3,,Anyone can deal with victory. Only the mighty can bear defeat.,"Ace: Ygadr (Custom)
+41,Rudolf,Rudolf,118,Irrational,"Rudolf is a ruler of a certain country. He has made the country better with controversial policies. To these days, some appreciate his thoughtfulness and execution, while some do not like how he bended the rules at times.",Advanced,Ygadr,,,,,,advanced.mp3,ace.mp3,,Those who bear defeat are the truly mighty ones.,"Ace: Ygadr (Custom)
 Ability: Irrational
 Irrational: increase Atk, SpA, Spd by 1 stage, but confused for 2-5 turns."
 42,Albert Einstein,Albert Einstein,128,Light Speed,"Albert Einstein was a German-born theoretical physicist, widely acknowledged to be one of the greatest and most influential physicists of all time.
@@ -194,7 +193,7 @@ it obtained the Wildcard to participate in the World Championship as an exceptio
 Ability: Helper
 Helper: start with Reflect."
 46,Ginko,Ginko,152,Wanderer,"Ginko is the main character who is followed throughout the Mushishi series solving Mushi cases.
-He rarely comes back to the same show location more than once, to reinforce his 'wanderer' status.",Advanced,Volcarona,,,,,,advanced.mp3,ace.mp3,,"If you throw your life away, you won't even have the capacity to feel regret.","Ace: Volcarona
+He rarely comes back to the same show location more than once, to reinforce his 'wanderer' status.",Advanced,Fairyflame,Volcarona,,,,,advanced.mp3,ace.mp3,,"If you throw your life away, you won't even have the capacity to feel regret.","Ace: Fairyflame
 Ability: Wanderer
 Wanderer: start with Tailwind."
 47,Violet Evergarden,Violet Evergarden,156,Motivator,"Violet is a former soldier who was enlisted in the Leidenschaftlich army and fought in the war, where she was treated as nothing more than a weapon.
@@ -203,26 +202,26 @@ which was said to her by her major Gilbert Bougainvillea, during the War's final
 Auto Memory Doll, Violet Evergarden, at your service.","Ace: Magearna
 Ability: Motivator
 Motivator: start with Light Screen."
-48,Elias Ainsworth,Elias Ainsworth,200,Curse of Forest,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride.
+48,Mivy Wenceslas,Mivy Wenceslas,200,Infiltration,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland.
+He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings.
+After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,Victini,Psyvinstry,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.,"Ace: Victini
+Ability: Infiltration
+Infiltration: apply Dead Calm and Mold Breaker ability to pokemon (moves will ignore target ability and weather)."
+49,Elias Ainsworth,Elias Ainsworth,232,Curse of Forest,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride.
 Although he is scary-looking, he is actually kind and straightforward.
 Without Chise by his side, he got lonely and looked for other partners.
 That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,Dreadigo,Brambleblood,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,It is the instinct of the weak to be afraid of the strange.,"Ace: Dreadigo (Custom)
 Ability: Curse of Forest
 Curse of Forest: apply Grass type to target pokemon and may flinch with attacking moves (20%)."
-49,Magnus Carlsen,Magnus Carlsen,232,Blunders,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history.
-While preparing his openings for the next World Chess Championship, he got addicted into
-Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,Sworphin,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,"Without the element of enjoyment, it is not worth trying to excel at anything.","Ace: Chesiquen (Custom)
-Ability: Blunders
-Blunders: target pokemon damages itself instead (10%)."
 50,Animenz,Animenz,268,Musical,"One of the Lower Elite Four. Animenz is greatest anime pianist in the history.
 His masterful piano technique allows him to master Pokemon battle in a short time.",Elite,Pianotic,Toxtricity,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?","Ace: Pianotic (Custom)
 Ability: Musical
 Musical: may induce Freeze (1/6), Paralysis (1/2) or Sleep (1/3) to target pokemon when using Special moves (20%)."
-51,Mivy Wenceslas,Mivy Wenceslas,288,Infiltration,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland.
-He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings.
-After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,Victini,Psyvinstry,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.,"Ace: Victini
-Ability: Infiltration
-Infiltration: apply Dead Calm and Mold Breaker ability to pokemon (moves will ignore target ability and weather)."
+51,Magnus Carlsen,Magnus Carlsen,288,Blunders,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history.
+While preparing his openings for the next World Chess Championship, he got addicted into
+Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,Sworphin,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,"Without the element of enjoyment, it is not worth trying to excel at anything.","Ace: Chesiquen (Custom)
+Ability: Blunders
+Blunders: target pokemon damages itself instead (10%)."
 52,Reaper Conan,Reaper Conan,321,Silhouette,"One of the Upper Elite Four. Conan was once a prominent detective who solved many cases. Soon, he realised his ability to never get old
 and his ability to bring death to people around. Slowly he descended into the dark side of his mind. He held the title of 
 Grim Reaper. He will usually display childlike and naive smile in front of the public, but mercilessly murdered people without
@@ -248,7 +247,7 @@ Although Krusades is a mountainous area, Marvuno finds the wayto bring water and
 To commemorate such achievement, Marvuno uses a Rain Team, and he himself has the ability to guarantee rain in any circumstance.",Elite,Kingdra,Scizor,Barraskewda,Dracovish,Tanjiro,Poseidon,upper_elite_battle.mp3,elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so.","Ace: Poseidon (Custom Boss)
 Ability: Primordial
 Primordial: always Rain and apply Swift Swim ability to pokemon."
-56,Champion Marvin,Champion Marvin,600,Last Stand,"Marvin has been the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
+56,Champion Marvin,Champion Marvin,750,Last Stand,"Marvin has been the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
 After observing his games, all people recognize that he could easily secure multiple World Champion Titles in the
 Pokemon World Championship. In the Unofficial Pokemon Championship, Marvin effortlessly won 6-0 against his opponent, Demon Muzan, 
 one of the Upper Elite Four, in the Grand Final. This mystic figure is rumoured to have beaten the Upper Elite Four countless times, 

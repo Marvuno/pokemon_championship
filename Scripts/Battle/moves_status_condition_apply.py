@@ -66,7 +66,7 @@ def Torment(effect_accuracy):
 
 
 def Yawn(effect_accuracy):
-    return ["Yawn", 3] if random.random() <= effect_accuracy else ["", 0]
+    return ["Yawn", 2] if random.random() <= effect_accuracy else ["", 0]
 
 
 def Grounded(effect_accuracy):

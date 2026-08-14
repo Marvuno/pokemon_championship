@@ -13,8 +13,8 @@ from Scripts.Game.game_system import *
 
 
 GameSystem.stage = 5
-repeat = 1
-mode = 1
+repeat = 2000
+mode = 3
 
 side1_victory, side2_victory = 0, 0
 side1_score, side2_score = 0, 0
@@ -31,9 +31,12 @@ if mode == 0:  # all vs all
 elif mode == 1:  # one vs all
     side1_participants = ['Reaper Conan']
     side2_participants = all_participants
-else:  # one vs one
+elif mode == 2:  # one vs one
     side1_participants = ['Elias Ainsworth']
     side2_participants = ['Reaper Conan']
+elif mode == 3:  # truly random
+    side1_participants = ['Monkey King']
+    side2_participants = ['Takagi']
 
 winner_name = []
 winner_count = dict.fromkeys(all_participants, 0)
@@ -48,10 +51,12 @@ for k in side1_participants:
         for i in range(repeat):
             side1 = deepcopy(list_of_competitors[k])
             side2 = deepcopy(list_of_competitors[j])
-            side1.team = team_generation(side1)
-            side2.team = team_generation(side2)
-            battleground = Battleground()
+
+            side1.team = team_generation(side1, rand=True)
+            side2.team = team_generation(side2, rand=True)
+
             # for ai simulation
+            battleground = Battleground()
             battleground.verbose = True
 
             with suppress(RecursionError):

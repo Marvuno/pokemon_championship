@@ -1,0 +1,1429 @@
+{
+ "competitors": {
+  "Abota": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 29, 12 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 1,
+     "scores": [
+      [ 1, 5 ]
+     ],
+     "wins": 0
+    },
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Misty": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Reaper Conan": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Takagi": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Albert Einstein": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 2, 128 ]
+   },
+   "opponents": {
+    "Champion Marvin": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Diantha": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    },
+    "Expert Cynthia": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "King Bradley": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Magnus Carlsen": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Aphelios": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 11, 40 ]
+   },
+   "opponents": {
+    "Expert Cynthia": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Lance": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Pudding": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    },
+    "Titan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Berserker": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 15, 65 ]
+   },
+   "opponents": {
+    "Abota": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    },
+    "Big Bryan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Faker": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Big Bryan": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 28, 37 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 5, 0 ]
+     ],
+     "wins": 1
+    },
+    "Solanum": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Vardy": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Bruno": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 18, 23 ]
+   },
+   "opponents": {
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "King Bradley": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    },
+    "President Rose": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Vardy": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Bugsy": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 7, 46 ]
+   },
+   "opponents": {
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Magnus Carlsen": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    },
+    "Rum": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Champion Marvin": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 12, 750 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Lance": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    },
+    "Reaper Conan": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Diantha": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 5, 49 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    },
+    "Berserker": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Pudding": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Takagi": {
+     "losses": 0,
+     "scores": [
+      [ 5, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Emperor Marvuno": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 4, 500 ]
+   },
+   "opponents": {
+    "Big Bryan": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    },
+    "Bugsy": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "King Bradley": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    },
+    "Reaper Conan": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Titan": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Expert Cynthia": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 8, 346 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Aphelios": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Kurtosis": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Rum": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Takagi": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Faker": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 9, 138 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Misty": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    },
+    "Pudding": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Shuka": {
+     "losses": 1,
+     "scores": [
+      [ 3, 4 ]
+     ],
+     "wins": 0
+    },
+    "Vardy": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Goblin": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 31, 1 ]
+   },
+   "opponents": {
+    "Abota": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Big Bryan": {
+     "losses": 1,
+     "scores": [
+      [ 0, 5 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Titan": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "King Bradley": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 10, 132 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    },
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Kurtosis": {
+     "losses": 0,
+     "scores": [
+      [ 5, 2 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Kurtosis": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 23, 55 ]
+   },
+   "opponents": {
+    "Expert Cynthia": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "King Bradley": {
+     "losses": 1,
+     "scores": [
+      [ 2, 5 ]
+     ],
+     "wins": 0
+    },
+    "Lance": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "President Rose": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    },
+    "Shuka": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Lance": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 13, 90 ]
+   },
+   "opponents": {
+    "Aphelios": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Champion Marvin": {
+     "losses": 1,
+     "scores": [
+      [ 1, 5 ]
+     ],
+     "wins": 0
+    },
+    "Kurtosis": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Magnus Carlsen": {
+   "championship": 1,
+   "history": {
+    "0": [ "Magnus Carlsen", 1, 288 ]
+   },
+   "opponents": {
+    "Albert Einstein": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Bugsy": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Misty": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    },
+    "Reaper Conan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Shuka": {
+     "losses": 0,
+     "scores": [
+      [ 5, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Misty": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 14, 103 ]
+   },
+   "opponents": {
+    "Abota": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Faker": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    },
+    "Magnus Carlsen": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    },
+    "Mordekaiser": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Mivy Wenceslas": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 20, 200 ]
+   },
+   "opponents": {
+    "Berserker": {
+     "losses": 0,
+     "scores": [
+      [ 4, 2 ]
+     ],
+     "wins": 1
+    },
+    "Lance": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Reaper Conan": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    },
+    "Shuka": {
+     "losses": 0,
+     "scores": [
+      [ 6, 1 ]
+     ],
+     "wins": 1
+    },
+    "Titan": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Mordekaiser": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 24, 15 ]
+   },
+   "opponents": {
+    "Misty": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Pudding": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Takagi": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Therion": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "President Rose": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 26, 6 ]
+   },
+   "opponents": {
+    "Bruno": {
+     "losses": 1,
+     "scores": [
+      [ 1, 5 ]
+     ],
+     "wins": 0
+    },
+    "Kurtosis": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Takagi": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Pudding": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 19, 20 ]
+   },
+   "opponents": {
+    "Aphelios": {
+     "losses": 1,
+     "scores": [
+      [ 2, 4 ]
+     ],
+     "wins": 0
+    },
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "Faker": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mordekaiser": {
+     "losses": 0,
+     "scores": [
+      [ 5, 4 ]
+     ],
+     "wins": 1
+    },
+    "Solanum": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Reaper Conan": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 3, 321 ]
+   },
+   "opponents": {
+    "Abota": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    },
+    "Champion Marvin": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Emperor Marvuno": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Magnus Carlsen": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mivy Wenceslas": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Rum": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 6, 52 ]
+   },
+   "opponents": {
+    "Bugsy": {
+     "losses": 1,
+     "scores": [
+      [ 4, 5 ]
+     ],
+     "wins": 0
+    },
+    "Expert Cynthia": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Shuka": {
+     "losses": 0,
+     "scores": [
+      [ 6, 3 ]
+     ],
+     "wins": 1
+    },
+    "Titan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Vardy": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Shuka": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 27, 33 ]
+   },
+   "opponents": {
+    "Faker": {
+     "losses": 0,
+     "scores": [
+      [ 4, 3 ]
+     ],
+     "wins": 1
+    },
+    "Kurtosis": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    },
+    "Magnus Carlsen": {
+     "losses": 1,
+     "scores": [
+      [ 1, 5 ]
+     ],
+     "wins": 0
+    },
+    "Mivy Wenceslas": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Rum": {
+     "losses": 1,
+     "scores": [
+      [ 3, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Solanum": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 25, 8 ]
+   },
+   "opponents": {
+    "Big Bryan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Bruno": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Lance": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    },
+    "Pudding": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Trasher": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Takagi": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 22, 16 ]
+   },
+   "opponents": {
+    "Abota": {
+     "losses": 0,
+     "scores": [
+      [ 6, 4 ]
+     ],
+     "wins": 1
+    },
+    "Diantha": {
+     "losses": 1,
+     "scores": [
+      [ 2, 5 ]
+     ],
+     "wins": 0
+    },
+    "Expert Cynthia": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Mordekaiser": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "President Rose": {
+     "losses": 0,
+     "scores": [
+      [ 6, 2 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Therion": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 17, 57 ]
+   },
+   "opponents": {
+    "Aphelios": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    },
+    "Bugsy": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Champion Marvin": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "King Bradley": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mordekaiser": {
+     "losses": 0,
+     "scores": [
+      [ 4, 1 ]
+     ],
+     "wins": 1
+    }
+   },
+   "participation": 1
+  },
+  "Titan": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 21, 112 ]
+   },
+   "opponents": {
+    "Aphelios": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Emperor Marvuno": {
+     "losses": 1,
+     "scores": [
+      [ 1, 5 ]
+     ],
+     "wins": 0
+    },
+    "Goblin": {
+     "losses": 0,
+     "scores": [
+      [ 4, 0 ]
+     ],
+     "wins": 1
+    },
+    "Mivy Wenceslas": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Rum": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Trasher": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 32, 4 ]
+   },
+   "opponents": {
+    "Champion Marvin": {
+     "losses": 1,
+     "scores": [
+      [ 0, 4 ]
+     ],
+     "wins": 0
+    },
+    "Goblin": {
+     "losses": 1,
+     "scores": [
+      [ 5, 6 ]
+     ],
+     "wins": 0
+    },
+    "Mordekaiser": {
+     "losses": 1,
+     "scores": [
+      [ 2, 6 ]
+     ],
+     "wins": 0
+    },
+    "President Rose": {
+     "losses": 1,
+     "scores": [
+      [ 4, 6 ]
+     ],
+     "wins": 0
+    },
+    "Solanum": {
+     "losses": 1,
+     "scores": [
+      [ 3, 5 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  },
+  "Vardy": {
+   "championship": 0,
+   "history": {
+    "0": [ "Magnus Carlsen", 16, 10 ]
+   },
+   "opponents": {
+    "Big Bryan": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Bruno": {
+     "losses": 0,
+     "scores": [
+      [ 6, 5 ]
+     ],
+     "wins": 1
+    },
+    "Faker": {
+     "losses": 1,
+     "scores": [
+      [ 1, 6 ]
+     ],
+     "wins": 0
+    },
+    "Protagonist": {
+     "losses": 0,
+     "scores": [
+      [ 5, 3 ]
+     ],
+     "wins": 1
+    },
+    "Rum": {
+     "losses": 1,
+     "scores": [
+      [ 1, 4 ]
+     ],
+     "wins": 0
+    }
+   },
+   "participation": 1
+  }
+ },
+ "player": {
+  "championship": 0,
+  "history": {
+   "0": [ "Magnus Carlsen", 30, 5 ]
+  },
+  "nickname": "harness",
+  "opponents": {
+   "Bugsy": {
+    "losses": 1,
+    "scores": [
+     [ 0, 4 ]
+    ],
+    "wins": 0
+   },
+   "Goblin": {
+    "losses": 0,
+    "scores": [
+     [ 6, 5 ]
+    ],
+    "wins": 1
+   },
+   "Misty": {
+    "losses": 1,
+    "scores": [
+     [ 2, 6 ]
+    ],
+    "wins": 0
+   },
+   "President Rose": {
+    "losses": 1,
+    "scores": [
+     [ 3, 6 ]
+    ],
+    "wins": 0
+   },
+   "Vardy": {
+    "losses": 1,
+    "scores": [
+     [ 3, 5 ]
+    ],
+    "wins": 0
+   }
+  },
+  "participation": 1,
+  "rating": 4,
+  "team": [
+   {
+    "ability": [ "Vital Spirit" ],
+    "iv": [ 14, 23, 9, 22, 27, 1 ],
+    "moveset": [ "Thunder Fang", "Bulk Up", "Iron Tail", "Scary Face" ],
+    "name": "Lycanroc (Midnight)"
+   },
+   {
+    "ability": [ "Prankster" ],
+    "iv": [ 15, 3, 6, 21, 10, 26 ],
+    "moveset": [ "Moonblast", "Tailwind", "Light Screen", "Memento" ],
+    "name": "Whimsicott"
+   }
+  ]
+ },
+ "version": 1
+}

@@ -1,0 +1,29 @@
+stopped: walked the screen after 100 ticks (step 7)
+
+the window opens by itself                                 PASS
+...on the Opponents tab                                    PASS
+...with five tabs                                          PASS
+...every competitor listed                                 PASS
+...and the champion roll already filled                    PASS
+clicking a name fills the career                           PASS
+...and the run list has moved off it, into Tournaments     PASS
+...and who they played most                                PASS
+...and fills head to head too                              PASS
+the tournaments tab lists every run                        PASS
+...with a best finish                                      PASS
+...and who won each one                                    PASS
+nothing scrolls sideways                                   PASS
+head to head is ordered by rating, hardest first           PASS
+...and each row shows that rating                          PASS
+a second name works with no prompt in between              PASS
+...and swaps the career over                               PASS
+no history-screen question ever reached the player         PASS
+...only the title menu and the slot question did           PASS
+closing the window lets the engine move on                 PASS
+the career did not go to the log                           PASS
+nor the win rate line                                      PASS
+nor the champion roll                                      PASS
+nor the numbered roster                                    PASS
+no errors                                                  PASS
+
+questions the player saw: [('generic', 'Your Option: '), ('generic', 'Which save slot? '), ('generic', 'Your Option: ')]
