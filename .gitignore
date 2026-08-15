@@ -28,8 +28,14 @@
 ehthumbs.db
 Thumbs.db
 
+# Save files #
+######################
+savefile.json
+Test/gui/_out/
+
 .~*
 __pycache__/
+**/__pycache__/
 /build
 /dist
 /test.py
