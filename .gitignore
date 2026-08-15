@@ -32,6 +32,7 @@ Thumbs.db
 ######################
 savefile.json
 Test/gui/_out/
+Backup/
 
 .~*
 __pycache__/
