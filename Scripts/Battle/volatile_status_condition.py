@@ -1,5 +1,6 @@
 import random
 from Scripts.Battle.constants import *
+from Scripts.Art import narrator
 
 
 def check_volatile_status(pokemon, move):
@@ -36,30 +37,30 @@ def sleeping(pokemon, move):
     pokemon.volatile_status["NonVolatile"] -= 1
     if pokemon.volatile_status["NonVolatile"] == 0:
         pokemon.status = "Normal"
-        print(f"{pokemon.name} woke up.")
+        narrator.say(f"{pokemon.name} woke up.")
         return False
-    print(f"{pokemon.name} is fast asleep.")
+    narrator.say(f"{pokemon.name} is fast asleep.")
     return True
 
 
 def paralyzing(pokemon, move):
     if random.random() <= 0.25:
-        print(f"{pokemon.name} is paralyzed! It can't move!")
+        narrator.say(f"{pokemon.name} is paralyzed! It can't move!")
         return True
     return False
 
 
 def freezing(pokemon, move):
     if random.random() <= 0.8:
-        print(f"{pokemon.name} is frozen! It can't move!")
+        narrator.say(f"{pokemon.name} is frozen! It can't move!")
         return True
     pokemon.status = "Normal"
-    print(f"{pokemon.name} has thawed out.")
+    narrator.say(f"{pokemon.name} has thawed out.")
     return False
 
 
 def flinching(pokemon, move):
-    print(f"{pokemon.name} flinched! It can't move!")
+    narrator.say(f"{pokemon.name} flinched! It can't move!")
     return True
 
 
@@ -69,6 +70,6 @@ def confusing(pokemon, move):
         damage = math.floor(
             (((((2 * 100 / 5) + 2) * 40 * pokemon.battle_stats[1] / pokemon.battle_stats[2]) / 50) + 2) * (random.randint(85, 100) / 100))
         pokemon.battle_stats[0] -= damage
-        print(f"{pokemon.name} hurts itself, reducing {damage} HP.")
+        narrator.say(f"{pokemon.name} hurts itself, reducing {damage} HP.")
         return True
     return False

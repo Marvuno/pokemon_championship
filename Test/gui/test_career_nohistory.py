@@ -67,7 +67,7 @@ d.show_report(VETERAN)
 d.show_records(RECORDS)
 app.processEvents()
 check("the veteran's career is shown", "59.2%" in tab("Career"))
-check("...their runs", "rank 1" in tab("Tournaments"))
+check("...their runs", "RANK 1" in tab("Tournaments"))
 check("...and their head to head", "Champion Marvin" in tab("Head to Head"))
 check("head to head is rating-ordered (hardest first)",
       tab("Head to Head").index("Champion Marvin")
@@ -91,7 +91,7 @@ check("the head to head tab says so too",
 check("none of the veteran's numbers survived in Career",
       not any(bit in career for bit in ("59.2", "74", "51", "Cynthia")))
 check("...nor in Tournaments",
-      not any(bit in runs for bit in ("rank 1", "rank 4", "best finish")))
+      not any(bit in runs for bit in ("RANK 1", "rank 4", "BEST FINISH")))
 check("...nor in Head to Head",
       not any(bit in records for bit in ("Champion Marvin", "Goblin",
                                         "[750]")))

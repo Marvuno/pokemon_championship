@@ -8,7 +8,7 @@ sys.path.insert(0, ROOT)
 os.chdir(ROOT)
 
 from GUI import bridge as B                                       # noqa: E402
-from Scripts.Game.single_elimination_bracket import EntryBox      # noqa: E402
+
 
 NL = chr(10)
 fails = []
@@ -22,13 +22,19 @@ def check(label, got, want=True):
         fails.append(label)
 
 
-box = EntryBox(1, "Expert Cynthia", "A", 346).structure
+# A ruled entry as the engine used to draw one. Built as a literal now:
+# EntryBox no longer draws anything (the window builds the standings itself),
+# but the filter still has to cope with box-drawing output wherever it comes
+# from, so what is being tested here is the filter, not the bracket.
+box = (chr(9556) + "====" + chr(9574) + "=" * 34 + chr(9574) + "===" + chr(9574) + "===" + chr(9559) + NL
+       + chr(9553) + " 1  " + chr(9553) + " Expert Cynthia" + " " * 20 + chr(9553) + " A " + chr(9553) + " 346 " + chr(9553) + NL
+       + chr(9562) + "====" + chr(9577) + "=" * 34 + chr(9577) + "===" + chr(9577) + "===" + chr(9565))
 check("a bracket entry becomes one plain row",
       B.for_log(box), "1  Expert Cynthia  A  346")
 check("...so its three drawn lines become one",
       len(B.for_log(box).split(NL)), 1)
-check("an empty entry disappears entirely",
-      B.for_log(EntryBox().structure).strip(), "")
+check("a frame with nothing in it disappears entirely",
+      B.for_log(chr(9556) + "====" + chr(9559)).strip(), "")
 
 # the block-letter title: every line is drawing characters, nothing survives
 TITLE = (chr(9608) * 6 + "\u2554" + "\u2550" * 2 + chr(9608) * 2 + "\u2557" + NL

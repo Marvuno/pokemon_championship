@@ -185,8 +185,32 @@ check("past the last pip is nothing", pips.pip_at(9999), -1)
 check("before the first is nothing", pips.pip_at(-5), -1)
 
 # -- out of battle it stays shut
+# No processEvents between setting the state and reading the result.
+#
+# `w.bridge.stop()` at the top does not empty the event queue: the worker was
+# alive for the moment between MainWindow.__init__ starting it and the stop,
+# and it queued its own EV_STATE for the title screen. `_pump` -- driven by
+# the window's own 20ms timer -- drains those on any later event-loop turn
+# and hands them to _apply_state, so `w.game_state` reverts to phase=None
+# with no teams, and _show_scout closes the card. That is what the
+# diagnosis below caught, and why this only failed under load: the busier
+# the machine, the longer the worker ran before being stopped.
+#
+# Hovering is synchronous, so nothing here needs the event loop at all.
+w._apply_state(state)
 w._hover_pip("opponent", 0)
-app.processEvents()
+if not card.isVisible():
+    # one-off diagnosis: which branch of _show_scout dropped the card
+    import io as _io
+    live = w.game_state or {}
+    _io.open("Test/gui/_out/hover_why.txt", "w", encoding="utf-8").write(
+        "\n".join([
+            "phase=%r" % live.get("phase"),
+            "known=%r" % live.get("opponent_known"),
+            "opp_team=%d" % len(live.get("opponent_team") or []),
+            "opp_roster=%s" % type(live.get("opponent_roster")).__name__,
+            "entry=%r" % (w._scout_entry("opponent", 0),),
+        ]) + "\n")
 check("open again for the next check", card.isVisible())
 w._apply_state(dict(state, phase="prebattle"))
 app.processEvents()
@@ -210,4 +234,52 @@ except Exception:
     pass
 print("\n" + ("ALL PASS" if not fails else "%d FAILURES: %s"
                                            % (len(fails), fails)))
+sys.exit(1 if fails else 0)
+
+
+# --------------------------------------------------------------------------
+# The hover card must refresh when the stages change, not just when a
+# different Pokemon is hovered. Its token used to be (side, index, known,
+# name), so landing a stat boost and hovering the same Pokemon again showed
+# the stages it had the first time.
+def mon_with(mod, vol):
+    return {"name": "Garchomp", "sprite": "garchomp", "types": ["Dragon"],
+            "tier": "V", "ability": ["Rough Skin"], "status": "Normal",
+            "hp": 100, "max_hp": 100, "stats": [100] * 6,
+            "nominal": [100] * 6, "iv": [20] * 6, "base": [80] * 6,
+            "total": 600, "total_iv": 120, "modifier": mod, "volatile": vol,
+            "moveset": ["Earthquake"], "moves": {}, "disabled": {},
+            "charging": ["", "", 0], "protecting": False, "fainted": False,
+            "active": True, "index": 0}
+
+
+def battle_with(mod, vol):
+    entry = mon_with(mod, vol)
+    return {"phase": "battle", "battle_seq": 1, "stage": 3,
+            "opponent_known": True,
+            "player_side": {"nickname": "M", "strength": 507},
+            "opponent_side": {"nickname": "C", "strength": 300},
+            "player": entry, "opponent": mon_with([0] * 9, {}),
+            "player_team": [entry], "opponent_team": [mon_with([0] * 9, {})]}
+
+
+def hovered():
+    w._show_scout("player", 0)
+    app.processEvents()
+    return [l.text() for l in w.scout_card.findChildren(QLabel) if l.text()]
+
+
+w._apply_state(battle_with([0] * 9, {}))
+app.processEvents()
+before = hovered()
+check("nothing boosted yet", "STAT STAGES" not in before)
+w._apply_state(battle_with([0, 2, 0, 0, 0, 0, 0, 0, 0], {"Confused": 3}))
+app.processEvents()
+after = hovered()
+check("a new boost refreshes the same card", "STAT STAGES" in after)
+check("...showing the exact stage", "+2" in after)
+check("...and the condition", "CONFUSED" in after)
+
+print()
+print("ALL PASS" if not fails else "%d FAILURES: %s" % (len(fails), fails))
 sys.exit(1 if fails else 0)

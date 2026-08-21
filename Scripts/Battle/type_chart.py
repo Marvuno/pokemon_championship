@@ -49,15 +49,40 @@ typeChart = {
 }
 
 
+class _StageRow(list):
+    """One stat's stage multipliers, indexed by stage from -6 to +6.
+
+    Stages 0..+6 are the first seven entries and -1..-6 are read off the end
+    with Python's negative indexing, which is neat and works -- right up to
+    the moment a stage lands outside that range. Then the wrap is silent and
+    *backwards*: stage +7 reads entry 7, which is 0.25, so a Pokemon boosted
+    past the cap would have had its stat quartered instead of quadrupled.
+
+    check_modifier_limit clamps stages to the legal range and no
+    out-of-range value was reached in 60 measured battles, so this has not
+    been biting -- but it is one missed clamp away from doing so, and a
+    lookup that silently inverts is a bad thing to leave lying about.
+    """
+
+    def __getitem__(self, stage):
+        if isinstance(stage, int):
+            stage = 6 if stage > 6 else -6 if stage < -6 else stage
+        return list.__getitem__(self, stage)
+
+
+def _stages(row):
+    return _StageRow(row)
+
+
 # on base stats only
 modifierChart = [
-    [1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666],  # HP
-    [1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666],  # Attack
-    [1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666],  # Defense
-    [1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666],  # SpA
-    [1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666],  # SpDef
-    [1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666],  # Speed
-    [1, 1.33, 1.66, 2, 2.33, 2.66, 3, 0.33, 0.375, 0.428, 0.5, 0.6, 0.75],  # Evasion
-    [1, 1.33, 1.66, 2, 2.33, 2.66, 3, 0.33, 0.375, 0.428, 0.5, 0.6, 0.75],  # Accuracy
-    [1/24, 1/8, 1/2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # Crit
+    _stages([1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666]),  # HP
+    _stages([1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666]),  # Attack
+    _stages([1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666]),  # Defense
+    _stages([1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666]),  # SpA
+    _stages([1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666]),  # SpDef
+    _stages([1, 1.5, 2, 2.5, 3, 3.5, 4, 0.25, 0.285, 0.333, 0.4, 0.5, 0.666]),  # Speed
+    _stages([1, 1.33, 1.66, 2, 2.33, 2.66, 3, 0.33, 0.375, 0.428, 0.5, 0.6, 0.75]),  # Evasion
+    _stages([1, 1.33, 1.66, 2, 2.33, 2.66, 3, 0.33, 0.375, 0.428, 0.5, 0.6, 0.75]),  # Accuracy
+    _stages([1/24, 1/8, 1/2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])  # Crit
 ]

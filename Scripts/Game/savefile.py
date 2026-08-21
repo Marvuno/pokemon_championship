@@ -12,17 +12,17 @@ load. A Pokemon keeps just what was *rolled* for it -- its IVs, which ability
 it got, which four moves -- because the rest (base stats, typing, tier) is
 already in Data/pokemon.csv and would only go stale in a copy.
 
-Old pickle saves still load: see `load`. Nothing overwrites them, so an
-existing savefile.dat stays put as a backup once savefile.json is written.
+The pickle format is gone. savefile.dat is no longer read, written, or looked
+for -- every career is JSON in Save/, and an old .dat file sitting in the
+project folder is now just a file the game ignores.
 """
 
 import json
 import os
-import pickle
 import re
+from copy import deepcopy
 
 JSON_PATH = "savefile.json"
-LEGACY_PATH = "savefile.dat"
 VERSION = 1
 
 #: Four careers, kept side by side in Save/ rather than one file at the root.
@@ -31,6 +31,28 @@ VERSION = 1
 #: files with the game closed.
 SLOTS = 4
 SLOT_DIR = "Save"
+
+#: competitors renamed since saves were written: old name -> current name.
+#:
+#: A save keys everything by competitor name -- who you have beaten, the
+#: scorelines, each competitor's own record. `_apply_record` drops any name
+#: the roster no longer has, which is right for a competitor who was deleted
+#: and wrong for one who was merely renamed: their whole head-to-head history
+#: would vanish silently. Translating on the way in keeps it, and costs
+#: nothing for the saves that never knew the old name.
+#:
+#: This is cheaper and safer than rewriting the player's save files, which
+#: would have to be done once per slot and could not be undone.
+RENAMED = {
+    "Voldemort": "Devoltorm",
+}
+
+
+def current_name(name):
+    """The name this competitor goes by now."""
+    return RENAMED.get(name, name)
+
+
 #: Which slot save()/load()/exists() mean when not told otherwise. The engine
 #: calls save(list_of_competitors) with no path from several places, so the
 #: choice of career lives here rather than being threaded through all of them.
@@ -69,7 +91,7 @@ def exists(slot=None, path=None):
     if os.path.exists(target):
         return True
     if (slot if slot is not None else _current) == 1 and path is None:
-        return os.path.exists(JSON_PATH) or os.path.exists(LEGACY_PATH)
+        return os.path.exists(JSON_PATH)
     return False
 
 
@@ -90,9 +112,7 @@ def summary(slot):
         # the pre-slots save, not yet migrated
         target = JSON_PATH if os.path.exists(JSON_PATH) else None
         if target is None:
-            return {"slot": slot, "used": os.path.exists(LEGACY_PATH),
-                    "legacy": True, "nickname": "?", "rating": 0,
-                    "participation": 0, "championship": 0}
+            return {"slot": slot, "used": False}
     if not target or not os.path.exists(target):
         return {"slot": slot, "used": False}
     try:
@@ -124,6 +144,47 @@ def describe(entry):
     return ("Slot %d: %s -- rating %s, %s run(s), %s title(s)"
             % (entry["slot"], entry["nickname"], entry["rating"],
                entry["participation"], entry["championship"]))
+
+
+#: how the CSVs describe everybody, taken once before anything is loaded
+_pristine = None
+
+
+def remember_pristine(list_of_competitors, list_of_pokemon):
+    """Snapshot the freshly-imported rosters, once.
+
+    load() writes into these dicts in place, so once a career has been read
+    there is no way back to "as the CSV describes them" without a copy taken
+    beforehand. Call this before the first load -- calling it again is a no-op,
+    so it cannot capture an already-loaded career by accident.
+    """
+    global _pristine
+    if _pristine is None:
+        _pristine = (deepcopy(list_of_competitors), deepcopy(list_of_pokemon))
+    return _pristine is not None
+
+
+def start_fresh(list_of_competitors, list_of_pokemon):
+    """Put every competitor and Pokemon back to their CSV state.
+
+    A new game used to inherit whatever was last loaded. Opening HISTORY or
+    CONTINUE on one slot reads that career into these shared dicts, and
+    starting a new game only ever set a nickname -- so a "new" career in slot 3
+    began with the participation count, title count, championship history and
+    head-to-head record of whichever save had been looked at, and saved all of
+    it back under the new slot.
+
+    Restores into the existing dicts rather than rebinding them, because every
+    module has already imported these exact objects by name.
+    """
+    if _pristine is None:
+        return False
+    clean_competitors, clean_pokemon = _pristine
+    list_of_competitors.clear()
+    list_of_competitors.update(deepcopy(clean_competitors))
+    list_of_pokemon.clear()
+    list_of_pokemon.update(deepcopy(clean_pokemon))
+    return True
 
 
 def adopt_single_save():
@@ -267,9 +328,11 @@ def _apply_record(competitor, roster, record):
     """Fill in head-to-head, defaulting every roster name to a clean slate."""
     competitor.opponent_history = {name: [0, 0] for name in roster}
     competitor.opponent_scores = {}
-    for name, entry in (record or {}).items():
+    for saved_name, entry in (record or {}).items():
+        # a renamed competitor is the same competitor: keep their record
+        name = current_name(saved_name)
         if name not in competitor.opponent_history:
-            continue                     # renamed or removed since the save
+            continue                     # removed from the roster since
         competitor.opponent_history[name] = [int(entry.get("wins", 0)),
                                              int(entry.get("losses", 0))]
         lines = entry.get("scores")
@@ -314,7 +377,7 @@ def _build_team(entries, list_of_pokemon):
 
 
 def load(list_of_competitors, list_of_pokemon, path=None, slot=None):
-    """Restore a save. Reads JSON, falling back to a legacy pickle.
+    """Restore a save.
 
     Returns the format it read ("json" | "pickle" | None) so the caller can
     say so, and never raises for a save that mentions someone the roster no
@@ -335,9 +398,6 @@ def load(list_of_competitors, list_of_pokemon, path=None, slot=None):
                 data = json.load(handle)
             _load_json(data, list_of_competitors, list_of_pokemon)
             return "json"
-        if os.path.exists(LEGACY_PATH):
-            _load_pickle(list_of_competitors, list_of_pokemon)
-            return "pickle"
     return None
 
 
@@ -353,47 +413,19 @@ def _load_json(data, list_of_competitors, list_of_pokemon):
     _apply_history(player, saved.get("history"))
     _apply_record(player, roster, saved.get("opponents"))
 
+    saved_competitors = data.get("competitors") or {}
+    # the same translation for a competitor's *own* record, not just for who
+    # they have faced
+    for old_name, new_name in RENAMED.items():
+        if old_name in saved_competitors and new_name not in saved_competitors:
+            saved_competitors[new_name] = saved_competitors[old_name]
+
     for name, competitor in list_of_competitors.items():
         if competitor.main:
             continue
-        entry = (data.get("competitors") or {}).get(name) or {}
+        entry = saved_competitors.get(name) or {}
         competitor.participation = int(entry.get("participation", 0))
         competitor.championship = int(entry.get("championship", 0))
         _apply_history(competitor, entry.get("history"))
         _apply_record(competitor, roster, entry.get("opponents"))
 
-
-def _load_pickle(list_of_competitors, list_of_pokemon):
-    """One-way migration from the old format."""
-    roster = list(list_of_competitors)
-    with open(LEGACY_PATH, "rb") as handle:
-        records = pickle.load(handle)
-    for record in records:
-        name = getattr(record, "name", None)
-        if getattr(record, "main", False):
-            competitor = list_of_competitors["Protagonist"]
-            competitor.nickname = getattr(record, "nickname",
-                                          competitor.nickname)
-            competitor.strength = getattr(record, "strength",
-                                          competitor.strength)
-            # Rebuilt through _build_team rather than reused directly: the
-            # pickled Pokemon were written with attributes deleted and by an
-            # older version of the class, so a fresh copy of the CSV entry
-            # carrying the rolled facts is the only shape that is certain to
-            # be complete.
-            competitor.team = _build_team(
-                [_pokemon_out(p) for p in getattr(record, "team", []) or []],
-                list_of_pokemon)
-        elif name in list_of_competitors:
-            competitor = list_of_competitors[name]
-        else:
-            continue                     # renamed or removed since that save
-        competitor.participation = getattr(record, "participation", 0)
-        competitor.championship = getattr(record, "championship", 0)
-        competitor.history = dict(getattr(record, "history", {}) or {})
-        old = getattr(record, "opponent_history", {}) or {}
-        competitor.opponent_history = {n: [0, 0] for n in roster}
-        competitor.opponent_scores = {}
-        for key, value in old.items():
-            if key in competitor.opponent_history:
-                competitor.opponent_history[key] = list(value)

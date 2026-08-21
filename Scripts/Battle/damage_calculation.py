@@ -1,25 +1,40 @@
 from Scripts.Data.abilities import *
+from Scripts.Battle.context import Side, Turn
 import random
 import math
+from Scripts.Art import narrator
+from Scripts.Battle import terrain
 
 
 # damage calculation
-def damage_calculation(user_side, target_side, user, target, battleground, move):
+def damage_calculation(turn, move):
+    """What this move takes off the target.
+
+    `turn` carries the two sides and the field -- see
+    Scripts/Battle/context.py. check_attack_power, check_defense_strength and
+    check_if_weather_affect_moves keep their narrow signatures on purpose:
+    the AI's estimator imports those three so it cannot drift from the engine,
+    and they never needed the whole context.
+    """
     # no damage for status moves
     if move.attack_type == "Status":
         return 0
 
-    attack = check_attack_power(user, target, move)
-    defense = check_defense_strength(user, target, move)
-    critical = check_crit(user, move)
-    STAB = check_STAB(user, move)
+    attack = check_attack_power(turn.user.active, turn.foe.active, move)
+    defense = check_defense_strength(turn.user.active, turn.foe.active, move)
+    critical = check_crit(turn.user.active, move)
+    STAB = check_STAB(turn.user.active, move)
     rand_factor = random.uniform(0.85, 1)  # random
-    type_effectiveness = check_type_effectiveness(target_side, target, move)
-    weather = check_if_weather_affect_moves(battleground, move)
-    other = check_other_factor(user_side, target_side, user, target, move)
-    power = check_power_modifier(user_side, target_side, user, target, move)
+    type_effectiveness = check_type_effectiveness(turn, move)
+    weather = check_if_weather_affect_moves(turn.ground, move)
+    # terrain is its own factor, not part of the weather one: both can be up
+    # at once. See Scripts/Battle/terrain.py.
+    ground = terrain.move_multiplier(turn.ground, turn.user.active,
+                                     turn.foe.active, move)
+    other = check_other_factor(turn, move)
+    power = check_power_modifier(turn, move)
 
-    damage = math.floor((((((2 * 100 / 5) + 2) * power * attack / defense) / 50) + 2) * weather * critical * (
+    damage = math.floor((((((2 * 100 / 5) + 2) * power * attack / defense) / 50) + 2) * weather * ground * critical * (
             rand_factor * STAB * type_effectiveness * other * move.abilitymodifier))
 
     return damage
@@ -50,26 +65,29 @@ def check_defense_strength(user, target, move):
         return Def if move.inverseDef else SpDef
 
 
-def check_power_modifier(user_side, target_side, user, target, move):
+def check_power_modifier(turn, move):
     power = move.power
     if "after_hand" in move.effect_type:
-        # this means target should move first to double power
-        if target_side.faster:
+        # this means the target should move first to double power
+        if turn.foe.trainer.faster:
             power *= 2
     elif "before_hand" in move.effect_type:
-        # this means user should move first to double power
-        if user_side.faster:
+        # this means the user should move first to double power
+        if turn.user.trainer.faster:
             power *= 2
     elif "modifier_dependent" in move.effect_type:
-        positive_modifier = sum([i if i > 0 else 0 for i in user.modifier])
+        positive_modifier = sum([i if i > 0 else 0 for i in turn.user.active.modifier])
         power += positive_modifier * 20
     # activate flash fire
-    if "Fire" in move.type and user.volatile_status['FlashFire'] > 0:
+    if "Fire" in move.type and turn.user.active.volatile_status['FlashFire'] > 0:
         power *= 1.5
     # custom retaliate move
-    # the more pokemon fainted the stronger
+    # the more pokemon fainted the stronger -- but at least its own power.
+    # This was a bare multiply by the count, so with nobody fainted the move
+    # was multiplied by zero and did nothing at all.
     if "retaliation" in move.effect_type:
-        power *= sum(1 for pokemon in user_side.team if pokemon.status == "Fainted")
+        power *= max(1, sum(1 for pokemon in turn.user.trainer.team
+                            if pokemon.status == "Fainted"))
     return power
 
 
@@ -86,7 +104,7 @@ def check_if_weather_affect_moves(battleground, move):
 def check_crit(user, move):
     if random.random() <= modifierChart[8][min(3, user.modifier[8] + move.critRatio)]:
         move.critical_hit = True
-        print("Crit!")
+        narrator.say("Crit!")
         return 1.5
     return 1
 
@@ -94,35 +112,35 @@ def check_crit(user, move):
 # determine STAB
 def check_STAB(user, move):
     if move.type in user.type:
-        print("STAB!")
+        narrator.say("STAB!")
         return 1.5
     return 1
 
 
 # determine type effectiveness
-def check_type_effectiveness(target_side, target, move):
-    initial_type_effectiveness = [2 if target.type[x] in move.ignoreType else typeChart[move.type][target.type[x]] for x in range(len(target.type))]
-    extra_type_effectiveness = [typeChart[move.multiType[y]][target.type[x]] for x in range(len(target.type)) for y in range(len(move.multiType))]
+def check_type_effectiveness(turn, move):
+    initial_type_effectiveness = [2 if turn.foe.active.type[x] in move.ignoreType else typeChart[move.type][turn.foe.active.type[x]] for x in range(len(turn.foe.active.type))]
+    extra_type_effectiveness = [typeChart[move.multiType[y]][turn.foe.active.type[x]] for x in range(len(turn.foe.active.type)) for y in range(len(move.multiType))]
 
     # special condition to override type chart (e.g. mold breaker, lock-on, grounded etc)
     if move.type == "Ground":
         # grounded
-        if target.volatile_status['Grounded'] >= 1:
+        if turn.foe.active.volatile_status['Grounded'] >= 1:
             initial_type_effectiveness = [1 if effective == 0 else effective for effective in initial_type_effectiveness]
             extra_type_effectiveness = [1 if effective == 0 else effective for effective in extra_type_effectiveness]
         # ungrounded
-        elif target.volatile_status['Grounded'] == 0 or "Flying" in target.type:
+        elif turn.foe.active.volatile_status['Grounded'] == 0 or "Flying" in turn.foe.active.type:
             initial_type_effectiveness += [0]
             extra_type_effectiveness += [0]
 
     for type in move.ignoreImmunity:
-        if type in target.type:
+        if type in turn.foe.active.type:
             initial_type_effectiveness = [1 if effective == 0 else effective for effective in initial_type_effectiveness]
             extra_type_effectiveness = [1 if effective == 0 else effective for effective in extra_type_effectiveness]
 
     interchange_type_effectiveness = max(0, math.prod(initial_type_effectiveness))
     for y in range(len(move.interchangeType)):
-        new_type_effectiveness = math.prod([typeChart[move.interchangeType[y]][target.type[x]] for x in range(len(target.type))])
+        new_type_effectiveness = math.prod([typeChart[move.interchangeType[y]][turn.foe.active.type[x]] for x in range(len(turn.foe.active.type))])
         if new_type_effectiveness > interchange_type_effectiveness:
             interchange_type_effectiveness = new_type_effectiveness
             move.type = move.interchangeType[y]
@@ -141,23 +159,23 @@ def check_type_effectiveness(target_side, target, move):
     }
     # remove barrier before calculating actual damage
     if move.effect_type == "remove_team_buff" and type_effectiveness != 0:
-        target_side.in_battle_effects = dict.fromkeys(target_side.in_battle_effects.keys(), 0)
+        turn.foe.trainer.in_battle_effects = dict.fromkeys(turn.foe.trainer.in_battle_effects.keys(), 0)
     # wonder guard
     move.super_effective = True if type_effectiveness >= 2 else False
     # tinted lens
     move.not_effective = True if type_effectiveness <= 0.5 else False
-    print(effectiveness_description.get(type_effectiveness))
+    narrator.say(effectiveness_description.get(type_effectiveness))
     return type_effectiveness
 
 
-def check_other_factor(user_side, target_side, user, target, move):
+def check_other_factor(turn, move):
     other = 1
     # reflect, light screen & aurora veil does not stack
     if not move.ignoreBarrier:
         if move.attack_type == "Physical":
-            if target_side.in_battle_effects['Reflect'] > 0 or target_side.in_battle_effects['Aurora Veil'] > 0:
+            if turn.foe.trainer.in_battle_effects['Reflect'] > 0 or turn.foe.trainer.in_battle_effects['Aurora Veil'] > 0:
                 other *= 0.5
         elif move.attack_type == "Special":
-            if target_side.in_battle_effects['Light Screen'] > 0 or target_side.in_battle_effects['Aurora Veil'] > 0:
+            if turn.foe.trainer.in_battle_effects['Light Screen'] > 0 or turn.foe.trainer.in_battle_effects['Aurora Veil'] > 0:
                 other *= 0.5
     return other

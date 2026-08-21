@@ -7,14 +7,18 @@ from Scripts.Game.game_procedure import *
 from Scripts.Data.abilities import *
 from Scripts.Data.character_abilities import *
 from Scripts.Art.music import *
+from Scripts.Battle.fastcopy import fast_copy
+from Scripts.Battle.context import Side, Turn
+from Scripts.Art import narrator
+from Scripts.Battle import terrain
 
 
 def battle_setup(protagonist, competitor, player_team, opponent_team, battleground):
     if battleground.verbose:
         for pokemon in player_team:
-            print(f"{CGREEN2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
+            narrator.say(f"{CGREEN2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
         for pokemon in opponent_team:
-            print(f"{CRED2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
+            narrator.say(f"{CRED2}{CBOLD}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
 
     for pokemon in player_team + opponent_team:
         # side 1 + side 2
@@ -34,11 +38,21 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
     battleground.starting_weather_effect = random.choices(['Clear', 'Rain', 'Sunny', 'Sandstorm', 'Hail'], weights=[6, 1, 1, 1, 1], k=1)[0]
     battleground.weather_effect = battleground.starting_weather_effect
 
+    # and the ground it happens to be fought on: each terrain at 5%, so one
+    # battle in five opens on some terrain. Ten turns rather than a move's
+    # five -- see Scripts/Battle/terrain.py.
+    opened_on = terrain.roll_natural(battleground)
+    if opened_on:
+        narrator.say(opened_on, "field", terrain=battleground.terrain)
+
     player, opponent = player_team[0], opponent_team[0]
 
     # character ability at start
-    UseCharacterAbility(protagonist, competitor, player, opponent, battleground, "", abilityphase=0)
-    UseCharacterAbility(competitor, protagonist, opponent, player, battleground, "", abilityphase=0)
+    opening = Turn(battleground,
+                   Side(protagonist, player_team, player),
+                   Side(competitor, opponent_team, opponent))
+    UseCharacterAbility(opening, "", abilityphase=0)
+    UseCharacterAbility(opening.flip(), "", abilityphase=0)
 
     switched_in_initialization(protagonist, competitor, player, opponent, battleground)
     switched_in_initialization(competitor, protagonist, opponent, player, battleground)
@@ -46,17 +60,32 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
     # music on
     music(audio=f"Assets/music/{competitor.music}", loop=True)
 
-    move_selection(protagonist, competitor, player_team, opponent_team, player, opponent, battleground)
+    # player / opponent may have been reassigned by the fainted-switch loop
+    # above, so the context is built here rather than reused.
+    move_selection(Turn(battleground,
+                        Side(protagonist, player_team, player),
+                        Side(competitor, opponent_team, opponent)))
 
 
-def move_selection(protagonist, competitor, player_team, opponent_team, player, opponent, battleground):
+def move_selection(turn):
+    """The turn loop: pick moves, resolve them, tick the turn over.
+
+    `turn` is oriented on the player's side throughout -- turn.user is the
+    protagonist, turn.foe the competitor. See Scripts/Battle/context.py. The
+    six names below are unpacked once because the body reads them constantly;
+    what matters is that they arrive as one thing.
+    """
+    protagonist, competitor = turn.user.trainer, turn.foe.trainer
+    player_team, opponent_team = turn.user.team, turn.foe.team
+    player, opponent = turn.user.active, turn.foe.active
+    battleground = turn.ground
     while battleground.battle_continuation:
         player.battle_stats = [player.battle_stats[0]] + \
                               [math.floor(0.01 * 2 * player.nominal_base_stats[x] * modifierChart[x][player.modifier[x]] * 100 + 5) for x in range(1, 6)]
         opponent.battle_stats = [opponent.battle_stats[0]] + \
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
-        print(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect)} [{battleground.weather_effect}]\n"
+        narrator.say(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect)} [{battleground.weather_effect}]\n"
               f"{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
 
         # # debug mode stats display
@@ -134,7 +163,8 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
         else:
             player_move = select_move(player, opponent, battleground) if not battleground.auto_battle else auto_ai_select_move(battleground, competitor,
                                                                                                                                protagonist)
-            opponent_move = smart_ai_select_move(battleground, protagonist, competitor) if competitor.strength >= 30 \
+            opponent_move = smart_ai_select_move(battleground, protagonist, competitor) \
+                if competitor.strength >= SMART_AI_RATING \
                 else dumb_ai_select_move(battleground, protagonist, competitor)
             # player_move, opponent_move = select_move(player), select_move(opponent)
 
@@ -167,12 +197,27 @@ def move_selection(protagonist, competitor, player_team, opponent_team, player, 
 
         battleground.reality = True
 
-        player_move, opponent_move = deepcopy(player_move), deepcopy(opponent_move)
+        # Each side gets its own copy of the move it chose. Everything
+        # downstream writes this turn's working state onto the move it is
+        # handed -- damage, accuracy, whether it was super effective --
+        # and the entries of list_of_moves are shared by the whole game.
+        player_move, opponent_move = fast_copy(player_move), fast_copy(opponent_move)
 
-        compare_speed(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move)
+        # Rebuilt each pass: a switch this turn changed who is standing
+        # there, and the loop's own `player` / `opponent` were reassigned to
+        # match.
+        compare_speed(Turn(battleground,
+                           Side(protagonist, player_team, player),
+                           Side(competitor, opponent_team, opponent)),
+                      player_move, opponent_move)
 
 
-def compare_speed(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move):
+def compare_speed(turn, player_move, opponent_move):
+    """Work out who goes first, run the turn, then close it out."""
+    protagonist, competitor = turn.user.trainer, turn.foe.trainer
+    player_team, opponent_team = turn.user.team, turn.foe.team
+    player, opponent = turn.user.active, turn.foe.active
+    battleground = turn.ground
     # move adjustment
     player_move.multi[1] = multi_strike_move(player_move)
     player_move = pre_move_adjustment(protagonist, competitor, player, opponent, battleground, player_move)
@@ -185,49 +230,74 @@ def compare_speed(protagonist, competitor, player_team, opponent_team, player, o
     player.battle_stats[5] = speed_adjustment(protagonist, player, battleground)
     opponent.battle_stats[5] = speed_adjustment(competitor, opponent, battleground)
 
+    # "the player moves first" and "the enemy moves first" are the same
+    # context read from either end now, rather than two orderings of nine
+    # arguments. flip() is the whole difference.
+    yours = turn
+
     # speed comparison
-    if player_move.priority > opponent_move.priority:  # player priority move
-        move_execution(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move)
-    elif opponent_move.priority > player_move.priority:  # enemy priority move
-        move_execution(competitor, protagonist, opponent_team, player_team, opponent, player, battleground, opponent_move, player_move)
-    elif player.battle_stats[5] > opponent.battle_stats[5]:  # player out-speed enemy
-        move_execution(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move)
-    elif player.battle_stats[5] == opponent.battle_stats[5]:  # same speed
+    if player_move.priority > opponent_move.priority:      # player priority
+        move_execution(yours, player_move, opponent_move)
+    elif opponent_move.priority > player_move.priority:    # enemy priority
+        move_execution(yours.flip(), opponent_move, player_move)
+    elif player.battle_stats[5] > opponent.battle_stats[5]:  # player faster
+        move_execution(yours, player_move, opponent_move)
+    elif player.battle_stats[5] == opponent.battle_stats[5]:  # dead level
         if random.random() < 0.5:
-            move_execution(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move)
+            move_execution(yours, player_move, opponent_move)
         else:
-            move_execution(competitor, protagonist, opponent_team, player_team, opponent, player, battleground, opponent_move, player_move)
-    else:
-        move_execution(competitor, protagonist, opponent_team, player_team, opponent, player, battleground, opponent_move,
-                       player_move)  # enemy out-speed player
-    end_of_turn(protagonist, competitor, player_team, opponent_team, player_team[0], opponent_team[0], battleground, player_move, opponent_move)
+            move_execution(yours.flip(), opponent_move, player_move)
+    else:                                                   # enemy faster
+        move_execution(yours.flip(), opponent_move, player_move)
+    # team[0] on both sides, not the Pokemon this turn began with: whoever is
+    # standing there now is who the end-of-turn effects apply to.
+    end_of_turn(Turn(battleground,
+                     Side(protagonist, player_team, player_team[0]),
+                     Side(competitor, opponent_team, opponent_team[0])),
+                player_move, opponent_move)
 
 
-def move_execution(user_side, target_side, user_team, target_team, user, target, battleground, user_move, target_move):
+def move_execution(turn, user_move, target_move):
+    """Both sides take their move, the faster one first.
+
+    `turn` arrives already oriented: turn.user is whoever won the speed check.
+    The second half of the turn is the same battle read the other way round,
+    which is what turn.flip() says. See Scripts/Battle/context.py.
+    """
     # faster pokemon moves first
-    user_side.faster, target_side.faster = True, False
+    turn.user.trainer.faster, turn.foe.trainer.faster = True, False
 
-    move_order_and_execution(user_side, target_side, user_team, target_team, user, target, battleground, user_move, target_move)
-    # mid-update
-    user, target = user_team[0], target_team[0]
-    user.battle_stats = [user.battle_stats[0]] + \
-                        [math.floor(0.01 * 2 * user.nominal_base_stats[x] * modifierChart[x][user.modifier[x]] * 100 + 5) for x in range(1, 6)]
-    target.battle_stats = [target.battle_stats[0]] + \
-                          [math.floor(0.01 * 2 * target.nominal_base_stats[x] * modifierChart[x][target.modifier[x]] * 100 + 5) for x in range(1, 6)]
+    move_order_and_execution(turn, user_move, target_move)
+    # Mid-update. Re-read the front of each party rather than trusting the
+    # Pokemon this started with: a move can have switched one of them out, and
+    # the stats being recomputed have to belong to whoever is standing there
+    # now. This is exactly why Side.active is a stored slot rather than
+    # team[0] -- the two differ for the span between these two calls.
+    turn.user.active, turn.foe.active = turn.user.team[0], turn.foe.team[0]
+    for side in (turn.user, turn.foe):
+        mon = side.active
+        mon.battle_stats = [mon.battle_stats[0]] + [
+            math.floor(0.01 * 2 * mon.nominal_base_stats[x]
+                       * modifierChart[x][mon.modifier[x]] * 100 + 5)
+            for x in range(1, 6)]
 
-    move_order_and_execution(target_side, user_side, target_team, user_team, target, user, battleground, target_move, user_move)
+    move_order_and_execution(turn.flip(), target_move, user_move)
 
-
-def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opponent, battleground, player_move, opponent_move):
+def end_of_turn(turn, player_move, opponent_move):
+    """Everything that happens once both sides have moved."""
+    protagonist, competitor = turn.user.trainer, turn.foe.trainer
+    player_team, opponent_team = turn.user.team, turn.foe.team
+    player, opponent = turn.user.active, turn.foe.active
+    battleground = turn.ground
     def in_battle_changes(participant, pokemon, move):
         # yawn
         if pokemon.volatile_status['Yawn'] == 1:
             if pokemon.status != "Normal":
-                print(f"{pokemon.name} is already {pokemon.status}!")
+                narrator.say(f"{pokemon.name} is already {pokemon.status}!")
             else:
                 status = Sleep(1)
                 pokemon.status, pokemon.volatile_status['NonVolatile'] = status[0], status[1]
-                print(f"{pokemon.name} is now {pokemon.status}!")
+                narrator.say(f"{pokemon.name} is now {pokemon.status}!")
         pokemon.volatile_status['Yawn'] = pokemon.volatile_status['Yawn'] - 1 if pokemon.volatile_status['Yawn'] > 0 else 0
         # flinch (not necessarily needed but added just in case)
         pokemon.volatile_status["Flinch"] = 0
@@ -240,12 +310,12 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
         # perish count if fainted
         if pokemon.volatile_status['PerishSong'] == 4:
             pokemon.battle_stats[0] = 0
-            print(f"{pokemon.name} fainted due to perish song!")
+            narrator.say(f"{pokemon.name} fainted due to perish song!")
         # clear toxic spikes
         if participant.entry_hazard["Toxic Spikes"] > 0:
             if "Poison" in pokemon.type and pokemon.volatile_status['Grounded'] == 1:
                 participant.entry_hazard['Toxic Spikes'] = 0
-                print("Toxic Spikes has been cleared!")
+                narrator.say("Toxic Spikes has been cleared!")
         # total concentration
         if pokemon.volatile_status['TotalConcentration'] > 0:
             pokemon.applied_modifier = [0, 1, 0, 1, 0, 0, 0, 0, 0]
@@ -257,7 +327,7 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
         # perish song
         if pokemon.volatile_status['PerishSong'] > 0:
             pokemon.volatile_status['PerishSong'] += 1
-            print(f"{CVIOLET2+CBOLD}{pokemon.name}'s perish count is at {5 - pokemon.volatile_status['PerishSong']}!")
+            narrator.say(f"{CVIOLET2+CBOLD}{pokemon.name}'s perish count is at {5 - pokemon.volatile_status['PerishSong']}!")
         # take aim
         pokemon.volatile_status['TakeAim'] -= 1 if pokemon.volatile_status['TakeAim'] > 0 else 0
 
@@ -269,19 +339,36 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
             if turn > 0:
                 battleground.field_effect[effect] -= 1
 
+        # Grassy Terrain gives the ground back a sixteenth of its HP, then
+        # the terrain counts itself down -- a separate layer from the field
+        # effects above, and from the weather. See Scripts/Battle/terrain.py.
+        for side_pokemon in (player, opponent):
+            healed = terrain.end_of_turn_heal(battleground, side_pokemon)
+            if healed > 0:
+                side_pokemon.battle_stats[0] += healed
+                narrator.say(f"{side_pokemon.name} drew {healed} HP from the "
+                             f"grass.", "heal", pokemon=side_pokemon.name,
+                             amount=healed)
+        lapsed = terrain.tick(battleground)
+        if lapsed:
+            narrator.say(lapsed, "field")
+
         # trigger ability at the end of each turn
-        UseAbility(protagonist, competitor, player, opponent, battleground, "", abilityphase=8)
-        UseAbility(competitor, protagonist, opponent, player, battleground, "", abilityphase=8)
+        closing = Turn(battleground,
+                       Side(protagonist, player_team, player),
+                       Side(competitor, opponent_team, opponent))
+        UseAbility(closing, "", abilityphase=8)
+        UseAbility(closing.flip(), "", abilityphase=8)
         # character ability
-        UseCharacterAbility(protagonist, competitor, player, opponent, battleground, "", abilityphase=8)
-        UseCharacterAbility(competitor, protagonist, opponent, player, battleground, "", abilityphase=8)
+        UseCharacterAbility(closing, "", abilityphase=8)
+        UseCharacterAbility(closing.flip(), "", abilityphase=8)
 
         # reset applied_modifier
         player.applied_modifier, opponent.applied_modifier = [0] * 9, [0] * 9
 
         # sudden death
         if battleground.turn >= 50 and not battleground.sudden_death:
-            print("Sudden Death is activated!!!")
+            narrator.say("Sudden Death is activated!!!")
             sound(audio="Assets/music/sudden_death.mp3")
             battleground.sudden_death = True
 
@@ -303,4 +390,8 @@ def end_of_turn(protagonist, competitor, player_team, opponent_team, player, opp
             opponent = switch_fainted_pokemon_at_end_of_turn(competitor, protagonist, opponent_team, player_team, battleground)
             check_fainted(player, opponent)
 
-    move_selection(protagonist, competitor, player_team, opponent_team, player, opponent, battleground)
+    # player / opponent may have been reassigned by the fainted-switch loop
+    # above, so the context is built here rather than reused.
+    move_selection(Turn(battleground,
+                        Side(protagonist, player_team, player),
+                        Side(competitor, opponent_team, opponent)))

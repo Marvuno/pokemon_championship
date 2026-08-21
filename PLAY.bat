@@ -65,39 +65,25 @@ REM --- Check PySide6 actually imports (covers unusual/broken installs) ---
 set HAVE_QT=1
 if errorlevel 1 set HAVE_QT=0
 
-echo  =====================================================
-echo   How do you want to play?
-echo  =====================================================
-echo.
-echo   1. Graphical interface  (recommended)
-echo   2. Classic command line
-echo.
+REM --- Straight into the game. There is no longer a choice to make: the
+REM     command-line version has been removed, so PySide6 is required rather
+REM     than preferred.
 if "%HAVE_QT%"=="0" (
-    echo   [Note] The graphical interface needs PySide6, which did not
-    echo          install correctly. Falling back to the command line
-    echo          version for now -- try running this file again, or
-    echo          "pip install PySide6" yourself to see the actual error.
+    echo  =====================================================
+    echo   PySide6 did not install correctly
+    echo  =====================================================
     echo.
-    goto CLASSIC
+    echo   Pokemon Champion needs PySide6 to run. Try this file again,
+    echo   or run "pip install PySide6" yourself to see the real error.
+    echo.
+    pause
+    exit /b 1
 )
 
-choice /c 12 /n /m "Enter 1 or 2: "
-if errorlevel 2 goto CLASSIC
-if errorlevel 1 goto GRAPHICAL
-
-:GRAPHICAL
 echo.
 echo  Starting Pokemon Champion...
 echo.
 "%PY%" play.py
-goto END
-
-:CLASSIC
-echo.
-echo  Starting Pokemon Champion ^(command line^)...
-echo.
-"%PY%" main.py
-goto END
 
 :END
 if errorlevel 1 pause

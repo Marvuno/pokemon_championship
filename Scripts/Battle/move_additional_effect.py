@@ -18,6 +18,9 @@ from Scripts.Battle.type_immunity import *
 from Scripts.Battle.battle_checklist import *
 from Scripts.Battle.switching import *
 from Scripts.Battle.ai import *
+from Scripts.Battle.context import Side, Turn
+from Scripts.Art import narrator
+from Scripts.Battle import terrain
 
 
 # check if the modifier reaches +6/-6
@@ -27,7 +30,15 @@ def check_modifier_limit(pokemon):
     return pokemon.modifier
 
 
-def move_special_effect(user_side, target_side, user, target, battleground, user_team, target_team, move):
+def move_special_effect(turn, move):
+    """Apply whatever the move does beyond damage.
+
+    One dispatch table, one signature for every handler. They used to take the
+    same nine positional arguments each -- two competitors, two parties, two
+    Pokemon, the battleground, the move and its payload -- and the median
+    handler used three of them; `target_team` was used by one of twenty-four.
+    See Scripts/Battle/context.py.
+    """
     move_additional_effect = {
         "target_non_volatile": check_move_target_non_volatile_status_effect,
         "target_volatile": check_move_target_volatile_status_effect,
@@ -35,12 +46,14 @@ def move_special_effect(user_side, target_side, user, target, battleground, user
         "opponent_modifier": check_move_target_modifier,
         "self_modifier": check_move_user_modifier,
         "self_heal": check_move_user_heal,
+        "weather_heal": check_move_user_heal_by_weather,
         "team_status_heal": check_move_heal_team_status,
         "hp_draining": check_move_hp_draining,
         "user_protection": check_move_user_protection,
         "self_team_buff": check_move_user_team_buff,
         "weather_effect": check_move_battleground_weather_effect,
         "field_effect": check_move_battleground_field_effect,
+        "terrain": check_move_terrain,
         "apply_entry_hazard": check_move_entry_hazard_effect,
         "clear_entry_hazard": check_move_clear_entry_hazard,
         "switching": check_move_self_switching_effect,
@@ -52,283 +65,366 @@ def move_special_effect(user_side, target_side, user, target, battleground, user
         "swap_barrier": check_move_swap_barrier,
         "add_target_type": check_move_add_target_type,
         "countering": check_move_countering,
+        "ohko": check_move_ohko,
     }
     vartype = type(move.effect_type)
     # only one effect
     if vartype is str:
         if move.effect_type in move_additional_effect.keys():
-            move_additional_effect[move.effect_type](user_side, target_side, user, target, battleground, user_team, target_team, move, move.special_effect)
+            move_additional_effect[move.effect_type](
+                turn, move, move.special_effect)
     # more than one effect
     elif vartype is list:
         for i in range(len(move.effect_type)):
+            # Same membership check the single-effect branch above does. Five
+            # effect_types are handled elsewhere -- retaliation, before_hand,
+            # after_hand and modifier_dependent are power modifiers, and
+            # remove_team_buff is applied with type effectiveness -- so they
+            # have no entry here on purpose. A single-effect move naming one
+            # of them is skipped quietly; a *list* naming one used to index
+            # this dict directly and raise KeyError. No move does today; the
+            # first one to would have been a crash rather than a no-op.
+            handler = move_additional_effect.get(move.effect_type[i])
+            if handler is None:
+                continue
             special_effect = move.special_effect[i]
-            move_additional_effect[move.effect_type[i]](user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect)
+            handler(turn, move, special_effect)
 
 
-# check if the move induces status condition on the target
-def check_move_target_non_volatile_status_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+# check if the move induces a status condition on the target
+def check_move_target_non_volatile_status_effect(turn, move, special_effect):
     # status condition
     temporary_status = special_effect(move.effect_accuracy)
-    if target.status == "Normal" and temporary_status[0] != "Normal":  # change of non-volatile status
-        target.status = status_effect_immunity_check(user, target, move, temporary_status[0])
+    refused, line = terrain.blocks_status(turn.ground, turn.foe.active,
+                                          temporary_status[0])
+    if refused:
+        narrator.say(line % turn.foe.active.name, "fail")
+        return
+    if turn.foe.active.status == "Normal" and temporary_status[0] != "Normal":  # change of non-volatile status
+        turn.foe.active.status = status_effect_immunity_check(turn.user.active, turn.foe.active, move, temporary_status[0])
         with suppress(IndexError, KeyError):
-            if target.volatile_status["NonVolatile"] <= 0:
-                target.volatile_status["NonVolatile"] = temporary_status[1]
-                print(f"{target.name} is now {target.status}!")
-    elif target.status != "Normal" and temporary_status[0] != "Normal":  # non-volatile status won't add up
-        print(f"{target.name} is already {target.status}!")
+            if turn.foe.active.volatile_status["NonVolatile"] <= 0:
+                turn.foe.active.volatile_status["NonVolatile"] = temporary_status[1]
+                narrator.say(f"{turn.foe.active.name} is now {turn.foe.active.status}!")
+    elif turn.foe.active.status != "Normal" and temporary_status[0] != "Normal":  # non-volatile status won't add up
+        narrator.say(f"{turn.foe.active.name} is already {turn.foe.active.status}!")
 
 
-# check if the move induces volatile status on the target
-def check_move_target_volatile_status_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+# check if the move induces a volatile status on the target
+def check_move_target_volatile_status_effect(turn, move, special_effect):
     # status condition
     temporary_status = special_effect(move.effect_accuracy)
     # for yawn only
-    if temporary_status[0] == "Yawn" and target.status != "Normal":
-        print("The move failed.")
-    elif temporary_status[0] == "Flinch" and target_side.faster:
+    if (temporary_status[0] == "Confused"
+            and terrain.blocks_confusion(turn.ground, turn.foe.active)):
+        narrator.say("The mist keeps %s clear-headed!"
+                     % turn.foe.active.name, "fail")
+    elif temporary_status[0] == "Yawn" and turn.foe.active.status != "Normal":
+        narrator.failed()
+    elif temporary_status[0] == "Flinch" and turn.foe.trainer.faster:
         pass
     else:
         with suppress(KeyError):
-            if target.volatile_status[temporary_status[0]] <= 0:
-                target.volatile_status[temporary_status[0]] = temporary_status[1]
-                print(f"{target.name} is now {temporary_status[0]}!")
+            if turn.foe.active.volatile_status[temporary_status[0]] <= 0:
+                turn.foe.active.volatile_status[temporary_status[0]] = temporary_status[1]
+                narrator.say(f"{turn.foe.active.name} is now {temporary_status[0]}!")
             else:
-                print(f"The opponent is already {temporary_status[0]}!")
+                narrator.say(f"The opponent is already {temporary_status[0]}!")
 
 
-# check if the move induces volatile status on the user
-def check_move_user_volatile_status_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+# check if the move induces a volatile status on the user
+def check_move_user_volatile_status_effect(turn, move, special_effect):
     # status condition
     temporary_status = special_effect(move.effect_accuracy)
     with suppress(KeyError):
-        if user.volatile_status[temporary_status[0]] <= 0 or temporary_status[0] == "Grounded":
-            user.volatile_status[temporary_status[0]] = temporary_status[1]
-            print(f"You are already {temporary_status[0]}!")
+        if turn.user.active.volatile_status[temporary_status[0]] <= 0 or temporary_status[0] == "Grounded":
+            turn.user.active.volatile_status[temporary_status[0]] = temporary_status[1]
+            narrator.say(f"You are now {temporary_status[0]}!")
         else:
-            print(f"You are already {temporary_status[0]}!")
+            narrator.say(f"You are already {temporary_status[0]}!")
 
 
-# check if the move affects the target (+ve/-ve)
-def check_move_target_modifier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    # increase/decrease stats on target
-    target.applied_modifier = special_effect if random.random() <= move.effect_accuracy else [0] * 9
-    target.modifier = list(map(operator.add, target.applied_modifier, target.modifier))
-    target.modifier = check_modifier_limit(target)
-    if sum(target.applied_modifier) > 0:
-        print(target.name, end='')
-        for index, stats in enumerate(target.applied_modifier):
-            if stats != 0:
-                print(f" | {MODIFIER[index]} {stats}", end='')
-        print()
+# check if the move changes the target's stats (+ve/-ve)
+def check_move_target_modifier(turn, move, special_effect):
+    # increase/decrease stats on the target
+    turn.foe.active.applied_modifier = special_effect if random.random() <= move.effect_accuracy else [0] * 9
+    was = list(turn.foe.active.modifier)
+    turn.foe.active.modifier = list(map(operator.add, turn.foe.active.applied_modifier, turn.foe.active.modifier))
+    turn.foe.active.modifier = check_modifier_limit(turn.foe.active)
+    # A sentence per stat, saying which way and how far -- see
+    # narrator.stat_change. `any()` rather than `sum() > 0`, because a pure
+    # debuff sums to a negative and a mixed change can sum to zero, so stat
+    # drops were never announced at all.
+    if any(turn.foe.active.applied_modifier):
+        narrator.stat_change(turn.foe.active, was, turn.foe.active.modifier,
+                             turn.foe.active.applied_modifier, turn.ground)
 
 
-# check if the move affects the user (+ve/-ve)
-def check_move_user_modifier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    # increase/decrease stats on user
-    user.applied_modifier = special_effect if random.random() <= move.effect_accuracy else [0] * 9
-    user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
-    user.modifier = check_modifier_limit(user)
-    if sum(user.applied_modifier) > 0:
-        print(user.name, end='')
-        for index, stats in enumerate(user.applied_modifier):
-            if stats != 0:
-                print(f" | {MODIFIER[index]} {stats}", end='')
-        print()
+# check if the move changes the user's stats (+ve/-ve)
+def check_move_user_modifier(turn, move, special_effect):
+    # increase/decrease stats on the user
+    turn.user.active.applied_modifier = special_effect if random.random() <= move.effect_accuracy else [0] * 9
+    was = list(turn.user.active.modifier)
+    turn.user.active.modifier = list(map(operator.add, turn.user.active.applied_modifier, turn.user.active.modifier))
+    turn.user.active.modifier = check_modifier_limit(turn.user.active)
+    if any(turn.user.active.applied_modifier):
+        narrator.stat_change(turn.user.active, was, turn.user.active.modifier,
+                             turn.user.active.applied_modifier, turn.ground)
 
 
 # check if the move heals the user
-def check_move_user_heal(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    print(f"{user.name} heals {math.floor(user.hp * special_effect)} HP.")
-    user.battle_stats[0] = min(user.hp, user.battle_stats[0] + math.floor(user.hp * special_effect))
+def check_move_user_heal(turn, move, special_effect):
+    narrator.say(f"{turn.user.active.name} heals {math.floor(turn.user.active.hp * special_effect)} HP.")
+    turn.user.active.battle_stats[0] = min(turn.user.active.hp, turn.user.active.battle_stats[0] + math.floor(turn.user.active.hp * special_effect))
+
+
+def check_move_user_heal_by_weather(turn, move, special_effect):
+    """A heal whose size depends on the sky. Synthesis, and its two siblings
+    if they are ever added.
+
+    `special_effect` is the fair-weather fraction -- a third for Synthesis.
+    Harsh sun doubles it and any other weather halves it, which is exactly
+    the 1/3, 2/3, 1/6 the real games use, without three numbers in the cell.
+    """
+    weather = turn.ground.weather_effect
+    scale = 2 if weather == "Sunny" else 1 if weather == "Clear" else 0.5
+    fraction = special_effect * scale
+    mended = min(turn.user.active.hp - turn.user.active.battle_stats[0],
+                 math.floor(turn.user.active.hp * fraction))
+    turn.user.active.battle_stats[0] += max(0, mended)
+    narrator.say(f"{turn.user.active.name} draws {max(0, mended)} HP from "
+                 f"the light.", "heal", pokemon=turn.user.active.name,
+                 amount=max(0, mended))
 
 
 # check if the move heals the status of the team
-def check_move_heal_team_status(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    for pokemon in user_team:
-        pokemon.status = "Normal"
-    print(f"{user.name}'s team's status condition has been healed!")
+def check_move_heal_team_status(turn, move, special_effect):
+    # Fainted is held in the same field as poison and sleep, so clearing "the
+    # team's status" was reviving the dead: a fainted team-mate came back as
+    # Normal on 0 HP, which let it be sent out again and stopped
+    # check_win_or_lose -- which asks whether *every* Pokemon is Fainted --
+    # from ever seeing a wipe.
+    for pokemon in turn.user.team:
+        if pokemon.status != "Fainted":
+            pokemon.status = "Normal"
+    narrator.say(f"{turn.user.active.name}'s team's status condition has been healed!", "heal")
 
 
 # check if the move drains hp
-def check_move_hp_draining(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    print(f"{user.name} drains {math.floor((move.damage + min(target.battle_stats[0], 0)) * special_effect)} HP.")
-    user.battle_stats[0] += min(user.hp - user.battle_stats[0], math.floor((move.damage + min(target.battle_stats[0], 0)) * special_effect))
+def check_move_ohko(turn, move, special_effect):
+    """A one-hit knockout that usually does nothing -- Guillotine.
+
+    `special_effect` is the chance of it landing. The move carries power 0, so
+    the damage formula contributes nothing either way; landing it empties the
+    turn.foe.active's HP and check_fainted() does the rest on its usual pass, which
+    keeps the faint going through the same path as any other.
+    """
+    if turn.foe.active.status == "Fainted":
+        return
+    if random.random() > special_effect:
+        narrator.failed()
+        return
+    narrator.say(f"It is a one-hit knockout!")
+    turn.foe.active.battle_stats[0] = 0
+
+
+def check_move_hp_draining(turn, move, special_effect):
+    narrator.say(f"{turn.user.active.name} drains {math.floor((move.damage + min(turn.foe.active.battle_stats[0], 0)) * special_effect)} HP.")
+    turn.user.active.battle_stats[0] += min(turn.user.active.hp - turn.user.active.battle_stats[0], math.floor((move.damage + min(turn.foe.active.battle_stats[0], 0)) * special_effect))
 
 
 # protective move
-def check_move_user_protection(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_user_protection(turn, move, special_effect):
     protective_move_list = {"Protect": 1, "King's Shield": 2, "Baneful Bunker": 3}
-    if random.random() <= (1 / pow(2, user.protection[1])):
-        user.protection[0] = protective_move_list[move.name]
-        user.protection[1] += 1
+    if random.random() <= (1 / pow(2, turn.user.active.protection[1])):
+        turn.user.active.protection[0] = protective_move_list[move.name]
+        turn.user.active.protection[1] += 1
     else:
-        print("The move failed!")
+        narrator.failed()
 
 
 # check if the move buff the whole team
-def check_move_user_team_buff(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_user_team_buff(turn, move, special_effect):
     team_buff = special_effect
-    if team_buff == "Aurora Veil" and battleground.weather_effect != 'Hail':  # hail
-        print(f"Not hailing. {team_buff} failed.")
+    if team_buff == "Aurora Veil" and turn.ground.weather_effect != 'Hail':  # hail
+        narrator.say(f"Not hailing. {team_buff} failed.")
     else:
-        if user_side.in_battle_effects[team_buff] > 0:
-            print(f"{team_buff} is already there.")
+        if turn.user.trainer.in_battle_effects[team_buff] > 0:
+            narrator.say(f"{team_buff} is already there.")
         else:
-            print(f"{team_buff} is set up.")
-            user_side.in_battle_effects[team_buff] = TEAM_BUFF_TURNS
+            narrator.say(f"{team_buff} is set up.")
+            turn.user.trainer.in_battle_effects[team_buff] = TEAM_BUFF_TURNS
 
 
 # check if the move affects the weather
-def check_move_battleground_weather_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_battleground_weather_effect(turn, move, special_effect):
     # weather effect
-    if battleground.weather_effect != special_effect:
-        battleground.weather_effect = special_effect
-        battleground.artificial_weather = True
-        print(weather_desc[battleground.weather_effect])
+    if turn.ground.weather_effect != special_effect:
+        turn.ground.weather_effect = special_effect
+        turn.ground.artificial_weather = True
+        narrator.say(weather_desc[turn.ground.weather_effect], "weather")
 
 
-def check_move_battleground_field_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_terrain(turn, move, special_effect):
+    """Lay a terrain. `special_effect` names which one.
+
+    Setting the terrain that is already down fails, as it does in the real
+    games, rather than silently refreshing its five turns.
+    """
+    said = terrain.set_terrain(turn.ground, special_effect)
+    if said:
+        narrator.say(said, "field", terrain=special_effect)
+    else:
+        narrator.failed()
+
+
+def check_move_battleground_field_effect(turn, move, special_effect):
     # field effect
-    battleground.field_effect[special_effect] = 0 if battleground.field_effect[special_effect] > 0 else FIELD_EFFECT_TURNS
+    turn.ground.field_effect[special_effect] = 0 if turn.ground.field_effect[special_effect] > 0 else FIELD_EFFECT_TURNS
 
 
 # check if the move applies entry hazard
-def check_move_entry_hazard_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_entry_hazard_effect(turn, move, special_effect):
     maximum_usage = {"Stealth Rock": 1, "Spikes": 3, "Toxic Spikes": 2, "Sticky Web": 1}  # maximum number of entry hazards that can be placed
     # entry hazard
-    if target_side.entry_hazard[special_effect] < maximum_usage[special_effect]:
-        print(f"{special_effect} has been set up.")
-        target_side.entry_hazard[special_effect] += 1
+    if turn.foe.trainer.entry_hazard[special_effect] < maximum_usage[special_effect]:
+        narrator.say(f"{special_effect} has been set up.")
+        turn.foe.trainer.entry_hazard[special_effect] += 1
     else:
-        print("The entry hazard has already been placed!")
+        narrator.say("The entry hazard has already been placed!")
 
 
 # clear entry hazard
-def check_move_clear_entry_hazard(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_clear_entry_hazard(turn, move, special_effect):
     if move.name == "Rapid Spin":
-        user_team[0].volatile_status['Binding'] = 0
-        user_side.entry_hazard = dict.fromkeys(user_side.entry_hazard.keys(), 0)
+        turn.user.team[0].volatile_status['Binding'] = 0
+        turn.user.trainer.entry_hazard = dict.fromkeys(turn.user.trainer.entry_hazard.keys(), 0)
     elif move.name == "Defog":
-        user_side.entry_hazard = dict.fromkeys(user_side.entry_hazard.keys(), 0)
-        target_side.entry_hazard = dict.fromkeys(target_side.entry_hazard.keys(), 0)
-        target_side.in_battle_effects = dict.fromkeys(target_side.in_battle_effects.keys(), 0)
+        turn.user.trainer.entry_hazard = dict.fromkeys(turn.user.trainer.entry_hazard.keys(), 0)
+        turn.foe.trainer.entry_hazard = dict.fromkeys(turn.foe.trainer.entry_hazard.keys(), 0)
+        turn.foe.trainer.in_battle_effects = dict.fromkeys(turn.foe.trainer.in_battle_effects.keys(), 0)
 
 
 # switched out own pokemon when using this move
-def check_move_self_switching_effect(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    number_of_pokemon = sum(1 for pokemon in user_team if pokemon.status != "Fainted")
+def check_move_self_switching_effect(turn, move, special_effect):
+    number_of_pokemon = sum(1 for pokemon in turn.user.team if pokemon.status != "Fainted")
     if number_of_pokemon > 1:
-        if user_side.main:  # protagonist side
-            if not battleground.auto_battle:
+        if turn.user.trainer.main:  # protagonist side
+            if not turn.ground.auto_battle:
                 if move.name == "Baton Pass":
-                    user_team[0] = switching_criteria(user_side, target_side, user_team, target_team, battleground, True, True)
+                    turn.user.team[0] = switching_criteria(turn.user.trainer, turn.foe.trainer, turn.user.team, turn.foe.team, turn.ground, True, True)
                 else:
-                    user_team[0] = switching_criteria(user_side, target_side, user_team, target_team, battleground, True)
+                    turn.user.team[0] = switching_criteria(turn.user.trainer, turn.foe.trainer, turn.user.team, turn.foe.team, turn.ground, True)
             else:
-                user_team[0] = switching_mechanism(user_side, target_side, battleground, user_team, target_team,
-                                                   ai_switching_mechanism(target_side, user_side, battleground, True, True), False)
+                turn.user.team[0] = switching_mechanism(turn.user.trainer, turn.foe.trainer, turn.ground, turn.user.team, turn.foe.team,
+                                                   ai_switching_mechanism(turn.foe.trainer, turn.user.trainer, turn.ground, True, True), False)
         else:
-            user_team[0] = switching_mechanism(user_side, target_side, battleground, user_team, target_team,
-                                               ai_switching_mechanism(target_side, user_side, battleground, True, True), False)
+            turn.user.team[0] = switching_mechanism(turn.user.trainer, turn.foe.trainer, turn.ground, turn.user.team, turn.foe.team,
+                                               ai_switching_mechanism(turn.foe.trainer, turn.user.trainer, turn.ground, True, True), False)
 
 
 # exclusive for move curse only
-def check_move_cursing(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    if "Ghost" in user.type:
-        if target.volatile_status['Curse'] != 0:
-            print("The opponent is already cursed!")
+def check_move_cursing(turn, move, special_effect):
+    if "Ghost" in turn.user.active.type:
+        if turn.foe.active.volatile_status['Curse'] != 0:
+            narrator.say("The opponent is already cursed!")
         else:
-            user.battle_stats[0] -= user.hp // 2
-            target.volatile_status['Curse'] = 1
+            turn.user.active.battle_stats[0] -= turn.user.active.hp // 2
+            turn.foe.active.volatile_status['Curse'] = 1
     else:
-        # increase/decrease stats on user
-        user.applied_modifier = special_effect
-        user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
-        print(user.modifier)
+        # increase/decrease stats on the user
+        turn.user.active.applied_modifier = special_effect
+        turn.user.active.modifier = list(map(operator.add, turn.user.active.applied_modifier, turn.user.active.modifier))
+        narrator.say(turn.user.active.modifier)
 
 
-def check_move_hp_split(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_hp_split(turn, move, special_effect):
     if special_effect == "Split":
-        splited_hp = (user.battle_stats[0] + target.battle_stats[0]) // 2
-        user.battle_stats[0], target.battle_stats[0] = min(user.hp, splited_hp), min(target.hp, splited_hp)
+        splited_hp = (turn.user.active.battle_stats[0] + turn.foe.active.battle_stats[0]) // 2
+        turn.user.active.battle_stats[0], turn.foe.active.battle_stats[0] = min(turn.user.active.hp, splited_hp), min(turn.foe.active.hp, splited_hp)
     elif special_effect == "Same":
-        target.battle_stats[0] = min(user.battle_stats[0], target.battle_stats[0])
+        turn.foe.active.battle_stats[0] = min(turn.user.active.battle_stats[0], turn.foe.active.battle_stats[0])
 
 
-def check_move_disable(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_disable(turn, move, special_effect):
     if special_effect == "Disable":
         with suppress(ValueError, AttributeError):
             try:
-                if target.disabled_moves[target.previous_move.name] != 0 and target.previous_move.name != "Switching":
-                    print("The move is already disabled!")
+                if turn.foe.active.disabled_moves[turn.foe.active.previous_move.name] != 0 and turn.foe.active.previous_move.name != "Switching":
+                    narrator.say("The move is already disabled!", "fail")
             except KeyError:
-                target.disabled_moves[target.previous_move.name] = 5
+                turn.foe.active.disabled_moves[turn.foe.active.previous_move.name] = 5
     elif special_effect == "Taunt":
-        for i in range(len(target.moveset)):
-            move = list_of_moves[target.moveset[i]]
+        for i in range(len(turn.foe.active.moveset)):
+            move = list_of_moves[turn.foe.active.moveset[i]]
             if move.attack_type == "Status" and move.name != "Switching":
                 try:
-                    if target.disabled_moves[move.name] != 0:
-                        print("The move is already disabled!")
+                    if turn.foe.active.disabled_moves[move.name] != 0:
+                        narrator.say("The move is already disabled!", "fail")
                 except KeyError:
-                    target.disabled_moves[move.name] = 5
+                    turn.foe.active.disabled_moves[move.name] = 5
     elif special_effect == "Encore":
-        for i in range(len(target.moveset)):
-            move = list_of_moves[target.moveset[i]]
+        for i in range(len(turn.foe.active.moveset)):
+            move = list_of_moves[turn.foe.active.moveset[i]]
             try:
-                if move.name != "Switching" and move.name != target.previous_move.name and target.previous_move.name != "Switching":
+                if move.name != "Switching" and move.name != turn.foe.active.previous_move.name and turn.foe.active.previous_move.name != "Switching":
                     try:
-                        if target.disabled_moves[move.name] != 0:
-                            print("The move is already disabled!")
+                        if turn.foe.active.disabled_moves[move.name] != 0:
+                            narrator.say("The move is already disabled!", "fail")
                     except KeyError:
-                        target.disabled_moves[move.name] = 4
+                        turn.foe.active.disabled_moves[move.name] = 4
             except AttributeError:
-                print("The move failed!")
+                narrator.failed()
     elif special_effect == "Sound":
-        for i in range(len(target.moveset)):
-            move = list_of_moves[target.moveset[i]]
+        for i in range(len(turn.foe.active.moveset)):
+            move = list_of_moves[turn.foe.active.moveset[i]]
             if 'f' in move.flags:
                 try:
-                    if target.disabled_moves[move.name] != 0 and target.previous_move.name != "Switching":
-                        print("The move is already disabled!")
+                    if turn.foe.active.disabled_moves[move.name] != 0 and turn.foe.active.previous_move.name != "Switching":
+                        narrator.say("The move is already disabled!", "fail")
                 except KeyError:
-                    target.disabled_moves[move.name] = 2
+                    turn.foe.active.disabled_moves[move.name] = 2
 
 
-def check_move_reset_target_modifier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    target.modifier = [0] * 9
-    print(f"{target.name}'s stat change has been reset!")
+def check_move_reset_target_modifier(turn, move, special_effect):
+    turn.foe.active.modifier = [0] * 9
+    narrator.say(f"{turn.foe.active.name}'s stat change has been reset!")
 
 
-def check_move_reset_user_modifier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    user.modifier = [0] * 9
-    print(f"{user.name}'s stat change has been reset!")
+def check_move_reset_user_modifier(turn, move, special_effect):
+    turn.user.active.modifier = [0] * 9
+    narrator.say(f"{turn.user.active.name}'s stat change has been reset!")
 
 
-def check_move_swap_barrier(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    user_side.in_battle_effects, target_side.in_battle_effects = target_side.in_battle_effects, user_side.in_battle_effects
-    user_side.entry_hazard, target_side.entry_hazard = target_side.entry_hazard, user_side.entry_hazard
-    print("Entry hazard and in-game barriers have been swapped!")
+def check_move_swap_barrier(turn, move, special_effect):
+    turn.user.trainer.in_battle_effects, turn.foe.trainer.in_battle_effects = turn.foe.trainer.in_battle_effects, turn.user.trainer.in_battle_effects
+    turn.user.trainer.entry_hazard, turn.foe.trainer.entry_hazard = turn.foe.trainer.entry_hazard, turn.user.trainer.entry_hazard
+    narrator.say("Entry hazard and in-game barriers have been swapped!")
 
 
-def check_move_add_target_type(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
+def check_move_add_target_type(turn, move, special_effect):
     for typing in special_effect:
-        if typing not in target.type:
-            target.type += [typing]
-            print(f"{target.name} has been added {typing} type.")
+        if typing not in turn.foe.active.type:
+            # a new list, not `+=`: switching_mechanism aliases `type` to
+            # `default_type`, and editing in place rewrote the typing the
+            # Pokemon is supposed to revert to
+            turn.foe.active.type = turn.foe.active.type + [typing]
+            narrator.say(f"{turn.foe.active.name} has been added {typing} type.")
 
 
-def check_move_countering(user_side, target_side, user, target, battleground, user_team, target_team, move, special_effect):
-    type_effectiveness = 0 if math.prod([typeChart[move.type][target.type[x]] for x in range(len(target.type))]) == 0 else 1
-    if type(target.previous_move) is not str:
-        target.previous_move.damage = getattr(target.previous_move, 'damage', 0)
-        if move.name == "Counter" and target.previous_move.attack_type == "Physical":
-            print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
-            target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
-        elif move.name == "Mirror Coat" and target.previous_move.attack_type == "Special":
-            print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 2 * type_effectiveness} damage.")
-            target.battle_stats[0] -= target.previous_move.damage * 2 * type_effectiveness
+def check_move_countering(turn, move, special_effect):
+    type_effectiveness = 0 if math.prod([typeChart[move.type][turn.foe.active.type[x]] for x in range(len(turn.foe.active.type))]) == 0 else 1
+    # "does it have a move's attributes", not "is it not a string". The old
+    # test let None through -- which is what a Pokemon carried into its next
+    # battle -- and reading .damage off None raised on the first turn.
+    if hasattr(turn.foe.active.previous_move, "attack_type"):
+        turn.foe.active.previous_move.damage = getattr(turn.foe.active.previous_move, 'damage', 0)
+        if move.name == "Counter" and turn.foe.active.previous_move.attack_type == "Physical":
+            narrator.say(f"{turn.foe.active.name} has been counter-attacked, suffering {turn.foe.active.previous_move.damage * 2 * type_effectiveness} damage.")
+            turn.foe.active.battle_stats[0] -= turn.foe.active.previous_move.damage * 2 * type_effectiveness
+        elif move.name == "Mirror Coat" and turn.foe.active.previous_move.attack_type == "Special":
+            narrator.say(f"{turn.foe.active.name} has been counter-attacked, suffering {turn.foe.active.previous_move.damage * 2 * type_effectiveness} damage.")
+            turn.foe.active.battle_stats[0] -= turn.foe.active.previous_move.damage * 2 * type_effectiveness
         elif move.name == "Metal Burst":
-            print(f"{target.name} has been counter-attacked, suffering {target.previous_move.damage * 1.5 * type_effectiveness} damage.")
-            target.battle_stats[0] -= target.previous_move.damage * 1.5 * type_effectiveness
+            narrator.say(f"{turn.foe.active.name} has been counter-attacked, suffering {turn.foe.active.previous_move.damage * 1.5 * type_effectiveness} damage.")
+            turn.foe.active.battle_stats[0] -= turn.foe.active.previous_move.damage * 1.5 * type_effectiveness

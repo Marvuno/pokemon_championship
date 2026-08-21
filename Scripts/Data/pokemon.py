@@ -10,6 +10,11 @@ class Pokemon:
         self.total_stats = total_stats
         self.iv, self.nominal_base_stats, self.total_iv = 0, 0, 0
         self.previous_move = ""
+        #: {target name: {move names that landed no damage on it}}. Written when
+        #: a move resolves (see battle_checklist) and read by the AI, so it
+        #: stops re-picking an attack already proven to do nothing to whatever
+        #: is standing opposite.
+        self.ineffective_moves = {}
         self.modifier = [0] * 9
         self.applied_modifier = [0] * 9
         self.status = "Normal"

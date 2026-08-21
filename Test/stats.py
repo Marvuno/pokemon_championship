@@ -1,4 +1,5 @@
 from Scripts.Data.abilities import *
+from Scripts.Battle.context import Side, Turn
 from Scripts.Art.text_color import *
 
 TYPING = {0: 'Normal', 1: 'Fire', 2: 'Water', 3: 'Electric', 4: 'Grass', 5: 'Ice', 6: 'Fighting', 7: 'Poison', 8: 'Ground',
@@ -43,7 +44,10 @@ for move in list_of_moves.values():
     if move.custom:
         print(f"{CYELLOW2}{move.name} ({move.type}): {move.power} power, {move.attack_type}{CEND}")
 
-UseAbility('', '', '', '', '', verbose=True)
+# the ability entry point takes a battle context now; verbose
+# only wants the registry dump, so a hollow one will do
+UseAbility(Turn('', Side('', [], ''), Side('', [], '')),
+           verbose=True)
 
 print(f"\n\n{CBOLD}Move Usage: {CEND}\n")
 move_usage = True  # debug only

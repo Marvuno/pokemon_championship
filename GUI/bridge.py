@@ -36,12 +36,9 @@ from .ansi import strip as ansi_strip
 
 
 import re
+from Scripts.Art import narrator
 
 BARE_REPR_RE = re.compile(r"^\{.*\}$")
-#: elo_rating()'s per-match line, e.g. "Ash Ketchum: Win [+12]"
-ELO_LINE_RE = re.compile(
-    r"^(?P<name>.+?):\s*(?P<result>Win|Lose)\s*\[(?P<sign>[+-])"
-    r"(?P<value>\d+)\]\s*$")
 
 
 def is_raw_debug_dump(text):
@@ -565,6 +562,33 @@ def snap_move(name):
     }
 
 
+def base_typing(mon):
+    """A Pokemon's typing as the roster defines it, ignoring the battle.
+
+    Away from the arena -- the swap screen, the team viewer -- the typing that
+    is useful is the one the Pokemon actually *has*, not whatever it was
+    wearing when the match ended. Protean and Libero rewrite `type` outright,
+    so a Cinderace that fainted after a Bug move stayed Bug; and a character
+    ability that grants an extra type is applied before `default_type` is taken,
+    so that copy is no help either. Data/pokemon.csv is the one source neither
+    can reach.
+
+    Falls back to the live typing when the name is not in the table, which is
+    how a form-changing Pokemon (Aegislash) or anything unrecognised still
+    shows something rather than nothing.
+    """
+    # imported here rather than at module scope, as everywhere else in this
+    # file: importing the game's data modules at import time would pull the
+    # engine in before the interface has finished setting itself up
+    from Scripts.Data.pokemon import list_of_pokemon
+    for attribute in ("default_name", "name"):
+        name = str(_g(mon, attribute, "") or "")
+        entry = list_of_pokemon.get(name) if name else None
+        if entry is not None:
+            return list(_g(entry, "type", []) or [])
+    return list(_g(mon, "type", []) or [])
+
+
 def snap_pokemon(mon, active=False):
     if mon is None:
         return None
@@ -643,6 +667,11 @@ def snap_roster(team):
         snap["fainted"] = False
         if snap.get("status") == "Fainted":
             snap["status"] = "Normal"
+        # The typing the Pokemon actually has, not what it was wearing when
+        # the match ended -- see base_typing(). This is the roster view, so a
+        # Cinderace that fainted as Bug after Libero belongs here as Fire, and
+        # a type granted by a character ability is not part of the Pokemon.
+        snap["types"] = base_typing(mon)
         out.append(snap)
     return out
 
@@ -667,7 +696,8 @@ def snap_team(team, active_mon=None, in_battle=True):
         out.append({
             "name": str(_g(mon, "name", "?")),
             "sprite": sprite_key(_g(mon, "name", "")),
-            "types": list(_g(mon, "type", []) or []),
+            "types": base_typing(mon) if not in_battle
+            else list(_g(mon, "type", []) or []),
             "status": str(_g(mon, "status", "Normal")),
             "hp": max(0, int(current)),
             "max_hp": max(1, int(max_hp or current or 1)),
@@ -702,6 +732,7 @@ def snap_field(battleground):
     # place instead of in every consumer.
     artificial = bool(_g(battleground, "artificial_weather", False))
     elapsed = _g(battleground, "weather_turn", 0) or 0
+    terrain = _g(battleground, "terrain", "None")
     try:
         from Scripts.Battle.constants import WEATHER_EFFECT_TURNS as limit
     except Exception:
@@ -714,6 +745,13 @@ def snap_field(battleground):
                           else None),
         "field": {k: v for k, v in (_g(battleground, "field_effect", {})
                                     or {}).items() if v},
+        # Terrain is its own layer, published on its own -- not folded into
+        # `field` next to Trick Room, because the two are independent and the
+        # interface draws them as separate boxes. None while no terrain is
+        # down, which is what hides the box (see FieldStrip).
+        "terrain": (str(terrain) if terrain and terrain != "None" else None),
+        "terrain_turns": (int(_g(battleground, "terrain_turn", 0) or 0)
+                          if terrain and terrain != "None" else None),
         "sudden_death": bool(_g(battleground, "sudden_death", False)),
         "auto_battle": bool(_g(battleground, "auto_battle", False)),
     }
@@ -725,6 +763,21 @@ def game_stage():
         return _g(GameSystem, "stage", 1)
     except Exception:
         return 1
+
+
+def championship_run():
+    """Which championship this is, counting from 1.
+
+    The player is in every championship, so their finished-run count is the
+    number already held; this one is the next. Read fresh each time rather than
+    cached, because a run that ends increments it.
+    """
+    try:
+        from Scripts.Data.competitors import list_of_competitors
+        player = list_of_competitors.get("Protagonist")
+        return int(_g(player, "participation", 0) or 0) + 1
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -809,6 +862,7 @@ def install_hooks(bridge, game_main):
         fields = {
             "phase": resolved_phase,
             "stage": game_stage(),
+            "championship_run": championship_run(),
             "player_side": snap_side(ctx["protagonist"]),
             "opponent_side": snap_side(ctx["competitor"]),
             "field": snap_field(ctx["battleground"]),
@@ -955,16 +1009,16 @@ def install_hooks(bridge, game_main):
     # fragments of the log after the fact.
     original_move_exec = checklist.move_order_and_execution
 
-    def move_order_and_execution(user_side, target_side, user_team,
-                                 target_team, user, target, battleground,
-                                 move, target_move, *a, **kw):
+    def move_order_and_execution(turn, move, target_move, *a, **kw):
+        # Takes a battle context now -- see Scripts/Battle/context.py. The
+        # banner needs the acting side and the Pokemon acting, both of which
+        # are on it.
         result, text = bridge.capture(
-            original_move_exec, user_side, target_side, user_team,
-            target_team, user, target, battleground, move, target_move,
-            *a, **kw)
+            original_move_exec, turn, move, target_move, *a, **kw)
         if text.strip():
-            bridge.emit_banner("move", text, side=side_of(user_side),
-                               actor=_g(user, "name", ""))
+            bridge.emit_banner("move", text,
+                               side=side_of(turn.user.trainer),
+                               actor=_g(turn.user.active, "name", ""))
         return result
 
     patch_everywhere("move_order_and_execution", original_move_exec,
@@ -979,23 +1033,23 @@ def install_hooks(bridge, game_main):
         if original is None:
             return
 
-        def wrapper(user_side, target_side, user, target, battleground,
-                   move="", abilityphase=1, verbose=False, *a, **kw):
+        def wrapper(turn, move="", abilityphase=1, verbose=False, *a, **kw):
+            # The engine's ability entry points take a battle context now --
+            # see Scripts/Battle/context.py. This hook reads the two things it
+            # needs off it rather than being handed six positional arguments.
+            user_side, user = turn.user.trainer, turn.user.active
             nested = bool(bridge._capture_stack)
             if nested and not trainer:
                 # A Pokemon ability firing mid-move is already narrated
                 # inside that move's own log entry.
-                return original(user_side, target_side, user, target,
-                                battleground, move, abilityphase, verbose,
-                                *a, **kw)
+                return original(turn, move, abilityphase, verbose, *a, **kw)
             # Character abilities are reported even when nested: most of
             # them trigger from inside move resolution (phases 3-7), so
             # skipping nested calls meant the majority never surfaced at
             # all. `nested` lets the interface show the on-field callout
             # without duplicating text the move entry already carries.
             result, text = bridge.capture(
-                original, user_side, target_side, user, target, battleground,
-                move, abilityphase, verbose, *a, **kw)
+                original, turn, move, abilityphase, verbose, *a, **kw)
             if text.strip():
                 # A trainer's character ability belongs to the trainer, not
                 # to whichever Pokemon happens to be out, and it was
@@ -1168,39 +1222,26 @@ def install_hooks(bridge, game_main):
                         None)
         except Exception:
             pass
-        result, text = bridge.capture(original_elo, *a, **kw)
+
+        # Each match's figure arrives as a fact rather than as a line to be
+        # parsed. This used to run a regular expression over the printed
+        # "Nickname: Win [+12]" to recover a number elo_rating() had just
+        # worked out, and needed a fall back to print order for the case
+        # where two competitors share a nickname. See Scripts/Art/narrator.py.
+        journey = []
+
+        def hear(kind, text, facts):
+            if "rating_change" in facts:
+                journey.append(dict(facts))
+
+        stop = narrator.listen(hear)
+        try:
+            result, _text = bridge.capture(original_elo, *a, **kw)
+        finally:
+            stop()
+
         try:
             protagonist = list_of_competitors_ref()["Protagonist"]
-            # elo_rating() prints its own per-match figure as
-            # "Nickname: Win [+12]". Reading those back beats recomputing the
-            # formula here, which would silently drift the day the engine's
-            # rating maths is retuned.
-            per_match = {}
-            order = []
-            for line in ansi_strip(text).splitlines():
-                found = ELO_LINE_RE.match(line.strip())
-                if found:
-                    delta = int(found.group("value"))
-                    if found.group("sign") == "-":
-                        delta = -delta
-                    per_match.setdefault(found.group("name").strip(),
-                                         []).append(delta)
-                    order.append(delta)
-
-            journey = []
-            for idx, opponent in enumerate(_g(protagonist, "opponent", [])
-                                           or []):
-                won = protagonist.win_order[idx] == 1
-                deltas = per_match.get(opponent.nickname)
-                if deltas:
-                    change = deltas.pop(0)
-                elif idx < len(order):
-                    change = order[idx]      # fall back to print order
-                else:
-                    change = None
-                journey.append({"nickname": opponent.nickname, "won": won,
-                                "strength": opponent.strength,
-                                "rating_change": change})
             after = _g(protagonist, "strength", 0)
             bridge.publish(phase="leaderboard", journey=journey,
                           rating=after,
@@ -1210,6 +1251,7 @@ def install_hooks(bridge, game_main):
         except Exception:
             pass
         return result
+
 
     def list_of_competitors_ref():
         from Scripts.Data.competitors import list_of_competitors
@@ -1365,6 +1407,41 @@ def install_hooks(bridge, game_main):
 
     patch_everywhere("participant_list", original_list, participant_list)
 
+    def all_runs(op):
+        """One row per championship ever held, entered or not.
+
+        How many have been held is taken from the player's own history: they
+        are in every run by definition, so their run count is the tournament
+        count. A competitor's own history supplies the rank and the winner for
+        the runs they were in; the rest are marked as not having taken part, so
+        every career lists the same runs and the numbering never has holes.
+        """
+        held = _g(list_of_competitors_ref().get("Protagonist"), "history", {}) \
+            or {}
+        mine = _g(op, "history", {}) or {}
+        total = max([int(run) for run in held] + [int(run) for run in mine]
+                    + [-1]) + 1
+        out = []
+        for index in range(total):
+            entry = mine.get(index)
+            champion = held.get(index)
+            out.append({
+                "run": index + 1,
+                "entered": entry is not None,
+                "rank": entry[1] if entry and len(entry) > 1 else None,
+                # their own path: [[nickname, won], ...] in round order. A
+                # fifth element added when per-run tracking went in, so runs
+                # recorded before that have nothing here.
+                "path": [[str(name), bool(won)] for name, won
+                         in (entry[4] or [])]
+                        if entry and len(entry) > 4 else [],
+                # who actually won it, which is known even for a run this
+                # competitor sat out
+                "champion": str(champion[0]) if champion else
+                            (str(entry[0]) if entry else ""),
+            })
+        return out
+
     def nickname_of(name):
         """A competitor's display name, or the raw key if the roster has been
         renamed since the save was written."""
@@ -1400,7 +1477,13 @@ def install_hooks(bridge, game_main):
         # window.
         bridge.publish(career_open=True, career_champions=[
             {"run": int(run) + 1, "champion": str(entry[0]),
-             "rank": entry[1] if len(entry) > 1 else None}
+             "rank": entry[1] if len(entry) > 1 else None,
+             # Who the champion of that run got through. A fourth element
+             # added when per-run tracking went in, so runs recorded before
+             # that simply have nothing here and the panel shows the champion
+             # alone -- which is what every existing save will do.
+             "beaten": [str(name) for name in (entry[3] or [])]
+                       if len(entry) > 3 else []}
             for run, entry in sorted((_g(protagonist, "history", {}) or {})
                                      .items())])
         return result
@@ -1421,7 +1504,12 @@ def install_hooks(bridge, game_main):
         bridge.publish(career_report={
             "name": _g(op, "name", ""),
             "nickname": op.nickname,
-            "tier": str(_g(op, "level", "") or ""),
+            # The player's Level column in competitors.csv literally reads
+            # "Protagonist", which is an internal marker and not a tier the
+            # player should ever be shown alongside Low/High/Boss. Blanked for
+            # them, left alone for everybody else.
+            "tier": "" if _g(op, "main", False)
+                    else str(_g(op, "level", "") or ""),
             "rating": _g(op, "strength", 0),
             "is_player": bool(_g(op, "main", False)),
             "description": describe(op),
@@ -1431,12 +1519,14 @@ def install_hooks(bridge, game_main):
             "losses": losses,
             "win_rate": round(100.0 * wins / played, 2) if played else None,
             # history is {run: (champion of that run, rank, score)}, so each
-            # run can say who won it as well as where they came
-            "runs": [{"run": int(run) + 1,
-                      "rank": entry[1] if len(entry) > 1 else None,
-                      "champion": str(entry[0]) if entry else ""}
-                     for run, entry in sorted((_g(op, "history", {}) or {})
-                                              .items())],
+            # run can say who won it as well as where they came.
+            #
+            # Every championship ever held gets a row, not just the ones this
+            # competitor entered: a run they sat out reads "No Participation".
+            # Without that the list was a different length for everyone, so two
+            # players' careers could not be read side by side and a gap looked
+            # like missing data rather than an absence.
+            "runs": all_runs(op),
             "most_played": [
                 {"nickname": nickname_of(name), "wins": record[0],
                  "losses": record[1]}
@@ -1458,13 +1548,18 @@ def install_hooks(bridge, game_main):
             if name == _g(op, "name", None):
                 continue                       # nobody plays themselves
             played = record[0] + record[1]
-            if not played:
-                continue                       # never met: not a row worth
+            # Everybody gets a row, including opponents never faced -- they
+            # read as 0W 0L with no win rate at all. Leaving them out made the
+            # table a different length for every competitor, so there was no
+            # way to tell "beaten nobody" apart from "never drawn against
+            # them", and no two players' tables lined up.
             rows.append({"nickname": nickname_of(name), "wins": record[0],
                          "losses": record[1],
                          "rating": _g(roster.get(name), "strength", 0),
                          "tier": str(_g(roster.get(name), "level", "") or ""),
-                         "win_rate": round(100.0 * record[0] / played)})
+                         "played": played,
+                         "win_rate": round(100.0 * record[0] / played)
+                         if played else None})
         # By the opponent's rating, hardest first. Most-played first put the
         # people you happen to keep drawing at the top, which says more about
         # the bracket than about the record -- rating order reads as "how far

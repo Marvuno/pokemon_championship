@@ -80,8 +80,12 @@ def switch_order(protagonist, opponent):
     swap_pokemon_order = 0
     while not (1 <= swap_pokemon_order < len(protagonist.team)):
         with suppress(ValueError, IndexError):
-            swap_pokemon_order = int(input(f'Which pokemon would you like to swap to be the first? Input 9 if you do not want to swap. '
-                                           f'{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]} '))
+            # No "input 9" instruction: the window turns the sentinel into a
+            # No Swapping button, and telling a player to type a number at a
+            # screen made of buttons only reads as a leftover.
+            swap_pokemon_order = int(input(f'Which pokemon would you like to swap to be the first?\n'
+                                           f'{[(index, pokemon.name) for index, pokemon in enumerate(protagonist.team)]}\n'
+                                           f'9: No Swapping\n'))
             if swap_pokemon_order == 9:
                 break
             else:

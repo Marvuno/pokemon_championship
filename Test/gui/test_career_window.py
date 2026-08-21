@@ -204,9 +204,9 @@ def finish(why):
           player.get("records", "").count(" W  ") > 3)
 
     check("the tournaments tab lists every run",
-          "every championship entered" in player.get("runs", "").lower())
-    check("...with a best finish", "best finish" in player.get("runs", ""))
-    check("...and who won each one", "won by" in player.get("runs", ""))
+          "every championship" in player.get("runs", "").lower())
+    check("...with a best finish", "BEST FINISH" in player.get("runs", ""))
+    check("...and who won each one", "Champion:" in player.get("runs", ""))
     check("nothing scrolls sideways", set(player.get("hbars") or [1]),
           {Qt.ScrollBarAlwaysOff})
     check("head to head is ordered by rating, hardest first",

@@ -11,10 +11,14 @@ type spine). Changing corner radius or border behaviour for every panel in
 the app is a one-place edit.
 """
 
+import math
+
 from PySide6.QtCore import (Property, QEasingCurve, QPropertyAnimation,
-                            QRectF, Qt, QTimer, Signal)
-from PySide6.QtGui import (QBrush, QColor, QFont, QLinearGradient, QPainter,
-                           QPainterPath, QPen)
+                            QSize,
+                            QPointF, QRectF, Qt, QTimer, Signal)
+from PySide6.QtGui import (QBrush, QColor, QFont, QFontMetrics,
+                           QLinearGradient, QPainter,
+                           QPainterPath, QPen, QPixmap, QPolygonF)
 from PySide6.QtWidgets import (QFrame, QGraphicsDropShadowEffect, QHBoxLayout,
                                QLabel, QScrollArea, QSizePolicy, QVBoxLayout,
                                QWidget)
@@ -22,10 +26,16 @@ from PySide6.QtWidgets import (QFrame, QGraphicsDropShadowEffect, QHBoxLayout,
 from GUI import theme as T
 
 
-def label(text, font, color, wrap=False, align=None):
+def label(text, font, color, wrap=False, align=None, parent=None):
     """A styled QLabel. Every plain text label in the interface goes through
-    here -- it is the one place the transparent-background rule lives."""
-    widget = QLabel(text)
+    here -- it is the one place the transparent-background rule lives.
+
+    `parent` is worth passing on any screen that rebuilds itself repeatedly.
+    A widget with no parent is a top-level window in Qt's eyes, and one built
+    into a layout only on the next line is briefly exactly that; handing it a
+    parent at construction means it is never anything but a child.
+    """
+    widget = QLabel(text, parent)
     widget.setFont(font)
     widget.setWordWrap(wrap)
     if align is not None:
@@ -42,11 +52,19 @@ def clear_layout(layout):
     still a child sitting at its old coordinates but managed by no layout.
     Screens that rebuild without returning to the event loop first drew the
     new widgets over the top of the old ones.
+
+    hide() before that, because setParent(None) makes the widget a top-level
+    window and a top-level window is a *window*: one that survives to the end
+    of the turn still counting as shown is a bare label sitting on the
+    desktop with no frame and nothing in it. Qt usually hides on reparent by
+    itself, but "usually" was worth about six little empty windows a battle,
+    and hiding first costs nothing.
     """
     while layout.count():
         item = layout.takeAt(0)
         widget = item.widget()
         if widget is not None:
+            widget.hide()
             widget.setParent(None)
             widget.deleteLater()
         elif item.layout() is not None:
@@ -94,6 +112,92 @@ class RoundedPanel(QFrame):
         if self.border_width:
             painter.setPen(QPen(self.border, self.border_width))
             painter.drawPath(path)
+
+
+class WordArt(QWidget):
+    """A line of text drawn as artwork: gradient fill inside a dark outline.
+
+    A QLabel can only be a flat colour with an optional shadow behind it, and
+    over a lit stadium that reads as text sitting on a photograph. This paints
+    the glyphs as a path instead, which allows three things a label cannot do:
+    a fill that shades from top to bottom, a stroke that separates the letters
+    from whatever is behind them at every edge rather than only below, and a
+    soft dark spread underneath for depth.
+
+    Sized from its own font metrics, so a layout reserves the right room and
+    the text is never clipped by the widget it is in.
+    """
+
+    def __init__(self, text="", font=None, top=None, bottom=None, edge=None,
+                 tracking=0.0, parent=None):
+        super().__init__(parent)
+        self._text = text
+        self._font = font or QFont()
+        #: the fill shades from `top` down to `bottom`
+        self._top = QColor(top or "#FFFFFF")
+        self._bottom = QColor(bottom or "#BFD4FF")
+        self._edge = QColor(edge or "#06102A")
+        self._tracking = tracking
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
+    def setText(self, text):
+        if text == self._text:
+            return
+        self._text = text
+        self.updateGeometry()
+        self.update()
+
+    def text(self):
+        return self._text
+
+    def _spaced_font(self):
+        font = QFont(self._font)
+        if self._tracking:
+            font.setLetterSpacing(QFont.AbsoluteSpacing, self._tracking)
+        return font
+
+    def sizeHint(self):
+        metrics = QFontMetrics(self._spaced_font())
+        rect = metrics.boundingRect(self._text or " ")
+        # room for the stroke and the spread, on every side
+        return QSize(rect.width() + 26, metrics.height() + 16)
+
+    def minimumSizeHint(self):
+        return QSize(0, self.sizeHint().height())
+
+    def paintEvent(self, event):
+        if not self._text:
+            return
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.TextAntialiasing)
+
+        font = self._spaced_font()
+        metrics = QFontMetrics(font)
+        width = metrics.boundingRect(self._text).width()
+        x = (self.width() - width) / 2.0
+        baseline = (self.height() + metrics.capHeight()) / 2.0
+
+        path = QPainterPath()
+        path.addText(x, baseline, font, self._text)
+
+        # a soft dark spread first, so the letters sit on the picture rather
+        # than floating over it
+        painter.setPen(Qt.NoPen)
+        for spread, alpha in ((7.0, 40), (4.5, 70), (2.5, 110)):
+            glow = QColor(self._edge)
+            glow.setAlpha(alpha)
+            painter.strokePath(path, QPen(glow, spread, Qt.SolidLine,
+                                          Qt.RoundCap, Qt.RoundJoin))
+        # then the hard outline, then the gradient inside it
+        painter.strokePath(path, QPen(self._edge, 3.0, Qt.SolidLine,
+                                      Qt.RoundCap, Qt.RoundJoin))
+        bounds = path.boundingRect()
+        fill = QLinearGradient(bounds.topLeft(), bounds.bottomLeft())
+        fill.setColorAt(0.0, self._top)
+        fill.setColorAt(1.0, self._bottom)
+        painter.fillPath(path, QBrush(fill))
 
 
 class Chip(QLabel):
@@ -277,6 +381,12 @@ class ActionButton(RoundedPanel):
         super().__init__(parent, bg=base_bg, border=base_border,
                          radius=T.RADIUS_MD)
         self._base_bg, self._accent = base_bg, QColor(accent)
+        #: what it says. Kept as an attribute because the title was
+        #: otherwise readable only by digging out the child QLabel -- which
+        #: meant nothing could tell "Play Again" from "Close", and
+        #: Test/gui/soak.py's list of buttons a crash-sweep must not press
+        #: silently matched none of them.
+        self.title = title
         self.disabled = disabled
         self._handler = on_click        # kept, so set_enabled can restore it
         self.on_click = None if disabled else on_click
@@ -422,13 +532,82 @@ class TeamPips(QWidget):
             x += self.PIP_D + self.PIP_GAP
 
 
+#: index into pokemon.modifier -> short label. 0 is HP, which is a real number
+#: rather than a stage. Shared by the status card and the hover card.
+STAGE_LABELS = ((1, "ATK"), (2, "DEF"), (3, "SPA"), (4, "SPD"),
+                (5, "SPE"), (6, "EVA"), (7, "ACC"), (8, "CRIT"))
+
+
+#: volatile_status key -> what to call it on screen. The engine's names are
+#: internal ("Frighten", "TotalConcentration"); these are what a player would
+#: say. Shared by the status card and the hover card, which name the same
+#: conditions and must not drift apart.
+CONDITION_LABELS = {
+    "Confused": "CONFUSED", "Frighten": "FRIGHTENED",
+    "Flinch": "FLINCHED", "Curse": "CURSED",
+    "DestinyBond": "DESTINY BOND", "PerishSong": "PERISH SONG",
+    "Torment": "TORMENTED", "Binding": "BOUND", "Trapped": "TRAPPED",
+    "LeechSeed": "SEEDED", "Ingrain": "ROOTED", "AquaRing": "AQUA RING",
+    "Octolock": "OCTOLOCKED", "TotalConcentration": "FOCUSED",
+    "Yawn": "DROWSY", "FlashFire": "FLASH FIRE", "TakeAim": "TAKING AIM",
+}
+#: bookkeeping the engine keeps on everything -- never worth showing
+CONDITION_NOISE = ("Turn", "Grounded", "NonVolatile")
+
+
+def live_conditions(volatile):
+    """The conditions actually in force, as display names."""
+    return [CONDITION_LABELS.get(name, name)
+            for name, value in sorted((volatile or {}).items())
+            if value and name not in CONDITION_NOISE]
+
+
+class StageDots(QWidget):
+    """One stat's stage as six dots rather than a signed number.
+
+    Six, because six is the range: a stage cannot pass +6 or -6. Grey for a
+    stage that is not there, and as many coloured dots as stages actually
+    moved -- green upwards, red downwards. "+2" and "-1" are a number to read
+    and compare; two green dots against a row of grey is a shape, and the
+    whole row of stats can be taken in at a glance without reading anything.
+    """
+
+    DOT = 7
+    GAP = 3
+    MAX = 6
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._stage = 0
+        self.setFixedSize(self.MAX * self.DOT + (self.MAX - 1) * self.GAP,
+                          self.DOT + 2)
+        self.setStyleSheet("background: transparent;")
+
+    def set_stage(self, stage):
+        stage = max(-self.MAX, min(self.MAX, int(stage or 0)))
+        if stage != self._stage:
+            self._stage = stage
+            self.update()
+
+    def paintEvent(self, _event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.setPen(Qt.NoPen)
+        lit = abs(self._stage)
+        on = QColor(T.PLAYER if self._stage > 0 else T.OPPONENT)
+        off = QColor(T.LINE)
+        x = 0
+        for index in range(self.MAX):
+            painter.setBrush(on if index < lit else off)
+            painter.drawEllipse(x, 1, self.DOT, self.DOT)
+            x += self.DOT + self.GAP
+
+
 class CombatantCard(RoundedPanel):
     """One side's status card: name, HP, typing, ability, stat stages."""
 
     #: index into pokemon.modifier -> short label. 0 is HP, which is shown
     #: as a real number instead, and stages only exist for the rest.
-    STAGE_LABELS = ((1, "ATK"), (2, "DEF"), (3, "SPA"), (4, "SPD"),
-                    (5, "SPE"), (6, "EVA"), (7, "ACC"), (8, "CRIT"))
 
     def __init__(self, side, fonts, parent=None):
         super().__init__(parent, bg=T.PANEL, border=T.LINE, radius=T.RADIUS_LG)
@@ -470,6 +649,15 @@ class CombatantCard(RoundedPanel):
         self.chips.setAlignment(Qt.AlignLeft)
         layout.addLayout(self.chips)
 
+        # The non-volatile status -- Poison, Burn, Sleep, and Fainted -- on
+        # its own row directly under the typing. It shared the typing row
+        # before, where a two-type Pokemon pushed it to the edge of a 300px
+        # card and it read as a third type rather than as something wrong.
+        self.status_row = QHBoxLayout()
+        self.status_row.setSpacing(4)
+        self.status_row.setAlignment(Qt.AlignLeft)
+        layout.addLayout(self.status_row)
+
         self.bar = HPBar(self, height=9)
         layout.addWidget(self.bar)
 
@@ -479,14 +667,15 @@ class CombatantCard(RoundedPanel):
                                    % T.TEXT_DIM)
         layout.addWidget(self.ability)
 
-        # Stat *stages* (+1 ATK, -2 SPE), not raw stat numbers: the raw
-        # values never change during a battle and told the player nothing,
-        # while the stages -- which decide every trade -- weren't shown at
-        # all. HP stays a real number, above.
-        self.stages = QHBoxLayout()
-        self.stages.setSpacing(4)
-        self.stages.setAlignment(Qt.AlignLeft)
-        layout.addLayout(self.stages)
+        # Confused, Bound, Seeded and the rest, on their own row. They used
+        # to be in the hover card only, which meant the one class of thing
+        # you have to react to *this turn* was the one thing you had to go
+        # hunting for with the mouse. Stat stages stay in the hover card:
+        # they are a number you weigh, not a warning.
+        self.conditions = QHBoxLayout()
+        self.conditions.setSpacing(4)
+        self.conditions.setAlignment(Qt.AlignLeft)
+        layout.addLayout(self.conditions)
 
         # one timer, reused: a switch-in flash that ends itself
         self._switch_timer = QTimer(self)
@@ -521,21 +710,68 @@ class CombatantCard(RoundedPanel):
                        border_width=2 if fainted else 1)
         self.bar.set_hp(0 if fainted else mon["hp"], mon["max_hp"], animate)
 
-        while self.chips.count():
-            item = self.chips.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+        # Rebuild the chips only when they would actually differ. set_mon runs
+        # on every state update -- many times a second -- and the typing,
+        # status and fainted flag almost never change between two of them, so
+        # tearing down and recreating the row each time was the single biggest
+        # source of widget churn in the interface (4,214 QLabel constructions
+        # over five battles). The signature is exactly what the row is drawn
+        # from, so if it matches, the row on screen is already correct.
+        status = mon.get("status", "Normal")
+        conditions = tuple(live_conditions(mon.get("volatile") or {}))
+        chip_state = (tuple(mon.get("types") or ()), status, fainted,
+                      conditions)
+        if chip_state != getattr(self, "_chip_state", None):
+            self._chip_state = chip_state
+            self._rebuild_chips(mon, status, fainted)
+            self._rebuild_conditions(conditions)
+
+        self._set_ability(mon)
+
+    def _rebuild_chips(self, mon, status, fainted):
+        # clear_layout, not a takeAt/deleteLater loop of its own: deleteLater
+        # alone leaves the old chip parented to this card until the next
+        # event-loop turn, so it is still a child at its old coordinates. This
+        # card is re-set on every state update, and the chips were piling up
+        # (80 of them after 40 renders) and drawing over each other.
+        # clear_layout unparents first, which is exactly the bug it was
+        # written for.
+        clear_layout(self.chips)
         for type_name in mon.get("types", []):
             self.chips.addWidget(Chip(type_name, T.type_color(type_name),
                                       self.fonts))
-        status = mon.get("status", "Normal")
-        if status not in ("Normal", "", "Fainted"):
-            self.chips.addWidget(Chip(T.STATUS_SHORT.get(status, status),
-                                      T.STATUS_COLORS.get(status, T.TEXT_DIM),
-                                      self.fonts))
+        # a row of its own, under the typing
+        clear_layout(self.status_row)
         if fainted:
-            self.chips.addWidget(Chip("FNT", T.OPPONENT, self.fonts))
+            self.status_row.addWidget(Chip("FAINTED", T.OPPONENT, self.fonts))
+        elif status not in ("Normal", "", "Fainted"):
+            self.status_row.addWidget(
+                Chip(T.STATUS_SHORT.get(status, status),
+                     T.STATUS_COLORS.get(status, T.TEXT_DIM), self.fonts))
 
+    #: how many condition chips fit on a 300px card before they start
+    #: squeezing each other unreadably. The rest become a "+N".
+    CONDITION_ROOM = 3
+
+    def _rebuild_conditions(self, conditions):
+        """The volatile conditions in force, as chips.
+
+        clear_layout for the same reason `_rebuild_chips` uses it: this runs
+        on a state change and deleteLater alone would leave the old chips
+        parented here, drawing at their old coordinates until the next
+        event-loop turn.
+        """
+        clear_layout(self.conditions)
+        shown = conditions[:self.CONDITION_ROOM]
+        for name in shown:
+            self.conditions.addWidget(Chip(name, T.VIOLET, self.fonts))
+        extra = len(conditions) - len(shown)
+        if extra > 0:
+            more = Chip("+%d" % extra, T.VIOLET, self.fonts)
+            more.setToolTip(", ".join(conditions))
+            self.conditions.addWidget(more)
+
+    def _set_ability(self, mon):
         # The opponent's ability is hidden information, and printing it broke
         # Illusion outright: a disguised Zoroark keeps ability ["Illusion"]
         # while wearing another Pokemon's name and typing, so the card
@@ -548,34 +784,18 @@ class CombatantCard(RoundedPanel):
                 "Ability: " + ", ".join(ability) if ability else "")
         else:
             self.ability.setText("Ability: ???")
-        self._set_stages(mon.get("modifier") or [])
 
     def set_team(self, team):
         """How many Pokemon this side has left, and their condition."""
         self.pips.set_team(team)
 
-    def _set_stages(self, modifier):
-        while self.stages.count():
-            item = self.stages.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-        shown = 0
-        for index, label in self.STAGE_LABELS:
-            if index >= len(modifier):
-                break
-            stage = modifier[index]
-            if not stage:
-                continue
-            colour = T.PLAYER if stage > 0 else T.OPPONENT
-            self.stages.addWidget(Chip("%s %+d" % (label, stage), colour,
-                                       self.fonts))
-            shown += 1
-        if not shown:
-            placeholder = QLabel("no stat changes")
-            placeholder.setFont(self.fonts.small)
-            placeholder.setStyleSheet("color: %s; background: transparent;"
-                                      % T.TEXT_FAINT)
-            self.stages.addWidget(placeholder)
+    # Stat stages and temporary conditions are not on this card any more.
+    # Eight stats and a handful of conditions at once turned a compact readout
+    # into a wall, and none of it was actionable at a glance. The card now
+    # carries only what changes how you must play right now -- typing, HP, and
+    # a serious status condition (asleep, paralysed, poisoned, burned, frozen).
+    # Everything temporary lives in the hover card, which is opened on purpose
+    # and has room to spell it out. See ScoutCard._add_stages.
 
 
 EVENT_ACCENTS = {"move": T.ACCENT, "ability": T.VIOLET, "status": T.CYAN,
@@ -862,6 +1082,281 @@ class FieldBoard(QWidget):
         self.set_state({}, {}, {})
 
 
+#: one field layer -> (caption, colour). The real games keep weather,
+#: terrain and rooms in *separate* slots -- Rain and Electric Terrain and
+#: Trick Room can all be up at once, and only members of the same layer
+#: cancel each other. So this is three boxes, never one.
+FIELD_LAYERS = (
+    ("weather", "WEATHER", T.CYAN),
+    ("terrain", "TERRAIN", T.PLAYER),
+    ("room", "ROOM", T.VIOLET),
+)
+
+#: what each condition's emblem is drawn as, and in what colour. Drawn
+#: rather than typed: `theme.WEATHER_GLYPH` held ☀/☂/❄ for this job and was
+#: never used by anything, and a glyph is at the mercy of whether the font
+#: on the machine happens to carry it.
+FIELD_ART = {
+    "Clear": ("clear", T.TEXT_FAINT),
+    "Sunny": ("sun", T.ACCENT),
+    "Rain": ("rain", T.CYAN),
+    "Sandstorm": ("sand", "#C9A227"),
+    "Hail": ("hail", "#9FD8FF"),
+    "Snow": ("hail", "#9FD8FF"),
+    "Electric": ("bolt", T.ACCENT),
+    "Grassy": ("grass", T.PLAYER),
+    "Misty": ("mist", "#F0A8FF"),
+    "Psychic": ("psychic", T.VIOLET),
+    "Trick Room": ("room", T.VIOLET),
+    "Magic Room": ("room", T.VIOLET),
+    "Wonder Room": ("room", T.VIOLET),
+    "None": ("none", T.TEXT_FAINT),
+}
+
+
+def field_emblem(shape, colour, size, ratio=1.0):
+    """A small painted emblem for one field condition.
+
+    Device-pixel-ratio aware the same way the sprites are: painted at
+    size*ratio and told its ratio, so it is crisp on a scaled display
+    instead of being blown up by the label.
+    """
+    pixmap = QPixmap(int(size * ratio), int(size * ratio))
+    pixmap.setDevicePixelRatio(ratio)
+    pixmap.fill(Qt.transparent)
+    ink = QColor(colour)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.Antialiasing, True)
+    painter.scale(ratio, ratio)
+    mid = size / 2.0
+    thin = QPen(ink, max(1.4, size * 0.09), Qt.SolidLine, Qt.RoundCap,
+                Qt.RoundJoin)
+
+    if shape == "sun":
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(ink)
+        painter.drawEllipse(QRectF(mid - size * 0.19, mid - size * 0.19,
+                                   size * 0.38, size * 0.38))
+        painter.setPen(thin)
+        for step in range(8):
+            angle = math.radians(step * 45)
+            inner, outer = size * 0.28, size * 0.44
+            painter.drawLine(
+                QPointF(mid + math.cos(angle) * inner,
+                        mid + math.sin(angle) * inner),
+                QPointF(mid + math.cos(angle) * outer,
+                        mid + math.sin(angle) * outer))
+    elif shape == "clear":
+        painter.setPen(thin)
+        painter.setBrush(Qt.NoBrush)
+        painter.drawEllipse(QRectF(mid - size * 0.28, mid - size * 0.28,
+                                   size * 0.56, size * 0.56))
+    elif shape == "rain":
+        painter.setPen(thin)
+        painter.setBrush(Qt.NoBrush)
+        cloud = QRectF(size * 0.16, size * 0.20, size * 0.68, size * 0.36)
+        painter.drawArc(cloud, 0, 180 * 16)
+        painter.drawLine(QPointF(size * 0.16, size * 0.38),
+                         QPointF(size * 0.84, size * 0.38))
+        for offset in (0.30, 0.50, 0.70):
+            painter.drawLine(QPointF(size * offset, size * 0.54),
+                             QPointF(size * (offset - 0.06), size * 0.80))
+    elif shape == "sand":
+        painter.setPen(thin)
+        for row, length in ((0.32, 0.62), (0.50, 0.74), (0.68, 0.54)):
+            painter.drawLine(QPointF(size * (0.5 - length / 2), size * row),
+                             QPointF(size * (0.5 + length / 2), size * row))
+    elif shape == "hail":
+        painter.setPen(thin)
+        for step in range(3):
+            angle = math.radians(step * 60)
+            reach = size * 0.34
+            painter.drawLine(
+                QPointF(mid - math.cos(angle) * reach,
+                        mid - math.sin(angle) * reach),
+                QPointF(mid + math.cos(angle) * reach,
+                        mid + math.sin(angle) * reach))
+    elif shape == "bolt":
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(ink)
+        painter.drawPolygon(QPolygonF([
+            QPointF(size * 0.56, size * 0.12), QPointF(size * 0.30, size * 0.54),
+            QPointF(size * 0.47, size * 0.54), QPointF(size * 0.41, size * 0.88),
+            QPointF(size * 0.70, size * 0.44), QPointF(size * 0.52, size * 0.44),
+        ]))
+    elif shape == "grass":
+        painter.setPen(thin)
+        painter.setBrush(Qt.NoBrush)
+        for base, tip in ((0.30, 0.18), (0.50, 0.10), (0.70, 0.22)):
+            path = QPainterPath(QPointF(size * base, size * 0.84))
+            path.quadTo(QPointF(size * (base + 0.06), size * 0.50),
+                        QPointF(size * (base + tip * 0.3), size * tip))
+            painter.drawPath(path)
+    elif shape == "mist":
+        painter.setPen(thin)
+        for row, length in ((0.36, 0.56), (0.52, 0.70), (0.68, 0.48)):
+            path = QPainterPath(QPointF(size * (0.5 - length / 2), size * row))
+            path.quadTo(QPointF(size * 0.5, size * (row - 0.12)),
+                        QPointF(size * (0.5 + length / 2), size * row))
+            painter.drawPath(path)
+    elif shape == "psychic":
+        painter.setPen(thin)
+        painter.setBrush(Qt.NoBrush)
+        for reach in (0.16, 0.28, 0.40):
+            painter.drawArc(QRectF(mid - size * reach, mid - size * reach,
+                                    size * reach * 2, size * reach * 2),
+                            30 * 16, 280 * 16)
+    elif shape == "room":
+        painter.setPen(thin)
+        painter.setBrush(Qt.NoBrush)
+        painter.drawPolygon(QPolygonF([
+            QPointF(size * 0.28, size * 0.20), QPointF(size * 0.72, size * 0.20),
+            QPointF(size * 0.36, size * 0.80), QPointF(size * 0.64, size * 0.80),
+        ]))
+    else:                                  # "none", and anything unnamed
+        painter.setPen(thin)
+        painter.drawLine(QPointF(size * 0.32, mid), QPointF(size * 0.68, mid))
+    painter.end()
+    return pixmap
+
+
+class FieldChip(RoundedPanel):
+    """One field layer, as an emblem, a caption and what is up right now."""
+
+    ICON = 22
+
+    def __init__(self, caption, colour, fonts, parent=None):
+        super().__init__(parent, bg=T.mix(T.PANEL_SUNK, colour, 0.10),
+                         border=T.LINE_SOFT, radius=T.RADIUS_SM)
+        self.fonts = fonts
+        self.accent = colour
+        row = QHBoxLayout(self)
+        row.setContentsMargins(8, 5, 10, 5)
+        row.setSpacing(8)
+
+        self.emblem = QLabel(self)
+        self.emblem.setFixedSize(self.ICON, self.ICON)
+        self.emblem.setAlignment(Qt.AlignCenter)
+        row.addWidget(self.emblem)
+
+        text = QVBoxLayout()
+        text.setSpacing(0)
+        self.caption = QLabel(caption, self)
+        self.caption.setFont(fonts.eyebrow)
+        self.caption.setStyleSheet("color: %s; background: transparent;"
+                                   % T.TEXT_FAINT)
+        text.addWidget(self.caption)
+        self.value = QLabel("—", self)
+        self.value.setFont(fonts.body_bold)
+        self.value.setStyleSheet("color: %s; background: transparent;"
+                                 % T.TEXT)
+        text.addWidget(self.value)
+        row.addLayout(text)
+        self._shown = None
+
+    def show_condition(self, name, turns=None):
+        """Name the condition, draw its emblem, and count it down if it will
+        pass. A no-op when nothing has changed -- this is called on every
+        state publish, several times a second."""
+        signature = (name, turns)
+        if signature == self._shown:
+            return
+        self._shown = signature
+        shape, colour = FIELD_ART.get(name, ("none", self.accent))
+        self.emblem.setPixmap(field_emblem(
+            shape, colour, self.ICON, self.emblem.devicePixelRatioF()))
+        self.value.setText(name if turns in (None, 0)
+                           else "%s  %d" % (name, turns))
+        self.value.setStyleSheet(
+            "color: %s; background: transparent;"
+            % (T.TEXT_FAINT if name == "None" else T.TEXT))
+        self.setToolTip(FIELD_TIP.get(name, name))
+
+
+#: what a condition does, for the tooltip. The strip itself stays terse.
+FIELD_TIP = {
+    "Clear": "No weather. Nothing is boosting or blunting anything.",
+    "Sunny": "Fire moves hit harder, Water moves weaker. Solar Beam needs no "
+             "charge; Thunder and Hurricane become unreliable.",
+    "Rain": "Water moves hit harder, Fire moves weaker. Thunder and Hurricane "
+            "cannot miss; Solar Beam is halved.",
+    "Sandstorm": "Chips away at anything not Rock, Ground or Steel.",
+    "Hail": "Chips away at anything not Ice. Blizzard cannot miss.",
+    "Snow": "Chips away at anything not Ice. Blizzard cannot miss.",
+    "Trick Room": "The slower Pokemon moves first.",
+    "None": "Nothing on this layer.",
+}
+
+
+class FieldStrip(QWidget):
+    """Weather, terrain and rooms, always on screen, never in the way.
+
+    The field readout used to be a strip of chips *under* the arena, which
+    was moved into its own tab to give the arena back the height -- see
+    FieldBoard. This is the third answer: the three permanent layers sit
+    inside the arena as an overlay, so they cost the battle view no height
+    at all, while the tab keeps the per-side detail (screens, hazards, who
+    set what, turn counts).
+
+    Only Weather is always shown, "None" included, because "there is no
+    weather" is information a player wants at a glance -- and weather is on
+    the field in most battles. Terrain and Room appear only while there is
+    one: a box reading "None" for the whole battle is furniture, and this
+    strip sits over the arena where every pixel is the battlefield.
+    """
+
+    def __init__(self, fonts, parent=None):
+        super().__init__(parent)
+        self.fonts = fonts
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        self.setStyleSheet("background: transparent;")
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(6)
+        self.chips = {}
+        for key, caption, colour in FIELD_LAYERS:
+            chip = FieldChip(caption, colour, fonts, self)
+            self.chips[key] = chip
+            row.addWidget(chip)
+        for key in ("terrain", "room"):
+            self.chips[key].setVisible(False)
+        self._signature = None
+
+    def set_state(self, field):
+        field = field or {}
+        weather = str(field.get("weather") or "Clear")
+        turns = field.get("weather_turns")
+        # the arena's own weather never lifts, so counting it down would be a
+        # lie -- weather_artificial is what says which kind this is
+        if not field.get("weather_artificial"):
+            turns = None
+
+        rooms = {name: count
+                 for name, count in (field.get("field") or {}).items()
+                 if count and "Room" in name}
+        room, room_turns = (sorted(rooms)[0], rooms[sorted(rooms)[0]]) \
+            if rooms else ("None", None)
+
+        terrain = field.get("terrain")
+        terrain_turns = field.get("terrain_turns")
+
+        signature = (weather, turns, room, room_turns, terrain, terrain_turns)
+        if signature == self._signature:
+            return
+        self._signature = signature
+        self.chips["weather"].show_condition(weather, turns)
+        self.chips["room"].setVisible(room != "None")
+        if room != "None":
+            self.chips["room"].show_condition(room, room_turns)
+        self.chips["terrain"].setVisible(terrain is not None)
+        if terrain is not None:
+            self.chips["terrain"].show_condition(str(terrain), terrain_turns)
+
+    def reset(self):
+        self._signature = None
+        self.set_state({})
+
+
 class AbilityFlare(RoundedPanel):
     """A brief on-field callout when a trainer's character ability fires.
 
@@ -1066,6 +1561,28 @@ class ScoutCard(RoundedPanel):
                                  T.TEXT_DIM))
         return row
 
+    def _add_stages(self, modifier):
+        """Every stat, always, with its stage as six dots.
+
+        Every stat rather than only the moved ones: a row that appears and
+        disappears cannot be read by position, so finding out whether Speed
+        had dropped meant reading labels. The full list is always in the same
+        order, and an untouched stat is simply six grey dots.
+        """
+        self.body.addWidget(label("STAT STAGES", self.fonts.tiny,
+                                  T.TEXT_FAINT))
+        for index, name in STAGE_LABELS:
+            stage = modifier[index] if index < len(modifier) else 0
+            line = QHBoxLayout()
+            line.setSpacing(6)
+            line.addWidget(label(name, self.fonts.tiny,
+                                 T.TEXT_DIM if stage else T.TEXT_FAINT))
+            line.addStretch(1)
+            dots = StageDots(self)
+            dots.set_stage(stage)
+            line.addWidget(dots)
+            self.body.addLayout(line)
+
     def set_mon(self, mon, known=True, side="opponent"):
         """Fill in from a bridge snapshot. `known` false shows the locked
         note instead of the numbers -- the whole point of scouting is that
@@ -1078,15 +1595,31 @@ class ScoutCard(RoundedPanel):
         for type_name in mon.get("types") or []:
             self.chips.addWidget(Chip(type_name, T.type_color(type_name),
                                       self.fonts))
-        tier = mon.get("tier")
-        if tier:
-            self.chips.addWidget(Chip(tier, T.TEXT_FAINT, self.fonts))
+        # A Pokemon's tier is deliberately not shown outside the Pokedex.
+        # It is a roster-balancing label, and next to a Pokemon on the field it
+        # only invited "why am I being given a Low one" -- the stats and the
+        # typing are what a player can actually act on.
+
+        # What is being done to this Pokemon right now is not secret. You can
+        # see a Swords Dance land and hear that it is confused, so hiding the
+        # stat stages and conditions behind a scouting roll only meant reading
+        # them back out of the battle log. Scouting gates what you could not
+        # otherwise know -- the moveset and the IVs -- and nothing else.
+        # Conditions are not listed here any more: Confused, Bound and the
+        # rest are on the status card that is always on screen, which is
+        # where a thing you need to react to this turn belongs. This panel
+        # has to be hovered for, so it keeps what you go looking for --
+        # the stat stages, the moveset and the IVs.
+        self._add_stages(mon.get("modifier") or [])
 
         if not known:
             self.ability.setText("")
             self.body.addWidget(label(
-                "You have not scouted this team. Try Scout Opponent "
-                "before the match to reveal their moves and IVs.",
+                # Still names Scout Opponent. The other helper captions went
+                # because they restated a button label; this one says how to
+                # change the state you are looking at, which nothing else does.
+                "Not scouted -- use Scout Opponent to reveal "
+                "their moves and IVs.",
                 self.fonts.tiny, T.TEXT_DIM, wrap=True))
             self.adjustSize()
             return

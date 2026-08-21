@@ -20,9 +20,25 @@ from PySide6.QtWidgets import (QDialog, QGridLayout, QHBoxLayout, QLabel,
 from GUI import theme as T
 from GUI_qt.settings import DIFFICULTIES
 from GUI_qt.sprites import DIR_OPPONENT, DIR_PLAYER, show_sprite
-from GUI_qt.widgets import (ActionButton, Chip, MoveCard, RoundedPanel,
-                            StatBar, clear_layout)
+from GUI_qt.widgets import (ActionButton, Chip, ElidedLabel, MoveCard,
+                            RoundedPanel, StatBar, clear_layout)
 from GUI_qt.widgets import label as _label
+
+def _roster_signature(roster):
+    """Everything about a team that the team window actually draws.
+
+    Compared against the last one so a state update that changed nothing
+    visible costs one tuple build instead of a full rebuild of the rail and
+    the detail pane -- see RosterDialog.refresh.
+    """
+    return tuple(
+        (mon.get("name"), mon.get("total"), mon.get("total_iv"),
+         bool(mon.get("benched")), mon.get("status"),
+         tuple(mon.get("types") or ()), tuple(mon.get("ability") or ()),
+         tuple(mon.get("nominal") or ()), tuple(mon.get("iv") or ()),
+         tuple(mon.get("moveset") or ()))
+        for mon in roster or ())
+
 
 MOD_LABELS = ("ATK", "DEF", "SPA", "SPD", "SPE")
 #: full six, in nominal_base_stats order -- HP included, unlike the old
@@ -131,8 +147,8 @@ def _rated(comp):
     return "%s [%s]" % (comp.get("nickname", "?"), rating)
 
 
-def _eyebrow(text, fonts, color=T.ACCENT):
-    return _label(text.upper(), fonts.eyebrow, color)
+def _eyebrow(text, fonts, color=T.ACCENT, parent=None):
+    return _label(text.upper(), fonts.eyebrow, color, parent=parent)
 
 
 def _style_tabs(tabs, fonts):
@@ -174,6 +190,7 @@ class RosterDialog(QDialog):
         self.side = "player"
         self.picked = {"player": 0, "opponent": 0}
         self._dirty = True
+        self._signature = None        # see refresh()
         self.setWindowTitle("Teams")
         self.setStyleSheet("background: %s;" % T.BG)
         self.resize(940, 660)
@@ -182,19 +199,10 @@ class RosterDialog(QDialog):
         outer.setContentsMargins(14, 12, 14, 14)
         outer.setSpacing(10)
 
-        self.side_tabs = QTabBar()
-        for _, title in self.SIDES:
-            self.side_tabs.addTab(title)
-        self.side_tabs.setFont(fonts.small_bold)
-        self.side_tabs.setStyleSheet(
-            "QTabBar::tab { background: %s; color: %s; padding: 8px 18px;"
-            "margin-right: 4px; border-top-left-radius: %dpx;"
-            "border-top-right-radius: %dpx; }"
-            "QTabBar::tab:selected { background: %s; color: %s; }"
-            % (T.PANEL_SUNK, T.TEXT_FAINT, T.RADIUS_SM, T.RADIUS_SM,
-               T.PANEL, T.TEXT))
-        self.side_tabs.currentChanged.connect(self._pick_side)
-        outer.addWidget(self.side_tabs)
+        # One list, not two tabs. Both teams share the rail -- yours, then
+        # theirs underneath -- because flipping a tab to compare two Pokemon
+        # means holding one of them in your head. Theirs stay unclickable
+        # until you have earned sight of them.
 
         body = QHBoxLayout()
         body.setContentsMargins(0, 0, 0, 0)
@@ -205,8 +213,9 @@ class RosterDialog(QDialog):
         rail.setFixedWidth(230)
         rail_layout = QVBoxLayout(rail)
         rail_layout.setContentsMargins(10, 10, 10, 10)
-        self.rail_title = _eyebrow("your team", fonts, T.TEXT_FAINT)
-        rail_layout.addWidget(self.rail_title)
+        # No heading over the rail: each team writes its own inside
+        # _rebuild_rail, and a third one above them just said "YOUR TEAM"
+        # twice.
         self.rail_list = QVBoxLayout()
         rail_layout.addLayout(self.rail_list)
         rail_layout.addStretch(1)
@@ -240,6 +249,15 @@ class RosterDialog(QDialog):
         detail_layout.addLayout(right, 1)
         body.addWidget(detail, 1)
 
+        # A way out that is not the title bar. This window is opened from the
+        # action bar and from the engine's "view your pokemon", and it owns no
+        # prompt -- the engine has already been answered by the time it shows
+        # -- so closing it is only ever closing a window.
+        footer = QHBoxLayout()
+        footer.addStretch(1)
+        footer.addWidget(ActionButton("Close", fonts, on_click=self.close))
+        outer.addLayout(footer)
+
     # -- which side is on show ---------------------------------------------
     @property
     def roster(self):
@@ -249,42 +267,68 @@ class RosterDialog(QDialog):
     def selected(self):
         return self.picked.get(self.side, 0)
 
-    def _pick_side(self, index):
-        self.side = self.SIDES[index][0] if 0 <= index < len(self.SIDES) \
-            else "player"
-        self.rail_title.setText(self.SIDES[index][1].lower()
-                                if 0 <= index < len(self.SIDES) else "team")
+    def show_side(self, side):
+        """Open with one side's Pokemon selected.
+
+        Kept as the entry point even though there are no tabs any more: the
+        reward screen asks you to pick one of theirs, and "Inspect Your Team"
+        asks for yours, so both still want to land somewhere specific in the
+        one list.
+        """
+        if (self.rosters.get(side) or []):
+            self.side = side
+            self.picked[side] = min(self.picked.get(side, 0),
+                                    max(0, len(self.rosters[side]) - 1))
+        # Build first, then show -- and only once.
+        #
+        # This used to show() and then build, which was visibly wrong twice
+        # over. show() fires showEvent, which rebuilds if dirty, and then this
+        # rebuilt again: two full passes over both teams. Worse, the rows and
+        # panels are constructed with no parent and only reparented when
+        # addWidget runs, so with the window already on screen Qt could paint
+        # between the two -- and an unparented visible widget is a top-level
+        # window. That is where the flurry of little windows before the team
+        # appeared came from.
+        self._dirty = False
         self._rebuild_rail()
         self._show(self.selected)
-
-    def show_side(self, side):
-        """Open on a particular side -- used when the game asks you to pick
-        one of the opponent's Pokemon."""
-        for index, (name, _) in enumerate(self.SIDES):
-            if name == side:
-                self.side_tabs.setCurrentIndex(index)
-                break
         self.show()
         self.raise_()
 
     def refresh(self, roster, opponent_roster=None, opponent_known=True):
-        """Called on every battle-state update, many times a second, but
-        this dialog is hidden almost all of that time -- rebuilding a full
-        widget tree (sprite, chips, stat cells, move cards) at that rate
-        against a window that isn't even on screen is exactly the pattern
-        that produced this class's one real bug so far: rapid widget
-        churn on a hidden QDialog triggered intermittent native crashes
-        (see git history / PR notes). So: store the data unconditionally,
-        but only pay for a rebuild while the dialog is actually visible.
+        """Called on every battle-state update, many times a second.
+
+        Two guards, and both of them earn their keep. Rebuilding a full
+        widget tree (chips, stat cells, move cards) at that rate is exactly
+        the pattern that produced this class's one real bug so far: rapid
+        widget churn on a QDialog triggered intermittent native crashes (see
+        git history / PR notes).
+
+        The old guard was "only rebuild while visible", which left the window
+        the player has *open during a battle* rebuilding fifty-odd widgets
+        several times a second -- for a team that had not changed. That is
+        most of what made a battle feel heavy, and every one of those
+        rebuilds left a drift of detached widgets behind it waiting to be
+        collected. So the data is stored unconditionally, and the tree is
+        rebuilt only when something it draws is actually different.
         """
         self.rosters["player"] = roster or []
         # None means "you have not earned sight of it", which is different
         # from an empty team -- keep the two apart so the tab can say so.
         self.opponent_known = bool(opponent_known)
-        self.rosters["opponent"] = list(opponent_roster or [])             if opponent_known else []
+        self.rosters["opponent"] = list(opponent_roster or []) \
+            if opponent_known else []
         for side, team in self.rosters.items():
             if self.picked.get(side, 0) >= len(team):
                 self.picked[side] = 0
+
+        signature = (_roster_signature(self.rosters["player"]),
+                     _roster_signature(self.rosters["opponent"]),
+                     self.opponent_known)
+        if signature == self._signature:
+            return                     # nothing on screen would look different
+        self._signature = signature
+
         if self.isVisible():
             self._rebuild_rail()
             self._show(self.selected)
@@ -298,42 +342,68 @@ class RosterDialog(QDialog):
             self._rebuild_rail()
             self._show(self.selected)
 
-    def _rebuild_rail(self):
-        while self.rail_list.count():
-            item = self.rail_list.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-        side_color = T.PLAYER if self.side == "player" else T.OPPONENT
-        if not self.roster:
-            if self.side == "opponent" and not self.opponent_known:
-                text = ("You do not know their team yet. Scout them "
-                        "successfully in Scout Opponent, or win the match "
-                        "and take one of them.")
-            else:
-                text = "Nothing to show."
-            self.rail_list.addWidget(_label(text, self.fonts.small,
-                                           T.TEXT_FAINT, wrap=True))
-            return
-        for i, mon in enumerate(self.roster):
-            color = side_color if i == self.selected else T.TEXT_DIM
-            # the total is on the rail as well as in the detail pane -- when
-            # you are choosing which of six to take, that one number is what
-            # you scan down the list for
-            text = "%d. %s  ·  %s%s" % (i + 1, mon["name"],
-                                        mon.get("total") or "—",
-                                        "  (benched)" if mon.get("benched")
-                                        else "")
-            row = _ClickableLabel(text)
-            row.setFont(self.fonts.body_bold if i == self.selected
-                       else self.fonts.body)
-            row.setStyleSheet("color: %s; background: transparent;" % color)
-            row.setCursor(Qt.PointingHandCursor)
-            row.clicked.connect(lambda i=i: self._select(i))
-            self.rail_list.addWidget(row)
+    def _restyle_rail(self):
+        """Re-colour the rail without rebuilding it.
 
-    def _select(self, index):
-        self.picked[self.side] = index
-        self._rebuild_rail()
+        Clicking a name only moves the highlight, but this used to tear down
+        and recreate all twelve rows to redraw it -- 28ms a click, which is
+        enough to feel like lag when you are comparing Pokemon one after
+        another. The rows remember which Pokemon they are for, so shifting the
+        highlight is now a font and a colour on each.
+        """
+        for side, index, row in getattr(self, "_rail_rows", ()):
+            chosen = (side == self.side and index == self.picked.get(side, 0))
+            accent = T.PLAYER if side == "player" else T.OPPONENT
+            row.setFont(self.fonts.body_bold if chosen else self.fonts.body)
+            row.setStyleSheet("color: %s; background: transparent;"
+                              % (accent if chosen else T.TEXT_DIM))
+
+    def _rebuild_rail(self):
+        clear_layout(self.rail_list)
+        self._rail_rows = []
+        for side, heading in self.SIDES:
+            team = self.rosters.get(side) or []
+            accent = T.PLAYER if side == "player" else T.OPPONENT
+            self.rail_list.addWidget(
+                _eyebrow(heading, self.fonts, accent, parent=self))
+
+            if not team:
+                if side == "opponent" and not self.opponent_known:
+                    text = ("Not scouted yet — win the match, or scout them "
+                            "in Scout Opponent.")
+                else:
+                    text = "Nothing to show."
+                self.rail_list.addWidget(
+                    _label(text, self.fonts.small, T.TEXT_FAINT, wrap=True,
+                           parent=self))
+                continue
+
+            for index, mon in enumerate(team):
+                chosen = (side == self.side
+                          and index == self.picked.get(side, 0))
+                colour = accent if chosen else T.TEXT_DIM
+                # the total is on the rail as well as in the detail pane --
+                # when you are choosing which of six to take, that one number
+                # is what you scan down the list for
+                text = "%d. %s  ·  %s%s" % (index + 1, mon["name"],
+                                            mon.get("total") or "—",
+                                            "  (benched)"
+                                            if mon.get("benched") else "")
+                row = _ClickableLabel(text, self)
+                row.setFont(self.fonts.body_bold if chosen
+                            else self.fonts.body)
+                row.setStyleSheet("color: %s; background: transparent;"
+                                  % colour)
+                row.setCursor(Qt.PointingHandCursor)
+                row.clicked.connect(
+                    lambda side=side, index=index: self._select(side, index))
+                self.rail_list.addWidget(row)
+                self._rail_rows.append((side, index, row))
+
+    def _select(self, side, index):
+        self.side = side
+        self.picked[side] = index
+        self._restyle_rail()          # not a rebuild; see _restyle_rail
         self._show(index)
 
     def _show(self, index):
@@ -354,20 +424,19 @@ class RosterDialog(QDialog):
         self.name.setStyleSheet("color: %s; background: transparent;" % T.TEXT)
         for type_name in mon.get("types", []):
             self.chip_row.addWidget(Chip(type_name, T.type_color(type_name),
-                                         self.fonts))
-        tier = mon.get("tier")
-        if tier:
-            self.chip_row.addWidget(Chip("tier %s" % tier,
-                                         T.tier_color(tier), self.fonts))
+                                         self.fonts, parent=self))
+        # no tier chip here -- see the note in widgets.py CombatantCard
         # Still yours, just held back from this round's match -- and still
         # swappable, so it has to be visible here rather than quietly absent
         if mon.get("benched"):
-            self.chip_row.addWidget(Chip("benched", T.TEXT_DIM, self.fonts))
+            self.chip_row.addWidget(Chip("benched", T.TEXT_DIM, self.fonts,
+                                         parent=self))
         status = mon.get("status", "Normal")
         if status not in ("Normal", "", "Fainted"):
             self.chip_row.addWidget(Chip(
                 T.STATUS_SHORT.get(status, status),
-                T.STATUS_COLORS.get(status, T.TEXT_DIM), self.fonts))
+                T.STATUS_COLORS.get(status, T.TEXT_DIM), self.fonts,
+                parent=self))
         self.chip_row.addStretch(1)
 
         ability = mon.get("ability") or []
@@ -385,15 +454,17 @@ class RosterDialog(QDialog):
                 break
             cell = QVBoxLayout()
             cell.setSpacing(1)
-            caption = _label(label, self.fonts.small_bold, T.TEXT_FAINT)
+            caption = _label(label, self.fonts.small_bold, T.TEXT_FAINT,
+                             parent=self)
             caption.setAlignment(Qt.AlignHCenter)
             cell.addWidget(caption)
-            value = _label(str(stats[i]), self.fonts.num_big, T.TEXT)
+            value = _label(str(stats[i]), self.fonts.num_big, T.TEXT,
+                           parent=self)
             value.setAlignment(Qt.AlignHCenter)
             value.setMinimumWidth(58)      # room for 3 digits at any scale
             cell.addWidget(value)
             iv = _label("IV %s" % (ivs[i] if i < len(ivs) else "—"),
-                       self.fonts.small, T.TEXT_FAINT)
+                       self.fonts.small, T.TEXT_FAINT, parent=self)
             iv.setAlignment(Qt.AlignHCenter)
             cell.addWidget(iv)
             self.stats_row.addLayout(cell)
@@ -402,15 +473,17 @@ class RosterDialog(QDialog):
         if total:
             cell = QVBoxLayout()
             cell.setSpacing(1)
-            caption = _label("TOTAL", self.fonts.small_bold, T.ACCENT)
+            caption = _label("TOTAL", self.fonts.small_bold, T.ACCENT,
+                             parent=self)
             caption.setAlignment(Qt.AlignHCenter)
             cell.addWidget(caption)
-            value = _label(str(total), self.fonts.num_big, T.ACCENT)
+            value = _label(str(total), self.fonts.num_big, T.ACCENT,
+                           parent=self)
             value.setAlignment(Qt.AlignHCenter)
             value.setMinimumWidth(64)
             cell.addWidget(value)
             iv = _label("IV %s" % mon.get("total_iv", "—"), self.fonts.small,
-                       T.TEXT_FAINT)
+                       T.TEXT_FAINT, parent=self)
             iv.setAlignment(Qt.AlignHCenter)
             cell.addWidget(iv)
             self.stats_row.addLayout(cell)
@@ -423,7 +496,7 @@ class RosterDialog(QDialog):
                                        "category": "Status", "power": 0,
                                        "accuracy": None, "priority": 0}
             self.moves_rows[slot // 2].addWidget(
-                MoveCard(meta, "", self.fonts))
+                MoveCard(meta, "", self.fonts, parent=self))
 
 
 #: smallest the About Opponent portrait column is allowed to get
@@ -532,6 +605,15 @@ class OpponentInfoDialog(QDialog):
         body_layout.addStretch(1)
         scroll.setWidget(body)
         right.addWidget(scroll, 1)
+
+        # Same as the team window: a Close under the report rather than only
+        # the title bar. It sits in the report column, not across the window,
+        # so it never lands on top of the artwork.
+        footer = QHBoxLayout()
+        footer.addStretch(1)
+        footer.addWidget(ActionButton("Close", fonts, on_click=self.close))
+        right.addLayout(footer)
+
         columns.addLayout(right, 3)
 
     # The artwork looks after its own scaling -- see _FittedArt. It fills the
@@ -1186,8 +1268,7 @@ class CompareDialog(QDialog):
         head = QHBoxLayout()
         head.addWidget(_label(mon.get("name", "?"), self.fonts.hero, T.TEXT))
         head.addStretch(1)
-        if mon.get("tier"):
-            head.addWidget(Chip(mon["tier"], T.TEXT_FAINT, self.fonts))
+        # no tier chip on the compare screen either
         detail.addLayout(head)
 
         chips = QHBoxLayout()
@@ -1409,12 +1490,25 @@ class CareerDialog(QDialog):
     def show_roster(self, roster):
         """The clickable list. Rebuilt only when the roster itself changes --
         it is published once per pass of the engine's loop, and rebuilding
-        fifty-six rows on each pass would throw away the scroll position."""
+        fifty-six rows on each pass would throw away the scroll position.
+
+        "Changes" has to mean everything a row *draws*, not just how many rows
+        there are. The signature was the index list alone, and every career has
+        the same competitors at the same indices -- so opening HISTORY on a
+        second save found the signature unchanged, returned early, and left the
+        first career's rail on screen: its ratings beside every name, and its
+        player's nickname sitting in the list for the rest of the session.
+        Clicking a name still worked, because that sends the index and the
+        engine reads the right competitor, which is exactly why the reports
+        looked correct while the list did not.
+        """
         entries = list(roster or [])
-        signature = [entry.get("index") for entry in entries]
-        if signature == getattr(self, "_signature", None):
+        signature = [(entry.get("index"), entry.get("nickname"),
+                      entry.get("tier"), entry.get("rating"),
+                      entry.get("is_player")) for entry in entries]
+        if signature == getattr(self, "_roster_signature", None):
             return
-        self._signature = signature
+        self._roster_signature = signature
         body = self.bodies["Opponents"]
         clear_layout(body)
         self._rows = {}
@@ -1433,10 +1527,85 @@ class CareerDialog(QDialog):
         self.picked.emit(index)
 
     # -- tab 2: who won each championship ---------------------------------
+    #: how wide each name on a run path gets. Fixed, so the arrows line up
+    #: down the column however long the nicknames are -- a path is read across
+    #: *and* compared down, and ragged spacing defeats the second.
+    PATH_NAME_WIDTH = 120
+    #: the gutter around each arrow. Name, gap, arrow, gap, name -- without
+    #: it a name that fills its slot runs straight into the arrow beside it.
+    PATH_ARROW_WIDTH = 18
+    PATH_GAP = 8
+    #: the run number ahead of a path, and the rank beside it on the
+    #: Tournaments tab. Fixed for the same reason the name slots are: the
+    #: path has to start at the same x on every row or the columns it is
+    #: meant to be compared down are no longer columns.
+    RUN_TAG_WIDTH = 34
+    RANK_WIDTH = 96
+
+    def _path_row(self, steps, colour=None, stretch=True):
+        """A run path as "A -> B -> C", each name in a fixed-width slot.
+
+        `steps` is [(name, won)] -- `won` True for green, False for red, or
+        None to leave every name in `colour`. The arrows are their own labels
+        so they sit between the slots rather than inside them, which is what
+        keeps the columns aligned.
+
+        The slot pitch (name + gap + arrow + gap) is deliberately what it was
+        before the gap existed, so the gutter is bought out of the name rather
+        than added to the row: these rows already sit in a scroller with no
+        horizontal bar, and a wider row would push its own tail out of sight.
+
+        `stretch=False` leaves the slack unclaimed for whatever the caller
+        puts after the path -- see `_tail_label`.
+        """
+        row = QHBoxLayout()
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(self.PATH_GAP)
+        for position, (name, won) in enumerate(steps):
+            if position:
+                arrow = _label("→", self.fonts.small, T.TEXT_FAINT)
+                arrow.setAlignment(Qt.AlignCenter)
+                arrow.setFixedWidth(self.PATH_ARROW_WIDTH)
+                row.addWidget(arrow)
+            if won is None:
+                shade = colour or T.TEXT_DIM
+            else:
+                shade = T.PLAYER if won else T.OPPONENT
+            cell = ElidedLabel(str(name), self.fonts.small, shade)
+            cell.setFixedWidth(self.PATH_NAME_WIDTH)
+            # setFixedWidth is not enough on its own here. ElidedLabel is
+            # horizontally Ignored by default -- that is the whole point of it
+            # in the Pokedex rail, where a long name must not widen the row --
+            # and an Ignored widget reports a width of 0 to the layout. The
+            # layout then advanced by the arrow alone, so every name after the
+            # first was drawn on top of the one before it: six names stacked
+            # in the space of one. Fixed makes the slot it is drawn at the
+            # slot the layout reserves.
+            cell.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+            row.addWidget(cell)
+        if stretch:
+            row.addStretch(1)
+        return row
+
+    def _tail_label(self, text, font, colour):
+        """The last thing on a path row, sized from what the path left over.
+
+        A plain label demands its full width, and six rounds of path plus a
+        run's winner is wider than the window -- with no horizontal scrollbar
+        in these tabs (see `_add_tab`) the overrun is simply unreachable, so
+        the tail was cut off rather than shortened. This is the one elastic
+        item in the row: ElidedLabel is horizontally Ignored, which both
+        expands into the slack and elides when the slack is small, so the
+        names keep their fixed slots and the tail gives way instead.
+        """
+        label = ElidedLabel(str(text), font, colour)
+        label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        return label
+
     def show_champions(self, champions):
         body = self.bodies["Champions"]
         clear_layout(body)
-        body.addWidget(_eyebrow("champion of each championship", self.fonts))
+        body.addWidget(_eyebrow("CHAMPION OF EACH CHAMPIONSHIP", self.fonts))
         if not champions:
             body.addWidget(_label("No championship has been completed yet.",
                                   self.fonts.body, T.TEXT_FAINT, wrap=True))
@@ -1445,11 +1614,25 @@ class CareerDialog(QDialog):
                                radius=T.RADIUS_SM)
             line = QHBoxLayout(row)
             line.setContentsMargins(12, 6, 12, 6)
-            line.addWidget(_label("#%d" % entry.get("run", 0),
-                                  self.fonts.small, T.TEXT_FAINT))
-            line.addStretch(1)
-            line.addWidget(_label(str(entry.get("champion", "—")),
-                                  self.fonts.body_bold, T.ACCENT))
+            line.setSpacing(8)
+            tag = _label("#%d" % entry.get("run", 0), self.fonts.small,
+                         T.TEXT_FAINT)
+            tag.setFixedWidth(self.RUN_TAG_WIDTH)
+            line.addWidget(tag)
+            # Who they got through, on the same line rather than a second one.
+            # It says what the title was worth, and it is there for whoever
+            # enjoys reading it -- but a row per champion reads as a list, and
+            # two rows per champion read as a wall.
+            beaten = entry.get("beaten") or []
+            if beaten:
+                line.addLayout(self._path_row(
+                    [(name, None) for name in beaten], T.TEXT_FAINT,
+                    stretch=False))
+            # No stretch either way: the champion's name is the elastic item
+            # here, and a stretch beside it would take the whole row and
+            # leave it nothing to be drawn in. See _tail_label.
+            line.addWidget(self._tail_label(entry.get("champion", "—"),
+                                            self.fonts.body_bold, T.ACCENT))
             body.addWidget(row)
         body.addStretch(1)
 
@@ -1507,18 +1690,25 @@ class CareerDialog(QDialog):
         rate = info.get("win_rate")
         tiles = QHBoxLayout()
         tiles.setSpacing(6)
-        tiles.addWidget(self._tile("entered", info.get("participation", 0)))
-        tiles.addWidget(self._tile("titles", info.get("championship", 0),
+        tiles.addWidget(self._tile("ENTERED", info.get("participation", 0)))
+        tiles.addWidget(self._tile("TITLES", info.get("championship", 0),
                                    T.ACCENT if info.get("championship")
                                    else None))
-        tiles.addWidget(self._tile("won", info.get("wins", 0), T.PLAYER))
-        tiles.addWidget(self._tile("lost", info.get("losses", 0), T.OPPONENT))
-        tiles.addWidget(self._tile("win rate", "—" if rate is None
+        tiles.addWidget(self._tile("WON", info.get("wins", 0), T.PLAYER))
+        tiles.addWidget(self._tile("LOST", info.get("losses", 0), T.OPPONENT))
+        tiles.addWidget(self._tile("WIN RATE", "—" if rate is None
                                    else "%.1f%%" % rate))
         tiles.addStretch(1)
         column.addLayout(tiles)
 
         who = info.get("nickname", "them")
+        # The write-up belongs here as much as on the opponent panel -- the
+        # player's own career tab used to be a portrait and five numbers.
+        blurb = str(info.get("description") or "").strip()
+        if blurb:
+            column.addWidget(_eyebrow("ABOUT", self.fonts, T.TEXT_FAINT))
+            column.addWidget(_label(blurb, self.fonts.small, T.TEXT_DIM,
+                                    wrap=True))
         self.show_runs(info.get("runs") or [], who)
 
         if rate is None:
@@ -1537,7 +1727,7 @@ class CareerDialog(QDialog):
 
         played = info.get("most_played") or []
         if played:
-            column.addWidget(_eyebrow("most played against", self.fonts,
+            column.addWidget(_eyebrow("MOST PLAYED AGAINST", self.fonts,
                                       T.TEXT_FAINT))
             for entry in played:
                 column.addWidget(self._record_row(entry))
@@ -1568,15 +1758,18 @@ class CareerDialog(QDialog):
         ranks = [entry.get("rank") for entry in runs
                  if isinstance(entry.get("rank"), int)]
         head = QHBoxLayout()
-        head.addWidget(_eyebrow("every championship entered", self.fonts))
+        head.addWidget(_eyebrow("EVERY CHAMPIONSHIP", self.fonts))
         head.addStretch(1)
         if ranks:
-            head.addWidget(_label("best finish: rank %d  ·  %d entered"
+            head.addWidget(_label("BEST FINISH: RANK %d  ·  %d ENTERED"
                                   % (min(ranks), len(runs)),
                                   self.fonts.small, T.TEXT_DIM))
         body.addLayout(head)
         for entry in runs:
             rank = entry.get("rank")
+            # `entered` is absent on older payloads, so fall back to "there is
+            # a rank" rather than calling every run an absence
+            entered = entry.get("entered", rank is not None)
             colour = self.PODIUM.get(rank, T.TEXT_FAINT)
             row = RoundedPanel(None, bg=T.mix(T.PANEL, colour, 0.10)
                                if rank == 1 else T.PANEL,
@@ -1584,15 +1777,38 @@ class CareerDialog(QDialog):
                                radius=T.RADIUS_SM)
             line = QHBoxLayout(row)
             line.setContentsMargins(12, 5, 12, 5)
-            line.addWidget(_label("#%d" % entry.get("run", 0),
-                                  self.fonts.small, T.TEXT_FAINT))
-            line.addWidget(_label("rank %s" % ("—" if rank is None
-                                               else rank),
-                                  self.fonts.body_bold, colour))
-            line.addStretch(1)
-            if entry.get("champion"):
-                line.addWidget(_label("won by %s" % entry["champion"],
-                                      self.fonts.small, T.TEXT_DIM))
+            tag = _label("#%d" % entry.get("run", 0), self.fonts.small,
+                         T.TEXT_FAINT)
+            tag.setFixedWidth(self.RUN_TAG_WIDTH)
+            line.addWidget(tag)
+            if entered:
+                place = _label("RANK %s" % ("—" if rank is None else rank),
+                               self.fonts.body_bold, colour)
+                place.setFixedWidth(self.RANK_WIDTH)
+                line.addWidget(place)
+            else:
+                # A run they sat out. Said plainly and dimly, so the row is
+                # still there to be counted but does not read as a result.
+                line.addWidget(_label("NO PARTICIPATION", self.fonts.small,
+                                      T.TEXT_FAINT))
+            # Their own way through the bracket, in the same fixed-width
+            # arrow format the champion roll uses -- green for a match won,
+            # red for the one that ended the run. Read across for the path,
+            # down for how far they tended to get.
+            path = entry.get("path") or []
+            champion = entry.get("champion")
+            if path:
+                line.addSpacing(12)
+                line.addLayout(self._path_row(
+                    [(name, won) for name, won in path],
+                    stretch=not champion))
+            elif not champion:
+                # Only when nothing follows -- a stretch beside the tail
+                # label would swallow the width the label needs.
+                line.addStretch(1)
+            if champion:
+                line.addWidget(self._tail_label(
+                    "Champion: %s" % champion, self.fonts.small, T.TEXT_DIM))
             body.addWidget(row)
         body.addStretch(1)
 
@@ -1614,13 +1830,26 @@ class CareerDialog(QDialog):
             line.addWidget(_label("[%d]" % entry["rating"], self.fonts.small,
                                   T.CYAN))
         line.addStretch(1)
-        line.addWidget(_label("%d W  %d L" % (wins, losses),
-                              self.fonts.small, T.TEXT_DIM))
+        # Fixed widths, right-aligned, so the record and the percentage sit in
+        # the same place on every row. They used to be laid out one after the
+        # other, so "12 W 3 L" pushed the percentage further right than
+        # "0 W 0 L" did and no two rows lined up -- which matters now that
+        # every opponent gets a row whether they have been played or not.
+        record = _label("%d W   %d L" % (wins, losses), self.fonts.small,
+                        T.TEXT_DIM if played else T.TEXT_FAINT)
+        record.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        record.setFixedWidth(92)
+        line.addWidget(record)
         rate = entry.get("win_rate")
         if rate is None and played:
             rate = round(100.0 * wins / played)
-        line.addWidget(_label("—" if rate is None else "%d%%" % rate,
-                              self.fonts.body_bold, accent))
+        # Never faced: no percentage at all rather than a 0% that would read as
+        # "played and lost every time".
+        percent = _label("" if not played else "%d%%" % (rate or 0),
+                         self.fonts.body_bold, accent)
+        percent.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        percent.setFixedWidth(52)
+        line.addWidget(percent)
         return row
 
     def show_records(self, info):
@@ -1662,6 +1891,7 @@ class StandingsDialog(QDialog):
                       "rating_change": None, "rating_before": None,
                       "round_results": None}
         self._dirty = True
+        self._signature = None        # see refresh()
         self.setWindowTitle("Standings")
         self.setStyleSheet("background: %s;" % T.BG)
         # wide enough for a full matchup row (two names with rating and
@@ -1735,11 +1965,34 @@ class StandingsDialog(QDialog):
     def refresh(self, bracket, leaderboard, journey, champion,
                rating=None, rating_change=None, rating_before=None,
                round_results=None):
+        """Store the new standings; rebuild only if they are new.
+
+        Same guard, and the same reason, as RosterDialog.refresh -- but this
+        window is the more expensive of the two to get wrong. A rebuild here
+        re-renders the matchups, a tab per round played, a fifty-eight row
+        leaderboard and the journey, and it was doing all of that on every
+        battle-state update for as long as the window was open.
+        """
         self._data.update(bracket=bracket, leaderboard=leaderboard,
                           journey=journey, champion=bool(champion),
                           rating=rating, rating_change=rating_change,
                           rating_before=rating_before,
                           round_results=round_results)
+
+        # The bridge publishes fresh snapshots, so identity says nothing about
+        # whether the contents moved -- it has to be compared by value. These
+        # are plain dicts and lists all the way down (see the snap_* functions
+        # in GUI/bridge.py), so repr is a faithful comparison, and even at
+        # fifty-eight rows it is thousands of times cheaper than the rebuild
+        # it is deciding against.
+        try:
+            signature = repr(self._data)
+        except Exception:
+            signature = None          # unreprable: fall back to rebuilding
+        if signature is not None and signature == self._signature:
+            return
+        self._signature = signature
+
         if self.isVisible():
             self._rebuild()
         else:
@@ -1761,9 +2014,11 @@ class StandingsDialog(QDialog):
             if body is None:
                 continue
             self._clear(body)
-            body.addWidget(_label(
-                "Pokemon knocked out by each side.",
-                self.fonts.small, T.TEXT_FAINT, wrap=True))
+            # No caption here. _render_results opens with its own heading and
+            # its own one-line explanation, and this was a second copy of that
+            # explanation printed *above* the heading -- a loose sentence
+            # floating over the tab with nothing to attach it to, on every
+            # round tab, from the moment a round's matches were all played.
             self._render_results(entry, body)
             body.addStretch(1)
         if d["leaderboard"]:
@@ -1777,12 +2032,12 @@ class StandingsDialog(QDialog):
             self._placeholder(self.journey_body, "No matches played yet.")
 
     def _clear(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-            elif item.layout():
-                self._clear(item.layout())
+        """The shared one. This used to be a private copy that only called
+        deleteLater(), leaving the old widgets parented and drawn at their old
+        coordinates until the next event-loop turn -- the exact over-draw
+        clear_layout was written to prevent, and the same detached-widget
+        window problem it now hides against."""
+        clear_layout(layout)
 
     def _placeholder(self, layout, text):
         self._clear(layout)

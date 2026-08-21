@@ -98,6 +98,14 @@ check("their switch animates", running("opponent"))
 check("...on their side only", running("player"), False)
 check("...with the outgoing one still on screen as a ghost",
       isinstance(ghost("opponent"), QLabel))
+# the mark the leak check at the bottom counts, proved to exist while an
+# animation is actually running -- otherwise that check could pass by
+# finding nothing for the wrong reason
+check("...and it is marked as this animation's own",
+      getattr(ghost("opponent"), "is_switch_ghost", False))
+check("...so the leak check has something to find mid-animation",
+      len([g for g in w.arena.findChildren(QLabel)
+           if getattr(g, "is_switch_ghost", False)]) > 0)
 check("...and a second one for the Pokemon arriving",
       isinstance(ghost_in("opponent"), QLabel))
 check("...with the live sprite hidden while they act", live_hidden("opponent"))
@@ -189,9 +197,12 @@ check("...and showing the live sprite again",
       live_hidden("opponent"), False)
 check("...at full size",
       w.opponent_sprite.size(), w.opponent_sprite._sprite_size)
+# the animation's own throwaways, by their mark. This used to be "any
+# label in the arena carrying a pixmap", which counted anything else that
+# legitimately lives in there -- the field strip's weather and room
+# emblems are two such labels, and they read as two leftover ghosts.
 ghosts = [g for g in w.arena.findChildren(QLabel)
-          if g is not w.player_sprite and g is not w.opponent_sprite
-          and g.pixmap() is not None and not g.pixmap().isNull()]
+          if getattr(g, "is_switch_ghost", False)]
 check("no ghost labels left in the arena (%d)" % len(ghosts),
       len(ghosts), 0)
 

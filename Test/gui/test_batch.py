@@ -77,10 +77,24 @@ art = B.character_art(type("C", (), {"name": "Magnus Carlsen",
                                      "nickname": "Magnus Carlsen"})())
 check("character art resolves for a competitor",
       art, os.path.join("Assets", "characters", "Magnus Carlsen.jpg"))
-check("a .png competitor resolves too",
-      B.character_art(type("C", (), {"name": "Vardy",
-                                     "nickname": "Vardy"})()),
-      os.path.join("Assets", "characters", "Vardy.png"))
+# The resolver tries .jpg, then .png, then .jpeg, because the folder has
+# always been a mix. This used to assert that "Vardy" came back as a .png,
+# which stopped being true the day that portrait was re-saved as a .jpg --
+# the check was pinned to one file's extension rather than to the behaviour.
+# A throwaway fixture tests the behaviour and cannot go stale.
+_png = os.path.join(ROOT, "Assets", "characters", "_ExtensionProbe.png")
+try:
+    with open(_png, "wb") as _handle:
+        _handle.write(b"not really a png")
+    check("a competitor whose portrait is a .png resolves too",
+          B.character_art(type("C", (), {"name": "_ExtensionProbe",
+                                         "nickname": "_ExtensionProbe"})()),
+          os.path.join("Assets", "characters", "_ExtensionProbe.png"))
+finally:
+    if os.path.exists(_png):
+        os.remove(_png)
+check("and the fixture is cleaned up after itself",
+      os.path.exists(_png), False)
 check("an unknown competitor gives no path",
       B.character_art(type("C", (), {"name": "Nobody",
                                      "nickname": "Nobody"})()), "")
@@ -119,7 +133,10 @@ texts = " | ".join(l.text() for l in w.roster_dialog.findChildren(QLabel)
                    if l.text())
 check("their team is hidden by default",
       len(w.roster_dialog.rosters["opponent"]), 0)
-check("...and says how to earn it", "do not know their team" in texts, True)
+check("...and says how to earn it", "Not scouted yet" in texts, True)
+# the two teams share one list now, so their heading is present either way
+check("...with both teams headed on the one rail",
+      "YOUR TEAM" in texts and "OPPONENT TEAM" in texts, True)
 
 w._apply_state({"phase": "battle", "player_roster": [],
                 "opponent_roster": THEIRS, "opponent_known": True})

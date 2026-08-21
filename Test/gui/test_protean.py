@@ -68,14 +68,16 @@ def spy_used(user_side, opponent_side, user, opponent, battleground, move):
                          battleground, move)
 
 
-def spy_exec(user_side, target_side, user_team, target_team, actor, target,
-             battleground, move, target_move):
+def spy_exec(turn, move, target_move):
+    # move_order_and_execution takes a battle context now -- the acting side
+    # and its opponent are turn.user and turn.foe. See
+    # Scripts/Battle/context.py.
+    actor, target = turn.user.active, turn.foe.active
     if move.name != "Switching":
         events.append(("move", actor.name, move.name))
     # what the *defender* is wearing as the attack is worked out
     defending.append((actor.name, move.name, target.name, list(target.type)))
-    return original_exec(user_side, target_side, user_team, target_team,
-                         actor, target, battleground, move, target_move)
+    return original_exec(turn, move, target_move)
 
 
 defending = []

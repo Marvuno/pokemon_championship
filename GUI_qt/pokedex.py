@@ -37,7 +37,7 @@ from GUI_qt.widgets import (ActionButton, Chip, ElidedLabel, RoundedPanel,
                             StatBar, TypeBlocks, clear_layout,
                             label as _label)
 
-SECTIONS = ("Pokemon", "Moves", "Opponents")
+SECTIONS = ("Pokemon", "Moves", "Abilities", "Opponents")
 #: fixed boxes for the artwork. show_sprite fits the longest edge and never
 #: enlarges, and _FittedArt scales to whatever it is given, so a fixed box is
 #: both a guarantee that the picture fits and the thing that stops the panel
@@ -141,6 +141,13 @@ class _Row(RoundedPanel):
             line.addWidget(ElidedLabel(entry["name"], fonts.small_bold,
                                        T.TEXT), 1)
             line.addWidget(TypeBlocks([entry["type"]]), 0)
+        elif kind == "abilities":
+            line.addWidget(ElidedLabel(entry["name"], fonts.small_bold,
+                                       T.TEXT), 1)
+            # how many Pokemon have it, so the list reads as "common or rare"
+            # at a glance
+            line.addWidget(_label(str(len(entry.get("pokemon") or [])),
+                                  fonts.small, T.CYAN), 0)
         elif kind == "opponents":
             line.addWidget(ElidedLabel(entry["nickname"], fonts.small_bold,
                                        T.TEXT), 1)
@@ -269,6 +276,8 @@ class _Section(QWidget):
         entry = self.entries[index]
         if self.kind == "moves":
             self._show_move(entry)
+        elif self.kind == "abilities":
+            self._show_ability(entry)
         elif self.kind == "opponents":
             self._show_opponent(entry)
         else:
@@ -385,6 +394,38 @@ class _Section(QWidget):
     #: set by PokedexDialog so a Pokemon's move pool can show real move data
     lookup_move = staticmethod(lambda name: None)
 
+    def _show_ability(self, entry):
+        """One Pokemon ability, and every Pokemon that has it.
+
+        No written description: the behaviour only exists as code in
+        abilities.py, so inventing prose here would create a second account of
+        one ability that could silently disagree with the first.
+
+        Character abilities are not in this section at all -- see
+        codex._abilities. Which competitor has which is what Scout Opponent is
+        for.
+        """
+        head = QHBoxLayout()
+        head.addWidget(ElidedLabel(entry["name"], self.fonts.hero, T.TEXT), 1)
+        self.detail.addLayout(head)
+
+        # One line from Scripts/Data/ability_text.py. Absent for anything not
+        # described there, rather than a placeholder.
+        text = str(entry.get("text") or "").strip()
+        if text:
+            self.detail.addWidget(_wrapped(text, self.fonts.body, T.TEXT_DIM))
+
+        holders = entry.get("pokemon") or []
+        self.detail.addWidget(_eyebrow("POKEMON WITH IT (%d)" % len(holders),
+                                       self.fonts))
+        if holders:
+            self.detail.addWidget(_wrapped(", ".join(holders),
+                                           self.fonts.small, T.TEXT_DIM))
+        else:
+            self.detail.addWidget(_label("No Pokemon has this yet.",
+                                         self.fonts.small, T.TEXT_FAINT))
+        self.detail.addStretch(1)
+
     def _show_move(self, entry):
         head = QHBoxLayout()
         head.addWidget(ElidedLabel(entry["name"], self.fonts.hero, T.TEXT),
@@ -402,7 +443,7 @@ class _Section(QWidget):
         for caption, value in (("power", entry["power"] or "—"),
                                ("accuracy", "always" if accuracy is None
                                 else "%d%%" % round(accuracy * 100)),
-                               ("pp", entry["pp"]),
+
                                ("priority", "%+d" % entry["priority"]
                                 if entry["priority"] else "—")):
             panel = RoundedPanel(None, bg=T.PANEL_SUNK, border=T.LINE_SOFT,
@@ -469,24 +510,55 @@ class _Section(QWidget):
             inner.setContentsMargins(0, 0, 0, 0)
             inner.addWidget(_FittedArt(QPixmap(picture)))
             split.addWidget(frame, 6, Qt.AlignTop)
+        # Four sections, always in this order: who they are, what they say,
+        # what they bring, what they change. Every heading is the accent gold
+        # -- they are the only thing giving this column structure, and at
+        # eyebrow size in TEXT_FAINT they were quieter than the body text
+        # they introduced.
         column = QVBoxLayout()
         column.setSpacing(6)
-        if entry.get("ability"):
-            column.addWidget(_eyebrow("character ability", self.fonts,
-                                      T.TEXT_FAINT))
-            column.addWidget(_wrapped(entry["ability"],
-                                      self.fonts.body_bold, T.ACCENT))
-        if entry.get("quote"):
-            column.addWidget(_wrapped('"%s"' % entry["quote"],
-                                      self.fonts.small, T.TEXT_DIM))
+
         if entry.get("description"):
-            column.addWidget(_eyebrow("about them", self.fonts, T.TEXT_FAINT))
+            column.addWidget(_eyebrow("about them", self.fonts, T.ACCENT))
+            # codex flows these into one paragraph first: the CSV cell holds
+            # hard line breaks wherever the spreadsheet wrapped, which is not
+            # where a sentence ends, and a wrapped label then re-wraps inside
+            # each fragment into ragged two-word lines.
             column.addWidget(_wrapped(entry["description"], self.fonts.small,
                                       T.TEXT))
-        if entry.get("strategy"):
-            column.addWidget(_eyebrow("strategy", self.fonts, T.TEXT_FAINT))
-            column.addWidget(_wrapped(entry["strategy"], self.fonts.small,
-                                      T.TEXT_DIM))
+
+        if entry.get("quote"):
+            column.addWidget(_eyebrow("quote", self.fonts, T.ACCENT))
+            column.addWidget(_wrapped('"%s"' % entry["quote"],
+                                      self.fonts.small, T.TEXT_DIM))
+
+        # The Pokemon and its typing, and nothing else. The Strategy blurb
+        # used to follow in grey, which repeated the same Pokemon's name in
+        # prose and said "(Custom)" -- whether a Pokemon was hand-built is
+        # not a fact about the Pokemon, and it read as a tier.
+        if entry.get("aces"):
+            column.addWidget(_eyebrow("ace", self.fonts, T.ACCENT))
+            for ace in entry["aces"]:
+                row = QHBoxLayout()
+                row.setSpacing(4)
+                row.addWidget(_label(ace["name"], self.fonts.body_bold,
+                                     T.TEXT))
+                for type_name in ace["types"]:
+                    row.addWidget(Chip(type_name, T.type_color(type_name),
+                                       self.fonts))
+                row.addStretch(1)
+                column.addLayout(row)
+
+        if entry.get("ability"):
+            column.addWidget(_eyebrow("character ability", self.fonts,
+                                      T.ACCENT))
+            column.addWidget(_label(entry["ability"], self.fonts.body_bold,
+                                    T.TEXT))
+            # naming it says nothing on its own: the effect is the reason a
+            # player looked it up
+            if entry.get("ability_effect"):
+                column.addWidget(_wrapped(entry["ability_effect"],
+                                          self.fonts.small, T.TEXT_DIM))
         column.addStretch(1)
         wrap = QScrollArea()
         wrap.setWidgetResizable(True)

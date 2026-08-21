@@ -133,8 +133,13 @@ dex.entry.setText("cynthia")
 dex._filter()
 app.processEvents()
 shown = " | ".join(texts(people))
-check("it says Strategy, not 'how they play'",
-      "STRATEGY" in shown.upper() and "HOW THEY PLAY" not in shown.upper())
+# "ACE", not "STRATEGY" and not "how they play": the blurb is about which
+# Pokemon they always bring, so the heading says so -- and the Pokemon are
+# named there with their typing.
+check("the blurb is headed ACE",
+      "ACE" in shown.upper() and "HOW THEY PLAY" not in shown.upper())
+check("...and the ace is named with its typing",
+      "GARCHOMP" in shown.upper() and "GROUND" in shown.upper())
 check("their write-up is on the panel now", "ABOUT THEM" in shown.upper())
 entry = [e for e in DATA["opponents"] if e["nickname"] == "Expert Cynthia"][0]
 check("...and it is the real description",

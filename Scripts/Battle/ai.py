@@ -2,6 +2,9 @@ import random
 from contextlib import suppress
 from copy import deepcopy
 
+from Scripts.Battle.fastcopy import fast_copy
+from Scripts.Battle.context import Side, Turn
+
 from Scripts.Art.text_color import *
 from Scripts.Data.pokemon import *
 from Scripts.Data.abilities import *
@@ -24,6 +27,8 @@ from Scripts.Battle.damage_calculation import (check_attack_power,
                                                check_defense_strength,
                                                check_if_weather_affect_moves)
 from Scripts.Battle.battle_win_condition import check_win_or_lose
+from Scripts.Art import narrator
+from Scripts.Battle import terrain
 
 
 def move_score_finalization(user, target, move_score, index):
@@ -49,7 +54,10 @@ def estimated_speed_adjustment(user_side, user, battleground):
         return speed
 
     ability_impact_speed = {'Sunny': 'Chlorophyll', 'Rain': 'Swift Swim', 'Hail': 'Slush Rush'}
-    speed = deepcopy(user.battle_stats[5])
+    # the speed stat, not a copy of it: battle_stats[5] is an int, and
+    # ints are immutable -- deepcopy returned the same object every
+    # time, about 4,000 times a battle, for nothing.
+    speed = user.battle_stats[5]
     with suppress(KeyError):
         speed *= 2 if ability_impact_speed[battleground.weather_effect] in user.ability else 1
     speed = check_paralysis(user, speed)
@@ -85,9 +93,13 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
         if "Fire" in move.type and user.volatile_status['FlashFire'] > 0:
             power *= 1.5
         # custom retaliate move
-        # the more pokemon fainted the stronger
+        # the more pokemon fainted the stronger -- kept in step with
+        # check_power_modifier in damage_calculation.py, which is the whole
+        # point of this estimate: an AI scoring a move by a formula the
+        # engine no longer uses is deciding by a game that isn't running.
         if "retaliation" in move.effect_type:
-            power *= sum(1 for pokemon in user_side.team if pokemon.status == "Fainted")
+            power *= max(1, sum(1 for pokemon in user_side.team
+                                if pokemon.status == "Fainted"))
         return power
 
     # determine crit
@@ -164,10 +176,14 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
     rand_factor = 0.9  # random
     type_effectiveness = check_estimated_type_effectiveness(target_side, target, move)
     weather = check_if_weather_affect_moves(battleground, move)
+    # the same terrain factor the real formula uses -- an AI scoring moves by
+    # different rules than the engine resolves them by is the trap
+    # CLAUDE.md records for the three damage helpers
+    ground = terrain.move_multiplier(battleground, user, target, move)
     other = check_estimated_other_factor(user_side, target_side, user, target, move)
     power = check_estimated_power_modifier(user_side, target_side, user, target, move)
 
-    damage = math.floor((((((2 * 100 / 5) + 2) * power * attack / defense) / 50) + 2) * weather * critical * (
+    damage = math.floor((((((2 * 100 / 5) + 2) * power * attack / defense) / 50) + 2) * weather * ground * critical * (
             rand_factor * STAB * type_effectiveness * other * move.abilitymodifier))
 
     return damage
@@ -183,14 +199,14 @@ def auto_ai_select_move(battleground, protagonist, ai):
     - if there is no such move, use random move
     - it considers first-turn only moves only and nothing else
     """
-    protagonist_pokemon, ai_pokemon = deepcopy(protagonist.team[0]), deepcopy(ai.team[0])
+    protagonist_pokemon, ai_pokemon = fast_copy(protagonist.team[0]), fast_copy(ai.team[0])
     move_damage = [0] * len(ai_pokemon.moveset)
 
     if ai_pokemon.charging[0] != "":
         return list_of_moves[ai_pokemon.charging[0]]
 
     for index, move in enumerate(ai_pokemon.moveset):
-        move = deepcopy(list_of_moves[move])
+        move = fast_copy(list_of_moves[move])
         # even worse calculation
         move.damage = move.power * math.prod([2 if protagonist_pokemon.type[x] in move.ignoreType else \
         typeChart[move.type][protagonist_pokemon.type[x]] for x in range(len(protagonist_pokemon.type))])
@@ -228,7 +244,7 @@ def dumb_ai_select_move(battleground, protagonist, ai):
     # it will only consider the move with highest dmg against player
     # it never uses status moves
     # it switches if player pokemon has *4 effective move
-    protagonist_pokemon, ai_pokemon = deepcopy(protagonist.team[0]), deepcopy(ai.team[0])
+    protagonist_pokemon, ai_pokemon = fast_copy(protagonist.team[0]), fast_copy(ai.team[0])
 
     if ai_pokemon.charging[0] != "":
         return list_of_moves[ai_pokemon.charging[0]]
@@ -242,21 +258,25 @@ def dumb_ai_select_move(battleground, protagonist, ai):
             incoming_move = move
 
     for index, move in enumerate(ai_pokemon.moveset):
-        move = deepcopy(list_of_moves[move])
+        move = fast_copy(list_of_moves[move])
 
-        UseAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=2)
-        UseAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=3)
-        UseCharacterAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=2)
-        UseCharacterAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=3)
+        scoring = Turn(battleground,
+                       Side(ai, getattr(ai, 'team', []), ai_pokemon),
+                       Side(protagonist, getattr(protagonist, 'team', []),
+                            protagonist_pokemon))
+        UseAbility(scoring, move, abilityphase=2)
+        UseAbility(scoring.flip(), move, abilityphase=3)
+        UseCharacterAbility(scoring, move, abilityphase=2)
+        UseCharacterAbility(scoring.flip(), move, abilityphase=3)
         onWeatherCheck(battleground, move)
         onParticularMoveChange(ai_pokemon, protagonist_pokemon, move)
 
         move.damage = estimated_damage_calculation(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move)
 
-        UseCharacterAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
-        UseCharacterAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
-        UseAbility(ai, protagonist, ai_pokemon, protagonist_pokemon, battleground, move, abilityphase=4)
-        UseAbility(protagonist, ai, protagonist_pokemon, ai_pokemon, battleground, move, abilityphase=5)
+        UseCharacterAbility(scoring, move, abilityphase=4)
+        UseCharacterAbility(scoring.flip(), move, abilityphase=5)
+        UseAbility(scoring, move, abilityphase=4)
+        UseAbility(scoring.flip(), move, abilityphase=5)
 
         move_damage[index] = move.damage
 
@@ -300,13 +320,18 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
     # protagonist pokemon as user, ai pokemon as target
     for index, move in enumerate(user.moveset):
         # reset stats each time to avoid duplicated changes
-        user.battle_stats = deepcopy(user_stats)
-        move = deepcopy(list_of_moves[move])
+        # a flat list of numbers, so a slice is the whole copy
+        user.battle_stats = list(user_stats)
+        move = fast_copy(list_of_moves[move])
 
-        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=2)
-        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
-        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=2)
-        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
+        scoring = Turn(battleground,
+                       Side(user_side, getattr(user_side, 'team', []), user),
+                       Side(target_side, getattr(target_side, 'team', []),
+                            target))
+        UseAbility(scoring, move, abilityphase=2)
+        UseAbility(scoring.flip(), move, abilityphase=3)
+        UseCharacterAbility(scoring, move, abilityphase=2)
+        UseCharacterAbility(scoring.flip(), move, abilityphase=3)
         onWeatherCheck(battleground, move)
         onParticularMoveChange(user, target, move)
 
@@ -316,10 +341,10 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
 
         move.damage = estimated_damage_calculation(user_side, target_side, user, target, battleground, move)
 
-        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
-        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
-        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
-        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
+        UseCharacterAbility(scoring, move, abilityphase=4)
+        UseCharacterAbility(scoring.flip(), move, abilityphase=5)
+        UseAbility(scoring, move, abilityphase=4)
+        UseAbility(scoring.flip(), move, abilityphase=5)
 
         # expected damage
         move_score[index][1] = min(move.damage, target.battle_stats[0] * 1.12) * move.accuracy
@@ -448,11 +473,23 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
         # prolly no-effect move
         if move.attack_type != 'Status' and move.damage == 0:
             move_score[index][0] -= 1
+        # Already tried it on this Pokemon and it did nothing. The estimate
+        # above can be wrong -- an immunity or a damage-zeroing ability only
+        # shows up once the move has actually been thrown -- so a move with a
+        # proven record of doing nothing to whatever is standing there is
+        # pushed right to the back rather than merely docked a point.
+        if move.name in user.ineffective_moves.get(target.name, ()):
+            move_score[index][0] -= 20
+            move_score[index][1] = 0
 
-        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
-        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
-        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
-        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
+        landing = Turn(battleground,
+                       Side(user_side, getattr(user_side, 'team', []), user),
+                       Side(target_side, getattr(target_side, 'team', []),
+                            target))
+        UseAbility(landing, move, abilityphase=6)
+        UseAbility(landing.flip(), move, abilityphase=7)
+        UseCharacterAbility(landing, move, abilityphase=6)
+        UseCharacterAbility(landing.flip(), move, abilityphase=7)
 
         move_score = move_score_finalization(user, target, move_score, index)
 
@@ -477,7 +514,7 @@ def smart_ai_select_move(battleground, protagonist, ai):
     - if it switches for 2 times, it is forbidden to switch again to avoid switching loop
     """
     # declare variables
-    protagonist_pokemon, ai_pokemon = deepcopy(protagonist.team[0]), deepcopy(ai.team[0])
+    protagonist_pokemon, ai_pokemon = fast_copy(protagonist.team[0]), fast_copy(ai.team[0])
     protagonist_stats, ai_stats = protagonist_pokemon.battle_stats, ai_pokemon.battle_stats
     # One score slot per move the Pokemon actually has, not a fixed five.
     # Every "best move" below is chosen by sorting these *keys* and is then
@@ -630,7 +667,7 @@ def smart_ai_select_move(battleground, protagonist, ai):
                         # if swtiching is failed, it means AI side is already losing
                         # prefer using attacking moves
                         if battleground.verbose:
-                            print(f"{CREDBG}2{CEND}")
+                            narrator.say(f"{CREDBG}2{CEND}")
                         if ai_best_attack == 0:
                             # use best attacking move instead
                             ranked = sorted(ai_move_score, key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][1]))
@@ -672,7 +709,7 @@ def smart_ai_select_move(battleground, protagonist, ai):
         ai.switching += 1
 
     if battleground.verbose:
-        print(f"{CVIOLETBG}1{CEND}")
+        narrator.say(f"{CVIOLETBG}1{CEND}")
 
     return list_of_moves[ai_pokemon.moveset[ai_best_move]]
 
@@ -681,7 +718,7 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
     if (not forced_switch) and recall:
         if ai.team[0].volatile_status['Binding'] > 0 or ai.team[0].volatile_status['Trapped'] > 0:
             if 'Ghost' not in ai.team[0].type:
-                print("The pokemon cannot be switched out!")
+                narrator.say("The pokemon cannot be switched out!", "fail")
                 return 0
 
     available_pokemon = [x for x in ai.team]
@@ -693,7 +730,32 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
 
     if battleground.verbose:
         for pokemon in available_pokemon:
-            print(f"{ai.side_color}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
+            narrator.say(f"{ai.side_color}{pokemon.name} {pokemon.nominal_base_stats} {pokemon.iv} {pokemon.moveset} {pokemon.ability}{CEND}")
+
+    # Copies, because the estimator writes to whatever move it is handed --
+    # super_effective, not_effective, and for an interchange-type move its very
+    # type. This used to pass the *shared* entries of list_of_moves straight
+    # in, so scoring a switch quietly rewrote the game's move table for every
+    # Pokemon in every later battle: over 25 battles it left 211 of 387 moves
+    # carrying stale effectiveness flags and had permanently changed one move's
+    # type. It was the only path that did; everything else already copied.
+    #
+    # Copied once here rather than once per candidate. The Pokemon being
+    # switched away from does not change while the candidates are compared, so
+    # its moves were being copied six times over -- 43% of all the copying a
+    # battle does. Reusing them is exact rather than approximate: the estimator
+    # writes three fields and no more (checked against the source), and
+    # super_effective and not_effective are overwritten at the top of every
+    # call before anything reads them. Only `type` carries over, so only
+    # `type` is put back.
+    facing = [fast_copy(list_of_moves[name])
+              for name in protagonist.team[0].moveset]
+    facing_types = [move.type for move in facing]
+    incoming = None
+    if incoming_move > 0:
+        incoming = fast_copy(
+            list_of_moves[protagonist.team[0].moveset[incoming_move]])
+        incoming_type = incoming.type
 
     for index, pokemon in enumerate(available_pokemon):
         ai_speed, protagonist_speed = estimated_speed_adjustment(ai, pokemon, battleground), \
@@ -702,17 +764,17 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
             continue
         else:
             incoming_move_damage, estimated_incoming_damage, estimated_outgoing_damage = 0, 0, 0
-            if incoming_move > 0:
-                protagonist_move = list_of_moves[protagonist.team[0].moveset[incoming_move]]
-                incoming_move_damage = estimated_damage_calculation(protagonist, ai, protagonist.team[0], pokemon, battleground, protagonist_move)
+            if incoming is not None:
+                incoming.type = incoming_type
+                incoming_move_damage = estimated_damage_calculation(protagonist, ai, protagonist.team[0], pokemon, battleground, incoming)
 
-            for protagonist_move in protagonist.team[0].moveset:
-                protagonist_move = list_of_moves[protagonist_move]
+            for slot, protagonist_move in enumerate(facing):
+                protagonist_move.type = facing_types[slot]
                 estimated_incoming_damage = max(estimated_damage_calculation(protagonist, ai, protagonist.team[0], pokemon, battleground, protagonist_move),
                                                 estimated_incoming_damage)
 
             for ai_move in pokemon.moveset:
-                ai_move = list_of_moves[ai_move]
+                ai_move = fast_copy(list_of_moves[ai_move])
                 damage = estimated_damage_calculation(ai, protagonist, pokemon, protagonist.team[0], battleground, ai_move)
                 estimated_outgoing_damage = max(damage, estimated_outgoing_damage)
 
@@ -737,11 +799,24 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
     except:
         check_win_or_lose(protagonist, ai, protagonist.team, ai.team, battleground)
     else:
-        # second best pokemon
-        if forced_switch and switched_pokemon == 0:
-            switched_pokemon = net_damage.index(max(net_damage[1:5]))
+        # Second best pokemon: the best of the *other* slots, when the best
+        # overall is the one that has to leave.
+        #
+        # Was `net_damage.index(max(net_damage[1:5]))`, which had three
+        # separate problems. `[1:5]` is slots 1-4, so the sixth Pokemon could
+        # never be chosen however good the matchup. `.index()` then searched
+        # the whole list for that value, so if slot 0 happened to hold the
+        # same score it returned 0 -- the very answer this branch exists to
+        # replace. And on a two-Pokemon team the slice could come back empty
+        # and max() raise, in an `else` block no `except` covers.
+        #
+        # max(range, key=...) returns the index directly, is never 0, and
+        # considers every slot the team actually has.
+        if forced_switch and switched_pokemon == 0 and len(net_damage) > 1:
+            switched_pokemon = max(range(1, len(net_damage)),
+                                   key=lambda slot: net_damage[slot])
         if battleground.verbose:
-            print(f"Estimated Net Damage: {net_damage}, Switched Pokemon: {switched_pokemon}")
+            narrator.say(f"Estimated Net Damage: {net_damage}, Switched Pokemon: {switched_pokemon}")
 
         return switched_pokemon
     return 0

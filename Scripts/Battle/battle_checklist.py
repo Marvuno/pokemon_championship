@@ -16,12 +16,15 @@ from Scripts.Battle.volatile_status_condition import *
 from Scripts.Battle.damage_calculation import *
 from Scripts.Battle.move_additional_effect import *
 from Scripts.Battle.constants import *
+from Scripts.Battle.context import Side, Turn
 from Scripts.Battle.ai import *
 from Scripts.Battle.switching import *
 from Scripts.Battle.battle_move_execution import *
 from Scripts.Battle.battle_win_condition import *
 from Scripts.Battle.battle_initialization import *
 from Scripts.Battle.weather import *
+from Scripts.Art import narrator
+from Scripts.Battle import terrain
 
 
 def hp_bar_display(pokemon):
@@ -87,14 +90,14 @@ def select_move(pokemon, target, battleground):
     print(CBOLD, end='')
     for index, move in enumerate(pokemon.moveset):
         if move == "Switching":
-            print(f"{index}: {move}")
+            narrator.say(f"{index}: {move}")
         else:
             try:
-                print(f"{index}: {move} ({list_of_moves[move].type}) "
-                      f"[{'No Effect' if move_effectiveness[index] == 0 else '' if move_effectiveness[index] == 1 else 'Super Effective' if move_effectiveness[index] > 1 else 'Not Effective'}]")
+                narrator.say(f"{index}: {move} ({list_of_moves[move].type}) "
+                      f"[{'No Effect' if move_effectiveness[index] == 0 else '' if move_effectiveness[index] == 1 else 'Super Effective' if move_effectiveness[index] > 1 else 'Not Effective'}]", "fail")
             except TypeError:
-                print(f"{index}: {move} ({list_of_moves[move].type}) [Status]")
-    print("100: Turn on/off Auto Battle")
+                narrator.say(f"{index}: {move} ({list_of_moves[move].type}) [Status]")
+    narrator.say("100: Turn on/off Auto Battle")
     print(CEND, end='')
 
     while pokemon_move not in pokemon.moveset:  # avoid making a non-move option
@@ -105,24 +108,34 @@ def select_move(pokemon, target, battleground):
                 if move_choice == 100:
                     battleground.auto_battle = True if not battleground.auto_battle else False
                     print(f"Auto battle is", end=' ')
-                    print('activated.\nNote: You still have to make a move on this turn. You will NOT be able to switch it off until the end of this battle.' if battleground.auto_battle else 'deactivated.')
+                    narrator.say('activated.\nNote: You still have to make a move on this turn. You will NOT be able to switch it off until the end of this battle.' if battleground.auto_battle else 'deactivated.')
                 try:
                     if pokemon.disabled_moves[pokemon.moveset[move_choice]] <= 0:
                         pokemon_move = pokemon.moveset[move_choice]
                         break
                     else:
-                        print("The move is disabled.")
+                        narrator.say("The move is disabled.")
                 except KeyError:
                     pokemon_move = pokemon.moveset[move_choice]
                     break
 
-    print(list_of_moves[pokemon_move].name)
+    narrator.say(list_of_moves[pokemon_move].name)
     sound(audio="Assets/music/confirm.mp3")
     return list_of_moves[pokemon_move]
 
 
 # the whole move execution order and procedure
-def move_order_and_execution(user_side, target_side, user_team, target_team, user, target, battleground, move, target_move):
+def move_order_and_execution(turn, move, target_move):
+    """One Pokemon takes its move.
+
+    `turn` is oriented on whoever is acting; the ability calls below say
+    turn.flip() where they used to reorder six arguments to mean "the other
+    side". See Scripts/Battle/context.py.
+    """
+    user_side, target_side = turn.user.trainer, turn.foe.trainer
+    user_team, target_team = turn.user.team, turn.foe.team
+    user, target = turn.user.active, turn.foe.active
+    battleground = turn.ground
     user_turn_in_battle_stats(user_side, user)
     # Type-changing abilities fire here, as this Pokemon takes its turn --
     # not before the turn for both sides at once. See on_move_used().
@@ -132,12 +145,20 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
     fail, immune = True, False
 
     if not user_health_condition and move.name != "Switching":
-        print(f"{user_side.side_color}{user.name} used {move.name}{CEND}.")
+        narrator.used(user_side.side_color, user.name, move.name)
 
         onWeatherCheck(battleground, move)
+        # Psychic Terrain refuses a priority move aimed at anything standing
+        # on it. Accuracy 0 is how Queenly Majesty and Dazzling already say
+        # "this move does not reach", so terrain says it the same way.
+        if terrain.blocks_priority(battleground, target, move):
+            if battleground.reality:
+                narrator.say("The strange field protects %s from priority "
+                             "moves!" % target.name, "fail")
+            move.accuracy = 0
         onParticularMoveChange(user, target, move)
-        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
-        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=3)
+        UseAbility(turn.flip(), move, abilityphase=3)
+        UseCharacterAbility(turn.flip(), move, abilityphase=3)
         move.accuracy = move.accuracy * modifierChart[7][user.modifier[7]] * (1 / (modifierChart[6][0]) * move.evasion) if move.ignoreEvasion else \
             move.accuracy * modifierChart[7][user.modifier[7]] * (1 / (modifierChart[6][target.modifier[6]] * move.evasion))
 
@@ -145,16 +166,16 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
             if random.random() <= move.accuracy:  # accuracy check
                 for _ in range(move.multi[1]):  # number of multi strikes
                     if not move_fail_checklist_during_execution(user, target, move, target_move):  # check if move fail to attack
-                        move.damage = damage_calculation(user_side, target_side, user, target, battleground, move)
+                        move.damage = damage_calculation(turn, move)
 
                         # check if the charging move double counts the special effect
                         doublecount = onChargingMove(user, target, move)
 
                         # this order exclusive for ability Illusion
-                        UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
-                        UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
-                        UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=4)
-                        UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=5)
+                        UseCharacterAbility(turn, move, abilityphase=4)
+                        UseCharacterAbility(turn.flip(), move, abilityphase=5)
+                        UseAbility(turn, move, abilityphase=4)
+                        UseAbility(turn.flip(), move, abilityphase=5)
 
                         # no effect move and not a charging move
                         if move.damage <= 0 and move.attack_type != "Status" and move.charging not in ("Charging", "Semi-invulnerable"):
@@ -171,7 +192,7 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         # explosive / deduct HP moves
                         user.battle_stats[0] -= math.ceil(user.hp * move.deduct)
 
-                        print(f"{CBEIGE}{CBOLD}{move.damage} damage is dealt to {target.name} with {target.battle_stats[0]} HP left.\n"
+                        narrator.say(f"{CBEIGE}{CBOLD}{move.damage} damage is dealt to {target.name} with {target.battle_stats[0]} HP left.\n"
                               f"{user.name} took {move.recoil + math.ceil(user.hp * move.deduct)} recoil damage.\n{CEND}")
 
                         # moves that directly cause fainted condition
@@ -187,16 +208,24 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
                         # excluding no effect moves, trigger move additional effect
                         if not immune:
                             if not doublecount:
-                                move_special_effect(user_side, target_side, user, target, battleground, user_team, target_team, move)
+                                # The effect handlers take a context object
+                                # now -- see Scripts/Battle/context.py. Built
+                                # here rather than threaded down from the turn
+                                # loop because this is as far as the context
+                                # has reached; the layers above still pass the
+                                # six arguments separately, and turn_of() is
+                                # the shim that lets them be converted one at
+                                # a time.
+                                move_special_effect(turn, move)
                             # trigger ability when target is being hit
-                            UseAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
-                            UseAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
-                            UseCharacterAbility(user_side, target_side, user, target, battleground, move, abilityphase=6)
-                            UseCharacterAbility(target_side, user_side, target, user, battleground, move, abilityphase=7)
+                            UseAbility(turn, move, abilityphase=6)
+                            UseAbility(turn.flip(), move, abilityphase=7)
+                            UseCharacterAbility(turn, move, abilityphase=6)
+                            UseCharacterAbility(turn.flip(), move, abilityphase=7)
                             fail = False
             # the move is dodged
             else:
-                print(f"\nOpponent Pokemon avoided the attack!\n")
+                narrator.say(f"\nOpponent Pokemon avoided the attack!\n")
 
         if fail:
             move_fail_consequence_upon_execution(user, target, move)
@@ -209,64 +238,78 @@ def move_order_and_execution(user_side, target_side, user_team, target_team, use
     # flinched, frozen) check_volatile_status has already said so properly.
 
     user.previous_move = move
+    # Remember an attack that landed nothing against who is standing there.
+    # The AI already docks a move its *estimate* says will do no damage, but an
+    # estimate can be wrong -- an immunity or an ability that zeroes the damage
+    # is only certain once it has been tried -- and without this the AI would
+    # keep picking the same dud every turn. Keyed on the target so switching in
+    # something else does not inherit the verdict.
+    if move.name != "Switching" and move.attack_type != "Status":
+        if getattr(move, "damage", 0) <= 0:
+            user.ineffective_moves.setdefault(target.name, set()).add(move.name)
+        else:
+            user.ineffective_moves.get(target.name, set()).discard(move.name)
     user.modifier, target.modifier = check_modifier_limit(user), check_modifier_limit(target)
-    print("")
+    narrator.say("")
 
 
 # reducing hp at the end of each turn
 def hp_decreasing_modifier(pokemon, target, battleground):
-    if pokemon.ability != 'Magic Guard':
+    # ability is a list; "!= 'Magic Guard'" was always true, so Magic Guard
+    # never stopped any of the chip damage below
+    if not has_ability(pokemon, 'Magic Guard'):
         # status condition
         if pokemon.status == "Poison":  # regular poison
-            print(f"The Poison has eroded {pokemon.name} {max(1, pokemon.hp // 8)} HP.")
+            narrator.say(f"The Poison has eroded {pokemon.name} {max(1, pokemon.hp // 8)} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
         elif pokemon.status == "BadPoison":  # bad poison
             pokemon.volatile_status["NonVolatile"] += 1
-            print(f"The Bad Poison has eroded {pokemon.name} {max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)} HP.")
+            narrator.say(f"The Bad Poison has eroded {pokemon.name} {max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp * pokemon.volatile_status['NonVolatile'] // 16)
         elif pokemon.status == "Burn":  # burn
-            print(f"The Burn has burned away {pokemon.name} {max(1, pokemon.hp // 16)} HP.")
+            narrator.say(f"The Burn has burned away {pokemon.name} {max(1, pokemon.hp // 16)} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
         # sudden death
         if battleground.sudden_death:
-            print(f"The dark energy has eroded {pokemon.name} {max(1, pokemon.hp // 4)} HP.")
+            narrator.say(f"The dark energy has eroded {pokemon.name} {max(1, pokemon.hp // 4)} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
 
         # weather effect
         if battleground.weather_effect == 'Sandstorm':  # sandstorm
             if "Ground" not in pokemon.type and "Steel" not in pokemon.type and "Rock" not in pokemon.type:  # ground, rock, steel type immune
-                ability_list = ["Sand Veil", "Sand Rush"]
-                if any(ability not in pokemon.ability for ability in ability_list):
-                    print(f"The Sandstorm has hurt {pokemon.name} {pokemon.hp // 16} HP.")
+                # `any(ability not in ...)` was true unless the Pokemon held
+                # *both* abilities, so a Sand Veil holder still took the chip.
+                # Holding either one is what grants the immunity.
+                if not has_ability(pokemon, "Sand Veil", "Sand Rush"):
+                    narrator.say(f"The Sandstorm has hurt {pokemon.name} {pokemon.hp // 16} HP.")
                     pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
         elif battleground.weather_effect == 'Hail':  # hail
             if "Ice" not in pokemon.type:  # ice type immune
-                ability_list = ["Snow Cloak"]
-                if any(ability not in pokemon.ability for ability in ability_list):
-                    print(f"The Hail has hurt {pokemon.name} {pokemon.hp // 16} HP.")
+                if not has_ability(pokemon, "Snow Cloak"):
+                    narrator.say(f"The Hail has hurt {pokemon.name} {pokemon.hp // 16} HP.")
                     pokemon.battle_stats[0] -= max(1, pokemon.hp // 16)
 
         # binding effect
         if pokemon.volatile_status['Binding'] >= 1:
-            print(f"The binding has damaged {pokemon.name} {pokemon.hp // 8} HP.")
+            narrator.say(f"The binding has damaged {pokemon.name} {pokemon.hp // 8} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
         # cursed
         if pokemon.volatile_status['Curse'] >= 1:
-            print(f"The curse has damaged {pokemon.name} {pokemon.hp // 4} HP.")
+            narrator.say(f"The curse has damaged {pokemon.name} {pokemon.hp // 4} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
         # leech seed
         if pokemon.volatile_status['LeechSeed'] > 0:
-            print(f"Leech seed has drained {pokemon.name} {pokemon.hp // 8} HP.")
+            narrator.say(f"Leech seed has drained {pokemon.name} {pokemon.hp // 8} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
         if target.volatile_status['LeechSeed'] > 0:
             pokemon.battle_stats[0] += max(1, min(target.hp // 8, pokemon.hp - pokemon.battle_stats[0]))
         # ingrain
         if pokemon.volatile_status['Ingrain'] > 0:
-            print(f"Ingrain roots has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
+            narrator.say(f"Ingrain roots has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
             pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
         # aqua ring
         if pokemon.volatile_status['AquaRing'] > 0:
-            print(f"Aqua ring has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
+            narrator.say(f"Aqua ring has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
             pokemon.battle_stats[0] += max(1, min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0]))
 
     return pokemon.battle_stats[0]
@@ -279,8 +322,8 @@ def check_weather_persist(battleground):
             battleground.artificial_weather = False
             battleground.weather_turn = 0
             if battleground.weather_effect != battleground.starting_weather_effect:
-                print(weather_del[battleground.weather_effect])
-                print(weather_desc[battleground.starting_weather_effect])
+                narrator.say(weather_del[battleground.weather_effect], "weather")
+                narrator.say(weather_desc[battleground.starting_weather_effect], "weather")
             return battleground.starting_weather_effect
         battleground.weather_turn += 1
     return battleground.weather_effect

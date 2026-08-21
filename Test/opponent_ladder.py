@@ -33,6 +33,7 @@ engine, but it asks which *Pokemon* win rather than which competitors.
 
 import argparse
 import itertools
+import math
 import json
 import os
 import random
@@ -61,13 +62,21 @@ FAULTS = []
 class Record:
     """One competitor's running tally."""
 
-    __slots__ = ("name", "nickname", "rating", "tier", "wins", "losses",
-                 "draws", "kills", "conceded", "beat", "lost_to")
+    __slots__ = ("name", "nickname", "rating", "drifted", "tier", "wins",
+                 "losses", "draws", "kills", "conceded", "beat", "lost_to")
 
     def __init__(self, competitor):
         self.name = competitor.name
         self.nickname = competitor.nickname
+        #: what Data/competitors.csv says, and what team_generation keeps using
+        #: all run -- so every match is fought by the roster the CSV pins to
+        #: this competitor, not by a team that grows as they win
         self.rating = competitor.strength
+        #: the same number, but moved by every result. This is the answer to
+        #: "what is this competitor's team actually worth", which is the point
+        #: of running the ladder: where it settles against `rating` says
+        #: whether the CSV flatters them or sells them short.
+        self.drifted = float(competitor.strength)
         self.tier = competitor.level
         self.wins = self.losses = self.draws = 0
         self.kills = self.conceded = 0
@@ -85,6 +94,27 @@ class Record:
     @property
     def diff(self):
         return self.kills - self.conceded
+
+
+def apply_drift(winner, loser):
+    """Move both drifted ratings by one result, the way the game does.
+
+    Deliberately the same shape as elo_rating() in Scripts/Game/game_procedure:
+    the square root of the combined rating, scaled by the loser's share of it,
+    so beating somebody far above you moves the number more than beating
+    somebody far below. A formula of my own here would have produced something
+    that looked like a rating but could not be compared with one.
+
+    Reads `drifted` rather than `rating`, so a competitor who has been winning
+    all afternoon is a genuinely harder scalp by the end of the run.
+    """
+    combined = winner.drifted + loser.drifted
+    if combined <= 0:
+        return
+    change = math.sqrt(combined) * (loser.drifted / combined)
+    winner.drifted += change
+    # starter protection, as the engine has it: a loss never drops you below 1
+    loser.drifted = max(1.0, loser.drifted - change)
 
 
 def play(one, two, stage):
@@ -163,6 +193,7 @@ def run(competitors, repeat, stage, pairs=None):
                     win.beat[loser.name] = win.beat.get(loser.name, 0) + 1
                     lose.lost_to[winner.name] = \
                         lose.lost_to.get(winner.name, 0) + 1
+                    apply_drift(win, lose)
                     if ones == twos:
                         win.draws += 1
                         lose.draws += 1
@@ -196,14 +227,22 @@ def report(records, repeat, stage, total, seconds):
         "positive means they outperformed their rating, negative means the",
         "rating flatters them.",
         "",
-        "%-4s %-24s %6s %5s %5s %7s %7s %7s %9s"
-        % ("#", "COMPETITOR", "RATING", "W", "L", "WIN%", "KILLS", "DIFF",
-           "VS RATING"),
+        "'settled' is the rating after every result has moved it, starting",
+        "from the CSV rating. 'move' is settled minus rating -- the number to",
+        "put back into Data/competitors.csv if you want the rating to match",
+        "what the team can actually do. Teams are still generated from the",
+        "original rating, so this measures the roster, not a snowball.",
+        "",
+        "%-4s %-24s %6s %8s %7s %5s %5s %7s %7s %7s %9s"
+        % ("#", "COMPETITOR", "RATING", "SETTLED", "MOVE", "W", "L", "WIN%",
+           "KILLS", "DIFF", "VS RATING"),
     ]
     for index, row, delta in ladder(records):
-        lines.append("%-4d %-24s %6d %5d %5d %6.1f%% %7d %+7d %+9d"
-                     % (index, row.nickname[:24], row.rating, row.wins,
-                        row.losses, row.win_rate, row.kills, row.diff, delta))
+        settled = int(round(row.drifted))
+        lines.append("%-4d %-24s %6d %8d %+7d %5d %5d %6.1f%% %7d %+7d %+9d"
+                     % (index, row.nickname[:24], row.rating, settled,
+                        settled - row.rating, row.wins, row.losses,
+                        row.win_rate, row.kills, row.diff, delta))
 
     if FAULTS:
         lines += ["", "%d battle%s the engine could not finish (excluded):"
@@ -292,6 +331,11 @@ def main(argv=None):
         with open(os.path.splitext(REPORT)[0] + ".json", "w",
                   encoding="utf-8") as handle:
             json.dump({name: {"nickname": r.nickname, "rating": r.rating,
+                              # what the rating became, and by how much: the
+                              # two numbers to compare when deciding what to
+                              # write back into Data/competitors.csv
+                              "settled": int(round(r.drifted)),
+                              "move": int(round(r.drifted)) - r.rating,
                               "tier": r.tier, "wins": r.wins,
                               "losses": r.losses, "draws": r.draws,
                               "kills": r.kills, "conceded": r.conceded,

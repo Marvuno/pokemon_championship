@@ -50,7 +50,8 @@ w._show_error = lambda payload: (errors.append("EV_ERROR: %s" % payload),
 
 state = {"n": 0, "idle": 0, "clipped": [], "seq": [], "done": False,
          "battles": set(), "flushes": 0, "field_entries": 0, "shots": 0,
-         "kinds": {}, "keepall": 0, "champ": 0, "compare": 0}
+         "kinds": {}, "keepall": 0, "champ": 0, "compare": 0,
+         "strays": {}}
 _orig_fold = w._fold_champion_fanfare
 def _spy_fold(request):
     out = _orig_fold(request)
@@ -150,6 +151,40 @@ def answer_for(prompt, request):
     return pool[state["n"] % len(pool)].value
 
 
+#: the windows the game is *meant* to be able to put on screen. Anything else
+#: that turns up as a visible top-level widget is a stray -- a widget built
+#: with no parent and shown before it was ever added to a layout is a window
+#: in its own right, which is where the "flurry of little windows" before the
+#: team screen came from. Class names rather than the classes themselves so
+#: this list stays readable and does not need the imports.
+ALLOWED_WINDOWS = {
+    "MainWindow", "RosterDialog", "OpponentInfoDialog", "SettingsDialog",
+    "HistoryDialog", "CareerDialog", "StandingsDialog", "StoryDialog",
+    "CreditsDialog", "CompareDialog", "ArtLightbox", "PokedexDialog",
+    "QMenu", "QToolTip", "QComboBoxPrivateContainer",
+}
+
+
+def check_strays():
+    """Visible top-level widgets that are not one of the real windows.
+
+    Qt makes any visible widget without a parent a window of its own, so this
+    is what a stray pop-up looks like from the inside, on any platform --
+    including offscreen, where nothing reaches a real desktop to be seen.
+    """
+    for widget in app.topLevelWidgets():
+        if not widget.isVisible():
+            continue
+        name = type(widget).__name__
+        if name in ALLOWED_WINDOWS:
+            continue
+        mark = "%s(%r) %dx%d" % (name, widget.windowTitle(),
+                                 widget.width(), widget.height())
+        if mark not in state["strays"]:
+            state["strays"][mark] = (state["n"],
+                                     (w.game_state or {}).get("phase"))
+
+
 def check_clip(tag):
     hint = w.actions_body.sizeHint().height()
     have = w.actions_scroll.height()
@@ -159,6 +194,7 @@ def check_clip(tag):
 
 def tick():
     state["n"] += 1
+    check_strays()
     if state["n"] > 4000:
         return finish("step cap")
 
@@ -268,6 +304,7 @@ def finish(why):
         "feed flushes:   %d" % state["flushes"],
         "field entries:  %d" % state["field_entries"],
         "clipped screens: %d" % len(state["clipped"]),
+        "stray windows:  %d" % len(state["strays"]),
         "prompt kinds:   %s" % state["kinds"],
         "keep-all uses:  %d" % state["keepall"],
         "champ folds:    %d" % state["champ"],
@@ -291,6 +328,8 @@ def finish(why):
             for pair in r.get("pairs", [])[:2]],
     ]
     report += ["  " + c for c in state["clipped"][:20]]
+    report += ["  stray window %s at tick %d, phase %s" % (mark, n, phase)
+               for mark, (n, phase) in state["strays"].items()]
     # just report it -- saveguard moves anything this run created into OUT as
     # CREATED-playthrough-*.savefile.json, so it can still be inspected
     made = os.path.join(ROOT, "savefile.json")
@@ -330,6 +369,8 @@ def finish(why):
         trouble.append("%d exception(s)" % len(errors))
     if state["clipped"]:
         trouble.append("%d clipped screen(s)" % len(state["clipped"]))
+    if state["strays"]:
+        trouble.append("%d stray window(s)" % len(state["strays"]))
     if not {b for b in state["battles"] if b is not None}:
         trouble.append("no battles were reached")
     FAILED = bool(trouble)

@@ -12,6 +12,8 @@ from Scripts.Battle.move_additional_effect import *
 from Scripts.Battle.constants import *
 from Scripts.Game.game_system import *
 from Scripts.Game.single_elimination_bracket import *
+from Scripts.Art import narrator
+from Scripts.Data import tiers
 
 
 def wins_a_draw(one, two):
@@ -43,11 +45,11 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
 
     if player_side:
         battleground.battle_continuation = False
-        print("Opponent emerges victorious. You have lost.")
+        narrator.say("Opponent emerges victorious. You have lost.")
         competitor.stage += 1
     elif opponent_side:
         battleground.battle_continuation = False
-        print("Congratulations! You have won.")
+        narrator.say("Congratulations! You have won.")
         music(audio='Assets/music/victory.mp3', loop=False)
         protagonist.stage += 1
 
@@ -63,21 +65,36 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
 # battle ended
 # reset every in-battle state
 def end_battle(protagonist, competitor, player_team, opponent_team, battleground):
+    # Both sides, and outside the per-Pokemon loop. These are properties of a
+    # *side*, not of a Pokemon, and only the protagonist's were being cleared
+    # -- so a competitor's Stealth Rock and Reflect outlived the battle that
+    # set them and were still there the next time that competitor played.
+    for side in (protagonist, competitor):
+        side.entry_hazard = dict.fromkeys(side.entry_hazard.keys(), 0)
+        side.in_battle_effects = dict.fromkeys(side.in_battle_effects.keys(), 0)
+
     for pokemon in player_team + opponent_team:
         pokemon.modifier = [0] * 9
         pokemon.status = "Normal"
         pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
-        protagonist.entry_hazard = dict.fromkeys(protagonist.entry_hazard.keys(), 0)
-        protagonist.in_battle_effects = dict.fromkeys(protagonist.in_battle_effects.keys(), 0)
         pokemon.protection = [0, 0]
         pokemon.charging = ["", "", 0]
         pokemon.moveset = [x for x in pokemon.moveset if x != 'Switching']
         pokemon.move_order = []
-        pokemon.previous_move = None
+        # "" and not None: Pokemon starts it as "", and the counter moves ask
+        # `if type(previous_move) is not str` before reading `.damage` off it.
+        # None slips through that guard, so a Counter or Mirror Coat on the
+        # first turn of the *next* battle raised AttributeError.
+        pokemon.previous_move = ""
         pokemon.disabled_moves = {}
         pokemon.disguise, pokemon.transform = False, False
         with suppress(AttributeError):
-            pokemon.name, pokemon.ability, pokemon.type = pokemon.default_name, pokemon.default_ability, pokemon.default_type
+            # copies: a Pokemon's live typing is what moves like Forest's
+            # Curse add to, and handing it the same list the default is held
+            # in means the default gets edited along with it
+            pokemon.name = pokemon.default_name
+            pokemon.ability = list(pokemon.default_ability)
+            pokemon.type = list(pokemon.default_type)
 
     if not battleground.verbose:
         for mon in protagonist.unused_team:
@@ -107,10 +124,10 @@ def choose_pokemon(protagonist, opponent, battleground):
     def info_display(participant, team=None):
         print()
         for i, pokemon in enumerate(team if team is not None else participant.team):
-            print(f"{participant.side_color}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
-            print(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
+            narrator.say(f"{participant.side_color}ID: {pokemon.id} || Name: {pokemon.name} || Type: {pokemon.type}")
+            narrator.say(f"Ability: {pokemon.ability} || Total Stats: {pokemon.total_stats}({pokemon.total_iv})")
             print("Base Stats:", [f"{STATISTICS[x]}: {pokemon.nominal_base_stats[x]}" for x in range(len(pokemon.nominal_base_stats))])
-            print(f"Moveset: {pokemon.moveset}{CEND}\n")
+            narrator.say(f"Moveset: {pokemon.moveset}{CEND}\n")
 
     #: Entering this instead of an index backs out of a pick and asks the
     #: Y/N question again, so changing your mind part-way through is no
@@ -153,7 +170,7 @@ def choose_pokemon(protagonist, opponent, battleground):
 
     # win the round
     if protagonist.stage > opponent.stage:
-        print(f"{protagonist.side_color}Your Team: {[pokemon.name for pokemon in protagonist.team]}\n"
+        narrator.say(f"{protagonist.side_color}Your Team: {[pokemon.name for pokemon in protagonist.team]}\n"
               f"{opponent.side_color}Opponent Team: {[pokemon.name for pokemon in opponent.team]}{CEND}")
         # not yet full team, can get extra pokemon
         if len(protagonist.team + protagonist.unused_team) < MAX_POKEMON:
@@ -171,11 +188,16 @@ def choose_pokemon(protagonist, opponent, battleground):
                     else:
                         protagonist.team.append(opponent.team[obtained_pokemon])
                 elif choice == "N":
-                    defeating_tier_list = {'Low': 'Medium', 'Intermediate': 'Medium', 'Advanced': 'High', 'Elite': 'Very High', 'Champion': 'Ultra High'}
+                    # What the organiser hands you scales with the *rating*
+                    # of whoever you beat, not with their tier label. The
+                    # label meant a 58-rated opponent and a 115-rated one
+                    # paid exactly the same, because both are "Intermediate".
+                    # See Scripts/Data/tiers.py.
+                    wanted = tiers.reward_tier(opponent.strength)
                     pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
-                                                 list_of_pokemon[pokemon].tier == defeating_tier_list[opponent.level] and pokemon not in current_pokemon]
+                                                 list_of_pokemon[pokemon].tier == wanted and pokemon not in current_pokemon]
                     obtained_pokemon = pokemon_init(deepcopy(list_of_pokemon[random.choice(pokemon_availability_list)]))
-                    print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
+                    narrator.say(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
                     protagonist.team.append(obtained_pokemon)
         # swap pokemon
         else:
@@ -204,10 +226,16 @@ def choose_pokemon(protagonist, opponent, battleground):
     else:
         # when lost
         if len(protagonist.team + protagonist.unused_team) < MAX_POKEMON:
+            # A consolation, scaled to where *you* are: a notch below what a
+            # competitor at your rating fields. It used to be a flat draw
+            # from Very Low, Low and Medium -- 138 Pokemon wide, your rating
+            # ignored -- so a 300-rated player who lost could be handed the
+            # same Pokemon as a 2-rated one.
+            wanted = tiers.consolation_tier(protagonist.strength)
             pokemon_availability_list = [pokemon for pokemon in list_of_pokemon if
-                                         list_of_pokemon[pokemon].tier in ['Very Low', 'Low', 'Medium'] and pokemon not in current_pokemon]
+                                         list_of_pokemon[pokemon].tier == wanted and pokemon not in current_pokemon]
             obtained_pokemon = pokemon_init(deepcopy(list_of_pokemon[random.choice(pokemon_availability_list)]))
-            print(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
+            narrator.say(f"You have obtained {CVIOLET2}{CBOLD}{obtained_pokemon.name}{CEND} from the organizer.")
             protagonist.team.append(obtained_pokemon)
 
 
@@ -226,7 +254,7 @@ def round_end(stage):
         # for world champ
         victor_crown, loser_crown = f' |{victor.championship}|' if victor.championship > 0 else '', f' |{loser.championship}|' if loser.championship > 0 else ''
         victor_bold, loser_bold = CBOLD if victor.championship > 0 else '', CBOLD if loser.championship > 0 else ''
-        print(colors[victor.color] + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
+        narrator.say(colors[victor.color] + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
         if main:  # the protagonist battle
             print((CGREEN if loser.main else CGREY) + loser_bold + EntryBox(loser.id, f"{loser.nickname} [{loser.strength}]{loser_crown}",
                                    loser.stage - 1, loser.result).structure, "\n" + CEND)
@@ -272,6 +300,20 @@ def round_end(stage):
         beaten = list_of_competitors[GameSystem.participants[loser]]
         winner.opponent_history[GameSystem.participants[loser]][0] += 1
         beaten.opponent_history[GameSystem.participants[victor]][1] += 1
+        # Who they got through, this run only. opponent_history is a running
+        # total across every championship ever, so it can never say what a
+        # single title was worth -- this is the list the champion roll shows.
+        # Reset at the start of each run (see team_generation) rather than
+        # cleared here, so a run that ends early still leaves its record.
+        if not hasattr(winner, "run_defeated") or winner.run_defeated is None:
+            winner.run_defeated = []
+        winner.run_defeated.append(GameSystem.participants[loser])
+        # And the other half of the same fact: who ended their run. Together
+        # these give each competitor their whole path through a championship,
+        # in order, with the result of every match on it.
+        if not hasattr(beaten, "run_lost_to") or beaten.run_lost_to is None:
+            beaten.run_lost_to = []
+        beaten.run_lost_to.append(GameSystem.participants[victor])
         for side, them, mine, theirs in (
                 (winner, GameSystem.participants[loser],
                  winner_score, loser_score),

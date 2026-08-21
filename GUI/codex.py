@@ -44,6 +44,8 @@ BARE_FIELDS = {
     "pokemon": ("name", "types", "abilities", "tier"),
     "moves": ("name", "type", "category"),
     "opponents": ("nickname", "name", "tier"),
+    # a bare word finds an ability by its own name, or by a Pokemon with it
+    "abilities": ("name", "pokemon", "text"),
 }
 TERM_RE = re.compile(r'([-+]?)([a-z.]+)\s*(>=|<=|>|<|=|:)\s*(.+)', re.I)
 
@@ -81,7 +83,36 @@ def build(list_of_pokemon, list_of_moves, list_of_competitors, art_for=None):
     return {"pokemon": pokemon,
             "moves": sorted(moves.values(), key=lambda e: e["name"]),
             "opponents": opponents,
+            "abilities": _abilities(pokemon, list_of_competitors),
             "percentiles": _percentiles(pokemon)}
+
+
+def _abilities(pokemon, list_of_competitors=None):
+    """Every Pokemon ability in play, and which Pokemon have it.
+
+    Pokemon abilities only. Character abilities are deliberately left out: they
+    belong to the competitor, and which competitor has which is the thing
+    Scout Opponent is for -- listing them here would have handed over, for
+    free, information the scouting roll exists to gate. `list_of_competitors`
+    is still accepted so the call site does not have to change.
+
+    Built from what is actually assigned rather than from the ability registry,
+    so an ability written but never given to a Pokemon does not pad the list.
+    """
+    from Scripts.Data.ability_text import ABILITY_TEXT
+    found = {}
+    for entry in pokemon:
+        for ability in entry.get("abilities") or []:
+            record = found.setdefault(str(ability), {
+                "name": str(ability), "kind": "pokemon", "pokemon": [],
+                # one line from Scripts/Data/ability_text.py, or nothing --
+                # a missing entry shows no description rather than a guess
+                "text": ABILITY_TEXT.get(str(ability), ""),
+            })
+            record["pokemon"].append(entry["name"])
+    for record in found.values():
+        record["pokemon"].sort()
+    return sorted(found.values(), key=lambda record: record["name"])
 
 
 def _pokemon_entry(name, mon):
@@ -120,7 +151,11 @@ def _move_entry(key, move):
         "priority": int(getattr(move, "priority", 0) or 0),
         "crit": int(getattr(move, "critRatio", 0) or 0),
         "recoil": getattr(move, "recoil", 0) or 0,
-        "drain": getattr(move, "deduct", 0) or 0,
+        # `deduct` is the share of the user's own HP the move SPENDS -- Belly
+        # Drum, Clangorous Soul, Unbreakable Will. It was being carried as
+        # "drain" and described as recovering HP, which said the opposite of
+        # what the move does. Actual draining is effect_type "hp_draining".
+        "cost": getattr(move, "deduct", 0) or 0,
         "crash": getattr(move, "crash", 0) or 0,
         "charging": str(getattr(move, "charging", "") or ""),
         "multi": multi,
@@ -139,16 +174,79 @@ def _move_entry(key, move):
     }
 
 
+def _ability_effect(competitor):
+    """What the ability does, in the words Data/competitors.csv uses.
+
+    Not a table in code: that was a second set of wording for the same 61
+    abilities, and it drifted from the one the designer maintains.
+    """
+    try:
+        from Scripts.Data.competitors import ability_text
+    except Exception:
+        return ""
+    return _one_paragraph(ability_text(competitor))
+
+
+def _aces_of(competitor):
+    """The ace this competitor is known for, with its typing.
+
+    **Only the Pokemon their own blurb already names.** The Pokedex
+    deliberately publishes no roster -- which Pokemon a competitor brings is
+    what scouting is for -- and the Poke columns are the whole designed team,
+    six of them for the strongest competitors. Listing those would hand over
+    for free exactly what About Opponent makes you earn.
+
+    The Strategy text is already on screen and already says "Ace: Garchomp",
+    so naming that Pokemon reveals nothing new; all this adds is its typing,
+    which is what a player reads the line for. It is also not simply the
+    first or last slot: Jason's ace is his only Pokemon, Cynthia's is her
+    sixth, and Champion Marvin's blurb names two.
+
+    A Poke cell may carry `iv=`, `ability=` and `moves=` (see
+    competitors.Ace); none of that is published. That a Pokemon has been
+    given a designed moveset is not a fact about the Pokemon.
+    """
+    from Scripts.Data.pokemon import list_of_pokemon
+    blurb = str(getattr(competitor, "strategy", "") or "")
+    out = []
+    for entry in (getattr(competitor, "team", None) or []):
+        species = str(getattr(entry, "name", entry))
+        mon = list_of_pokemon.get(species)
+        if mon is None or species not in blurb:
+            continue
+        if any(shown["name"] == species for shown in out):
+            continue
+        out.append({"name": species,
+                    "types": [str(t) for t in (mon.type or [])]})
+    return out
+
+
+def _one_paragraph(text):
+    """Collapse the hard line breaks the CSV carries into one flowing line.
+
+    Data/competitors.csv holds these write-ups with newlines wherever the
+    spreadsheet cell wrapped, which is nothing to do with where a sentence
+    ends. Left in, they break the paragraph at arbitrary points and the
+    word-wrapped label then wraps *again* inside each fragment -- ragged
+    two- and three-word lines in the middle of a sentence.
+    """
+    return " ".join(str(text or "").split())
+
+
 def _opponent_entry(name, competitor, art_for=None):
     ability = getattr(competitor, "ability", None) or ""
     return {
+        "aces": _aces_of(competitor),
+        # what the ability actually does, so the Pokedex can say it rather
+        # than only naming it
+        "ability_effect": _ability_effect(competitor),
         "name": str(name),
         "nickname": str(getattr(competitor, "nickname", name)),
         "rating": int(getattr(competitor, "strength", 0) or 0),
         "tier": str(getattr(competitor, "level", "") or ""),
         "ability": str(ability),
-        "description": str(getattr(competitor, "desc", "") or ""),
-        "quote": str(getattr(competitor, "quote", "") or ""),
+        "description": _one_paragraph(getattr(competitor, "desc", "")),
+        "quote": _one_paragraph(getattr(competitor, "quote", "")),
         "strategy": str(getattr(competitor, "strategy", "") or ""),
         # Deliberately no roster. Which Pokemon a competitor always brings is
         # what scouting is for -- publishing it here, or letting a runs: query
@@ -422,7 +520,20 @@ def _spaced(name):
 
 
 def describe(entry):
-    """Readable lines about what a move does, from the snapshot dict."""
+    """Readable lines about what a move does, from the snapshot dict.
+
+    A hand-written line in Scripts/Data/move_text.py wins outright when there
+    is one. Those exist for mechanics that live in code rather than in the
+    move's own data -- Brine doubling against a hurt target, Metronome picking
+    at random -- which nothing here could work out by reading the move. For
+    everything else the description is derived, so it cannot fall out of step
+    with the move it describes.
+    """
+    from Scripts.Data.move_text import MOVE_TEXT
+    written = MOVE_TEXT.get(str(entry.get("name", "")))
+    if written:
+        return [written]
+
     lines = []
     types = entry.get("effect_type")
     types = types if isinstance(types, list) else [types]
@@ -455,8 +566,10 @@ def describe(entry):
 
     if entry.get("recoil"):
         lines.append("The user takes recoil damage.")
-    if entry.get("drain"):
-        lines.append("The user recovers some of the damage dealt.")
+    if entry.get("cost"):
+        share = entry["cost"]
+        lines.append("The user gives up %s of its HP to use it."
+                     % _fraction(share))
     if entry.get("crash"):
         lines.append("The user is hurt if it misses.")
     if entry.get("charging"):
@@ -482,6 +595,15 @@ SELF_EFFECTS = ("self_modifier", "user_volatile", "self_heal",
                 "remove_team_buff", "weather_effect", "no_effect")
 
 
+def _fraction(share):
+    """A share of HP as words, because "0.3333333333" is not a description."""
+    for denominator, name in ((2, "half"), (3, "a third"), (4, "a quarter"),
+                              (8, "an eighth"), (16, "a sixteenth")):
+        if abs(share - 1.0 / denominator) < 0.01:
+            return name
+    return "%d%%" % round(share * 100)
+
+
 def _self_targeting(entry):
     """True for a status move that does nothing to the other side."""
     if entry.get("power"):
@@ -501,15 +623,24 @@ def _stat_phrase(effect, detail):
         return ""
     whose = ("the user's" if "self" in str(effect) or "user" in str(effect)
              else "the target's")
-    parts = []
+    # Group the stats that move by the same amount in the same direction, so a
+    # five-stat buff reads as one sentence. Repeating "and raises the user's X
+    # by 1" five times was accurate and unreadable -- Unbreakable Will ran to
+    # 170 characters saying one thing.
+    groups = {}
     for index, step in enumerate(detail[:len(STAGE_NAMES)]):
-        if not step:
-            continue
-        parts.append("%s %s %s by %d"
-                     % ("raises" if step > 0 else "lowers", whose,
-                        STAGE_NAMES[index], abs(step)))
-    if not parts:
+        if step:
+            groups.setdefault(step, []).append(STAGE_NAMES[index])
+    if not groups:
         return ""
+    parts = []
+    for step in sorted(groups, key=lambda value: (-value, value)):
+        names = groups[step]
+        listed = (names[0] if len(names) == 1
+                  else "%s and %s" % (", ".join(names[:-1]), names[-1]))
+        parts.append("%s %s %s by %d"
+                     % ("raises" if step > 0 else "lowers", whose, listed,
+                        abs(step)))
     return "It " + " and ".join(parts) + "."
 
 

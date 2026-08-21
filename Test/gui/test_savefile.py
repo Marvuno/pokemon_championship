@@ -1,8 +1,7 @@
-"""Round-trip the JSON save, and migrate a legacy pickle, without touching
+"""Round-trip the JSON save, without touching
 the player's own savefile.* -- everything is written under a temp dir."""
 import json
 import os
-import pickle
 import shutil
 import sys
 import tempfile
@@ -148,51 +147,21 @@ check("never-faced opponent says so",
       "never faced" in buf.getvalue(), buf.getvalue())
 
 # ---------------------------------------------------------------- legacy
-class OldRecord(object):
-    pass
-
-
-old = []
-for name in ("Protagonist", rival.name):
-    src = list_of_competitors[name]
-    rec = OldRecord()
-    rec.name = src.name
-    rec.main = src.main
-    rec.nickname = src.nickname
-    rec.strength = 321
-    rec.participation = 12
-    rec.championship = 3
-    rec.history = {1: (1, 1)}
-    rec.opponent_history = {rival.name if src.main else "Protagonist": [5, 4]}
-    rec.team = []
-    old.append(rec)
-with open(DAT, "wb") as handle:
-    pickle.dump(old, handle)
-
+# There is nothing legacy left to test. The pickle format is gone -- no
+# LEGACY_PATH, no _load_pickle, no `import pickle` -- so what used to be a
+# migration test is now two checks that the format really is unreachable.
+# note this file's check() is check(label, ok, detail) -- not (got, want)
+check("the pickle path is gone", not hasattr(savefile, "LEGACY_PATH"))
+check("...and so is its loader", not hasattr(savefile, "_load_pickle"))
 fresh()
-savefile.LEGACY_PATH = DAT
-# The legacy fallback belongs to slot 1 and to the default location chain, not
-# to any path you care to name: load(path=...) now means "exactly this file".
-# So set the scene the way a real pre-slots player's install looks -- an empty
-# slot folder, no root JSON, and a pickle -- rather than passing a path that
-# happens not to exist.
 savefile.SLOT_DIR = os.path.join(TMP, "Save")
 savefile.JSON_PATH = os.path.join(TMP, "missing.json")
 savefile.select(1)
-kind = savefile.load(list_of_competitors, list_of_pokemon)
-check("legacy pickle migrates", kind == "pickle", str(kind))
-check("...and naming a missing file loads nothing at all",
+check("nothing to load means nothing loaded",
+      savefile.load(list_of_competitors, list_of_pokemon) is None)
+check("naming a missing file loads nothing either",
       savefile.load(list_of_competitors, list_of_pokemon,
                     os.path.join(TMP, "nope.json")) is None)
-p3 = list_of_competitors["Protagonist"]
-check("legacy player read", p3.strength == 321 and p3.participation == 12)
-check("legacy record read", p3.opponent_history[rival.name] == [5, 4])
-check("legacy gives every competitor a slate",
-      set(p3.opponent_history) == set(list_of_competitors))
-check("legacy save has no scores yet", p3.opponent_scores == {})
-check("legacy team rebuilt with no stray Switching",
-      all("Switching" not in p.moveset for p in p3.team))
-check("exists() sees the legacy file", savefile.exists() or True)
 
 # ------------------------------------------------- a save naming a stranger
 fresh()

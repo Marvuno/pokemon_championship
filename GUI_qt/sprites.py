@@ -148,6 +148,11 @@ def _ghost(host, picture, rect):
     picture in a label of its own has neither problem.
     """
     ghost = QLabel(host)
+    #: marks it as this animation's own throwaway. A harness checking that
+    #: none were left behind used to look for "any label in the arena with a
+    #: pixmap", which counted anything else that legitimately lives there --
+    #: the field strip's emblems, for instance.
+    ghost.is_switch_ghost = True
     ghost.setAttribute(Qt.WA_TransparentForMouseEvents, True)
     ghost.setScaledContents(True)
     ghost.setPixmap(picture)

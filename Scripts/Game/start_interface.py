@@ -164,6 +164,11 @@ def main_screen():
     # real thing, and it is reachable at any time rather than only from this
     # screen. QUIT is what the window's own close button is for, and having it
     # on the menu meant one mis-click could end a run.
+    # Taken before any career is read, because load() writes into these dicts
+    # in place. Without it there is no way back to "as the CSV describes them",
+    # which is what a new game needs. See savefile.start_fresh.
+    savefile.remember_pristine(list_of_competitors, list_of_pokemon)
+
     while True:
         # A career from before there were slots becomes slot 1, by copy, so
         # the original file is still there afterwards. Done here rather than
@@ -205,6 +210,12 @@ def main_screen():
         if slot is None:
             continue
         savefile.select(slot)
+        # Wipe whatever a previous CONTINUE or HISTORY on this menu left in the
+        # shared rosters. Without this a "new" career started with the runs,
+        # titles, championship history and head-to-head record of whichever
+        # save had last been looked at -- so a new game in slot 3 saved another
+        # player's career under it.
+        savefile.start_fresh(list_of_competitors, list_of_pokemon)
         break
 
     # new game
@@ -215,11 +226,42 @@ def main_screen():
             input("Enter any key to continue...")
             tutorial()
         # name input
-        name_list = [list_of_competitors[competitor].nickname for competitor in list_of_competitors]
+        # Both fields, not just the nickname, and compared case-insensitively.
+        # A competitor has a nickname ("Lady Evonne") and an internal name
+        # ("Evonne"), and taking either one causes real trouble: the save keys
+        # head-to-head records by *name*, so a player called the same thing as
+        # a competitor shares their record. The old check only looked at
+        # nicknames and only matched exactly, so "evonne" went straight through.
+        taken = set()
+        for competitor in list_of_competitors.values():
+            for field in ("nickname", "name"):
+                value = str(getattr(competitor, field, "") or "").strip()
+                if value:
+                    taken.add(value.casefold())
+
+        def unacceptable(chosen):
+            chosen = (chosen or "").strip()
+            if not chosen:
+                return "Your name cannot be blank."
+            if len(chosen) > 18:
+                return "That is longer than 18 characters."
+            if chosen.casefold() in taken:
+                return ("Somebody in the championship already goes by that. "
+                        "Pick something else.")
+            return None
+
         list_of_competitors['Protagonist'].nickname = input("\nWhat is your name? (within 18 char.) ")
-        while re.search(r"^\s*$", list_of_competitors['Protagonist'].nickname) or len(list_of_competitors['Protagonist'].nickname) > 18 or list_of_competitors['Protagonist'].nickname in name_list:
-            print("Sorry. Your name is either too long or too short, or it has already been taken.")
+        complaint = unacceptable(list_of_competitors['Protagonist'].nickname)
+        while complaint:
+            print(complaint)
             list_of_competitors['Protagonist'].nickname = input("What is your name? (within 18 char.) ")
+            complaint = unacceptable(list_of_competitors['Protagonist'].nickname)
+        list_of_competitors['Protagonist'].nickname = \
+            list_of_competitors['Protagonist'].nickname.strip()
+        # After the name, and outside the first-timer branch above, so it
+        # happens whether the tutorial was taken or skipped. Before
+        # team_generation below, which fills the rest of the team around it.
+        choose_starter(list_of_competitors['Protagonist'])
     # continue -- the loop above already sent you back if there was no save,
     # so getting here means there is one
     elif option == 1:
@@ -243,6 +285,80 @@ def main_screen():
         for i, name in enumerate(GameSystem.participants):
             name = list_of_competitors[name]
             name.id = i + 1
+            # A fresh run means a fresh list of who you got through. Cleared
+            # here, at the point the bracket is drawn, rather than when a
+            # championship ends -- so a run abandoned partway still leaves its
+            # record behind for the standings to read.
+            name.run_defeated = []
+            name.run_lost_to = []
+
+
+#: which tiers a starter is drawn from. Medium and High only -- above the
+#: junk a rating of 5 would otherwise roll, below the tier that would carry a
+#: whole run on its own.
+STARTER_TIERS = ("Medium", "High")
+#: the largest base stat total a starter may have, per tier. A tier that is
+#: not listed here is not capped.
+#:
+#: Only High is capped, and the asymmetry is the point: High tier is where
+#: the 600-total legendaries live, and one of those decides a career in round
+#: one. Medium never gets near that, so capping it would only shrink the
+#: offer for nothing.
+STARTER_MAX_BASE_STATS = {"High": 500}
+#: how many to offer
+STARTER_CHOICES = 3
+
+
+def _may_start(mon):
+    """Is this Pokemon allowed in the starter offer?"""
+    tier = getattr(mon, "tier", None)
+    if tier not in STARTER_TIERS:
+        return False
+    cap = STARTER_MAX_BASE_STATS.get(tier)
+    return cap is None or getattr(mon, "total_stats", 0) <= cap
+
+
+def choose_starter(protagonist):
+    """Pick one of three Pokemon to start the career with.
+
+    Name and typing only. Not the ability, not the IVs, not the moveset --
+    the first decision of a career should be a read on the type chart and a
+    guess, not a spreadsheet comparison, and the rest of the game already has
+    plenty of places to inspect a Pokemon properly.
+
+    The pick is appended to the protagonist's team as a *name*, which is
+    exactly how every competitor's ace Pokemon is carried (see the `team`
+    column in competitors.csv). team_generation then rolls the remaining five
+    around it and gives it IVs on the same terms as the rest, so a starter is
+    a better *tier* than a rating of 5 would otherwise draw, not a stronger
+    individual.
+    """
+    pool = sorted(name for name, mon in list_of_pokemon.items()
+                  if _may_start(mon))
+    if len(pool) < STARTER_CHOICES:
+        return None                       # nothing to offer; carry on quietly
+    offered = random.sample(pool, STARTER_CHOICES)
+
+    print(f"\n{CBOLD}{CYELLOW2}Please choose your starter Pokemon.{CEND}")
+    print(f"{CBOLD}This is the one Pokemon you bring to the Championship "
+          f"yourself; the other five are drawn around it.{CEND}")
+    print(f"{CBOLD}You can see its name and its typing, and nothing else -- "
+          f"its ability, its IVs and its moves you find out together.{CEND}")
+    for index, name in enumerate(offered):
+        typing = "/".join(list_of_pokemon[name].type)
+        print(f"{CBOLD}{index}: {name} ({typing}){CEND}")
+
+    chosen = None
+    while chosen is None:
+        with suppress(ValueError):
+            answer = int(input("Please choose your starter "
+                                "Pokemon: "))
+            if 0 <= answer < len(offered):
+                chosen = offered[answer]
+
+    print(f"\n{CBOLD}{CGREEN2}{chosen} joins you. Good luck out there.{CEND}")
+    protagonist.team.append(chosen)
+    return chosen
 
 
 # for player that choose new game aka option 0

@@ -192,9 +192,12 @@ class MainWindow(QWidget):
         # ~380px of width for something already visible above the window.
 
         self.score_values = {}
+        # No WEATHER here: the field strip over the arena shows it, with an
+        # emblem and a countdown, so a second copy in the header was saying
+        # the same thing worse and taking width from the buttons.
         for key, caption, color in (
                 ("round", "ROUND", T.TEXT), ("turn", "TURN", T.TEXT),
-                ("weather", "WEATHER", T.TEXT), ("you", "YOU", T.PLAYER),
+                ("you", "YOU", T.PLAYER),
                 ("opponent", "OPPONENT", T.OPPONENT)):
             col, value = two_line(caption, self.fonts.eyebrow, T.TEXT_FAINT,
                                   "\u2014", self.fonts.body_bold, color)
@@ -206,9 +209,9 @@ class MainWindow(QWidget):
         layout.addWidget(ActionButton(
             "Settings", self.fonts, accent=T.TEXT_DIM,
             on_click=self._open_settings), alignment=Qt.AlignVCenter)
-        layout.addWidget(ActionButton(
-            "Story", self.fonts, accent=T.ACCENT,
-            on_click=self._open_story), alignment=Qt.AlignVCenter)
+        # Story and Credits are on the title screen now, not up here: they are
+        # what you read before or after a run, and the header is for what you
+        # need during one.
         # In the top bar rather than on a menu, so it is reachable from the
         # title screen, from the pre-battle menu and mid-battle alike. It is
         # pure reference material -- it reads a snapshot and touches no game
@@ -216,18 +219,24 @@ class MainWindow(QWidget):
         layout.addWidget(ActionButton(
             "Pokedex", self.fonts, accent=T.CYAN,
             on_click=self._open_pokedex), alignment=Qt.AlignVCenter)
-        layout.addWidget(ActionButton(
-            "Credits", self.fonts, accent=T.TEXT_DIM,
-            on_click=self._open_credits), alignment=Qt.AlignVCenter)
-        layout.addWidget(ActionButton(
+        # These two have nothing to show before a run starts -- no matchups,
+        # no team -- so they are hidden at the title screen and appear once
+        # there is a game to look at. See _apply_state.
+        self.standings_button = ActionButton(
             "Standings", self.fonts, accent=T.VIOLET,
-            on_click=self._open_standings), alignment=Qt.AlignVCenter)
-        layout.addWidget(ActionButton(
+            on_click=self._open_standings)
+        self.team_button = ActionButton(
             "Your Team", self.fonts, accent=T.CYAN,
-            on_click=lambda: self.roster_dialog.show_side("player")),
-            alignment=Qt.AlignVCenter)
-        # No title bar, so the window needs a way out that is not Alt+F4.
-        # Escape works too (see keyPressEvent).
+            on_click=lambda: self.roster_dialog.show_side("player"))
+        for button in (self.standings_button, self.team_button):
+            button.setVisible(False)
+            layout.addWidget(button, alignment=Qt.AlignVCenter)
+        # No title bar, so the window has to supply its own minimise and
+        # close. Both sit at the top right, in the order a title bar would
+        # put them. Escape also closes (see keyPressEvent).
+        layout.addWidget(ActionButton(
+            "–", self.fonts, accent=T.TEXT_DIM,
+            on_click=self.showMinimized), alignment=Qt.AlignVCenter)
         layout.addWidget(ActionButton(
             "✕", self.fonts, accent=T.OPPONENT,
             on_click=self.close), alignment=Qt.AlignVCenter)
@@ -334,6 +343,16 @@ class MainWindow(QWidget):
         self.player_card.pips.hovered.connect(
             lambda index: self._hover_pip("player", index))
 
+        # Weather, terrain and rooms, permanently on screen. Top-centre of
+        # the arena, between the opponent's card (top-left) and their ability
+        # flare (top-right), so it costs the battle view no height at all --
+        # which is the whole point. The Field tab still holds the per-side
+        # detail; this is only the three field-wide layers, which the real
+        # games keep in separate slots and which can all be up at once.
+        self.field_strip = W.FieldStrip(self.fonts, self.arena)
+        grid.addWidget(self.field_strip, 0, 0, 1, 2,
+                       Qt.AlignTop | Qt.AlignHCenter)
+
         # Centred across the whole grid rather than positioned by hand, so
         # it tracks the arena's geometry automatically instead of needing a
         # correct size at the one moment the gate opens (which it doesn't
@@ -358,8 +377,7 @@ class MainWindow(QWidget):
         # match is live, the title/lobby view for everything else.
         self.title_view = TitleView(self.fonts, self.root, self,
                                     on_story=self._open_story,
-                                    on_standings=self._open_standings,
-                                    on_team=lambda: self.roster_dialog.show_side("player"))
+                                    on_credits=self._open_credits)
         self.stage_views = QStackedWidget(self)
         self.stage_views.addWidget(self.title_view)   # index 0
         self.stage_views.addWidget(self.arena)        # index 1
@@ -515,7 +533,19 @@ class MainWindow(QWidget):
         # HoverMove lands on every pixel of movement; rebuilding four move
         # rows and six stat cells that often is felt as lag, so the card is
         # only refilled when it would actually say something different.
-        token = (side, index, known, entry.get("name"))
+        # The token has to carry everything the card draws, not just which
+        # Pokemon it is. It used to be (side, index, known, name) -- so once a
+        # card had been shown for a Pokemon, a stat stage or a condition
+        # changing did not refresh it, and hovering the same Pokemon again
+        # showed the stages it had the first time. That is the "stat changes
+        # sometimes do not show" bug: the data had moved on and the token had
+        # not.
+        token = (side, index, known, entry.get("name"),
+                 tuple(entry.get("modifier") or ()),
+                 tuple(sorted((name, value) for name, value
+                              in (entry.get("volatile") or {}).items()
+                              if value)),
+                 entry.get("status"), entry.get("hp"))
         if token != self._scout_token:
             self._scout_token = token
             self.scout_card.set_mon(entry, known=known, side=side)
@@ -528,6 +558,14 @@ class MainWindow(QWidget):
     def _sync_stage_view(self, phase):
         in_battle = phase in BATTLE_PHASES
         self.stage_views.setCurrentIndex(1 if in_battle else 0)
+        # Standings and Your Team appear once there is a run to look at. At the
+        # title screen there is no bracket and no team, so both would open on
+        # nothing.
+        started = phase not in (None, "", "menu")
+        for button in (getattr(self, "standings_button", None),
+                       getattr(self, "team_button", None)):
+            if button is not None:
+                button.setVisible(started)
         if not in_battle:
             self.result_overlay.hide()
             self.scout_card.hide()
@@ -749,7 +787,6 @@ class MainWindow(QWidget):
         score = self.score_values
         score["round"].setText(str(state.get("stage", "\u2014")))
         score["turn"].setText(str(field.get("turn", "\u2014")))
-        score["weather"].setText(str(field.get("weather", "\u2014")))
         score["you"].setText("%s [%d]" % (you["nickname"], you["strength"])
                              if you else "\u2014")
         score["opponent"].setText("%s [%d]" % (opp["nickname"], opp["strength"])
@@ -769,7 +806,7 @@ class MainWindow(QWidget):
             self._scout_token = None
             self.scout_card.hide()
 
-        self._track_feed_worthy_changes(field)
+        self._track_feed_worthy_changes(field, state.get("phase"))
         self._track_knockouts(state)
         self._sync_field(state)
         # Outside a live battle nothing is fainted, whatever the snapshot
@@ -961,7 +998,6 @@ class MainWindow(QWidget):
             "You won the match." if won else "You lost the match.")
         self.actions.addWidget(ActionButton(
             "Continue", self.fonts,
-            sub="collect your reward" if won else "on to the next round",
             accent=T.PLAYER if won else T.OPPONENT, emphasis=True,
             on_click=self._end_result_gate))
         self.hotkeys["\r"] = self._end_result_gate
@@ -1012,10 +1048,12 @@ class MainWindow(QWidget):
         """
         if state.get("phase") not in BATTLE_PHASES:
             self.field_board.reset()
+            self.field_strip.reset()
         else:
             self.field_board.set_state(state.get("player_side"),
                                        state.get("opponent_side"),
                                        state.get("field"))
+            self.field_strip.set_state(state.get("field"))
         active = self.field_board.active
         self.tabs.setTabText(self._field_tab,
                              "Field  %d" % active if active else "Field")
@@ -1111,11 +1149,19 @@ class MainWindow(QWidget):
                     else "Your %s fainted." % name,
                     actor=name, side=side)
 
-    def _track_feed_worthy_changes(self, field):
+    def _track_feed_worthy_changes(self, field, phase=None):
         """Turn dividers and weather-change lines, derived purely from
         state diffs rather than new game hooks -- both are already fully
         visible in the snapshot, so there's nothing bridge.py needs to
-        learn to make this work."""
+        learn to make this work.
+
+        `phase` gates the turn divider. Only a live battle has turns, but
+        this runs on every publish, and the engine keeps a turn number on
+        record after the match is over -- so the moment it changed on a
+        management screen a "TURN n" rule was drawn across the feed among
+        the run-summary entries. That is the stray line after all the
+        matchups have ended: nothing was left behind, something new was
+        being added at the wrong time."""
         # Auto battle turning on is worth an explicit line: the engine only
         # mentions it in the raw log, so from the battle screen a click on
         # the toggle looked like it had done nothing.
@@ -1127,7 +1173,8 @@ class MainWindow(QWidget):
 
         turn = field.get("turn")
         weather = field.get("weather")
-        if turn is not None and turn != self._last_turn:
+        if (turn is not None and turn != self._last_turn
+                and phase in BATTLE_PHASES):
             self._feed_divider(turn)
             self._last_turn = turn
         if (weather is not None and self._last_weather is not None
@@ -1348,6 +1395,16 @@ class MainWindow(QWidget):
         is what makes a multi-pick confirm feel like one action instead of
         the engine's real one-index-at-a-time loop."""
         value = self._pending_answers.pop(0)
+        if not self._pending_answers:
+            # That was the last one, so this trim/keep screen is finished with.
+            # Forget what was picked on it: the state is keyed by the roster's
+            # labels, and two rounds in a row can present the *same* labels --
+            # same team, same order. When that happened the previous round's
+            # `committed` survived into the new screen, so `remaining` started
+            # at zero and the screen opened with picks already made and no way
+            # to choose or confirm. That is the between-round wedge.
+            for state in (self._trim_state, self._keep_state):
+                state.clear()
         request, self.request = self.request, None
         request.answer(value)
 
@@ -1355,6 +1412,14 @@ class MainWindow(QWidget):
         request, self.request = self.request, None
         if request is None:
             return
+        # "View your pokemon" mid-switch (the engine's option 8) only ever
+        # printed a block of text into the log, which is the one place the
+        # player is not supposed to have to read. The answer still goes to the
+        # engine -- it expects to be asked again afterwards -- but the team
+        # window opens alongside it, so this option shows the same view as
+        # Your Team rather than its own worse one.
+        if request.kind == "switch" and str(value).strip() == "8":
+            self.roster_dialog.show_side("player")
         self._clear_actions()
         self.question.setText("\u2026")
         request.answer(value)
@@ -1425,7 +1490,7 @@ class MainWindow(QWidget):
     # -- generic renderers ---------------------------------------------------
     def _render_continue(self):
         self.prompt_tag.setText("CONTINUE")
-        button = ActionButton("Continue", self.fonts, sub="Enter or click",
+        button = ActionButton("Continue", self.fonts,
                               accent=T.ACCENT, emphasis=True,
                               on_click=lambda: self._answer(""))
         self.actions.addWidget(button)
@@ -1535,8 +1600,7 @@ class MainWindow(QWidget):
         extras = QHBoxLayout()
         if prompt.choice_for("0"):
             extras.addWidget(ActionButton(
-                "Switch Pokemon", self.fonts,
-                sub="give up the turn to bring someone in", accent=T.CYAN,
+                "Switch Pokemon", self.fonts, accent=T.CYAN,
                 on_click=lambda: self._answer("0")))
             self.hotkeys["0"] = lambda: self._answer("0")
         auto_choice = prompt.choice_for(P.AUTO_BATTLE_VALUE)
@@ -1547,8 +1611,6 @@ class MainWindow(QWidget):
             # flag back down -- so the bridge writes it directly.
             extras.addWidget(ActionButton(
                 "Auto battle: ON" if on else "Auto battle: off", self.fonts,
-                sub=("click to take back control" if on
-                     else "let the AI play this match out"),
                 accent=T.ACCENT if on else T.TEXT_DIM,
                 on_click=(self._auto_battle_off if on
                           else (lambda: self._answer(P.AUTO_BATTLE_VALUE)))))
@@ -1592,13 +1654,15 @@ class MainWindow(QWidget):
         self.actions.addLayout(grid)
 
         extras = QHBoxLayout()
-        for value, label, sub in (("8", "Inspect your team",
-                                   "print full stats to the log"),
-                                  ("9", "Back to battle",
-                                   "keep the current Pokemon in")):
+        # No sub-captions. "Inspect your team" and "Back to battle" say what
+        # they do; a second line under each restated it, and one of them
+        # ("print full stats to the log") had not been true since that option
+        # started opening the team window.
+        for value, label in (("8", "Inspect your team"),
+                             ("9", "Back to battle")):
             if prompt.choice_for(value):
                 extras.addWidget(ActionButton(
-                    label, self.fonts, sub=sub, accent=T.TEXT_DIM,
+                    label, self.fonts, accent=T.TEXT_DIM,
                     on_click=lambda v=value: self._answer(v)))
                 self.hotkeys[value] = lambda v=value: self._answer(v)
         extras.addStretch(1)
@@ -1634,9 +1698,24 @@ class MainWindow(QWidget):
                     # last resort: real Pokemon only, never the sentinels
                     target = len([c for c in prompt.choices
                                   if c.kind == "option"])
-            roster = self.game_state.get("player_roster") or []
-            if roster:
-                target = min(target, len(roster))
+            # Clamp against what the engine is *offering on this screen*, not
+            # against `player_roster`.
+            #
+            # player_roster is a separate snapshot and it lags: during a round
+            # with a 4v4 or 5v5 limit the Pokemon you benched live in
+            # `unused_team`, so the published roster holds four or five while
+            # the team is six. end_battle folds them home, but nothing
+            # republishes the roster between that and save_game -- so the
+            # clamp quietly turned the engine's "keep at most 6" into 5, and
+            # a Pokemon you owned could not be kept. That is the "sometimes
+            # you can only select 5" bug.
+            #
+            # The option list cannot lag: it *is* this prompt. Clamping to it
+            # still stops the other direction -- "you can keep 7" when the
+            # sentinels were counted as Pokemon.
+            offered = len([c for c in prompt.choices if c.kind == "option"])
+            if offered:
+                target = min(target, offered)
             state.clear()
             state.update(signature=signature, target=target, committed=set(),
                         checked=set())
@@ -1707,8 +1786,6 @@ class MainWindow(QWidget):
             already_all = bool(everything) and state["checked"] == everything
             extras.addWidget(ActionButton(
                 "Clear selection" if already_all else "Keep All", self.fonts,
-                sub=("start over" if already_all
-                     else "highlight every Pokemon"),
                 accent=T.PLAYER, disabled=not everything,
                 on_click=lambda: self._select_all_team_picks(
                     state, set() if already_all else everything)))
@@ -1807,10 +1884,10 @@ class MainWindow(QWidget):
         """
         row = QHBoxLayout()
         row.addWidget(ActionButton(
-            "Play Again", self.fonts, sub="start a fresh tournament",
+            "Play Again", self.fonts,
             accent=T.PLAYER, emphasis=True, on_click=self._relaunch))
         row.addWidget(ActionButton(
-            "Close", self.fonts, sub="quit to the desktop",
+            "Close", self.fonts,
             accent=T.TEXT_DIM, on_click=self.close))
         row.addStretch(1)
         self.actions.addLayout(row)

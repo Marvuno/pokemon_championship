@@ -33,10 +33,12 @@ def check(label, got, want=True):
 sandbox = tempfile.mkdtemp(prefix="slots-")
 savefile.SLOT_DIR = os.path.join(sandbox, "Save")
 savefile.JSON_PATH = os.path.join(sandbox, "savefile.json")
-savefile.LEGACY_PATH = os.path.join(sandbox, "savefile.dat")
 os.makedirs(savefile.SLOT_DIR, exist_ok=True)
 
 player = list_of_competitors["Protagonist"]
+# Before anything is written or loaded, the way main_screen() does it -- the
+# snapshot is only pristine if it is taken first.
+savefile.remember_pristine(list_of_competitors, list_of_pokemon)
 
 
 def write_slot(slot, nickname, rating, titles, runs):
@@ -138,13 +140,43 @@ try:
           savefile.load(list_of_competitors, list_of_pokemon), "json")
     check("...as the same career", player.nickname, "Older")
 
-    # a pre-slots pickle also keeps slot 1 occupied
+    # ------------------------------- a new game must not inherit a career
+    # load() writes into the shared rosters in place, so opening HISTORY or
+    # CONTINUE on one slot leaves that career in memory. A new game in another
+    # slot used to save all of it -- runs, titles, championship history, head
+    # to head -- under the new slot.
+    write_slot(2, "Lady Evonne", 788, 13, 30)
+    player.opponent_history["Pudding"] = [7, 2]
+    savefile.save(list_of_competitors, slot=2)
+    savefile.select(2)
+    savefile.load(list_of_competitors, list_of_pokemon)
+    check("the established career is in memory",
+          (player.participation, player.championship), (30, 13))
+    savefile.select(3)
+    check("start_fresh reports success",
+          savefile.start_fresh(list_of_competitors, list_of_pokemon), True)
+    fresh_player = list_of_competitors["Protagonist"]
+    fresh_player.nickname = "Fresh Start"
+    savefile.save(list_of_competitors, slot=3)
+    third = savefile.summary(3)
+    check("a new career starts on zero runs", third["participation"], 0)
+    check("...and zero titles", third["championship"], 0)
+    check("...under its own name", third["nickname"], "Fresh Start")
+    check("...while the slot it was read from is untouched",
+          (savefile.summary(2)["nickname"],
+           savefile.summary(2)["participation"]), ("Lady Evonne", 30))
+    check("...and slot 4 is still free", savefile.summary(4)["used"], False)
+
+    # The pickle format is gone: savefile.dat is not read, written or looked
+    # for any more, so a stray one leaves slot 1 empty rather than occupied.
     os.remove(savefile.slot_path(1))
     os.remove(savefile.JSON_PATH)
-    with open(savefile.LEGACY_PATH, "wb") as handle:
-        handle.write(b"not really a pickle")
-    check("an old pickle still makes slot 1 look occupied",
-          savefile.exists(slot=1), True)
+    with open(os.path.join(sandbox, "savefile.dat"), "wb") as handle:
+        handle.write(b"an old pickle nobody reads")
+    check("an old pickle no longer counts as a career",
+          savefile.exists(slot=1), False)
+    check("...and the module has no legacy path at all",
+          hasattr(savefile, "LEGACY_PATH"), False)
 finally:
     shutil.rmtree(sandbox, ignore_errors=True)
 

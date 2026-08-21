@@ -1,5 +1,6 @@
 import math
 from Scripts.Battle.type_chart import *
+from Scripts.Battle.constants import has_ability
 
 
 def entry_hazard_effect(switch_side, pokemon):
@@ -33,5 +34,7 @@ def toxic_spikes_entry_hazard(switch_side, pokemon):
 def sticky_web_entry_hazard(switch_side, pokemon):
     # ungrounded pokemon unaffected
     if pokemon.volatile_status['Grounded'] == 1:
-        if pokemon.ability != "Clear Body":
+        # ability is a list; "!= 'Clear Body'" was always true, so Clear Body
+        # never protected anything here
+        if not has_ability(pokemon, "Clear Body"):
             pokemon.modifier[5] -= 1 * switch_side.entry_hazard["Sticky Web"]

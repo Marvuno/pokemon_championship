@@ -11,6 +11,7 @@ from Scripts.Battle.volatile_status_condition import *
 from Scripts.Battle.type_chart import *
 from Scripts.Battle.damage_calculation import *
 from Scripts.Battle.constants import *
+from Scripts.Battle import move_rules
 from Scripts.Battle.ai import *
 from Scripts.Battle.switching import *
 import Scripts.Battle.battle_checklist
@@ -18,6 +19,7 @@ from Scripts.Game.game_system import *
 from Scripts.Data.pokemon import *
 from Scripts.Data.abilities import *
 from Scripts.Data.moves import *
+from Scripts.Art import narrator
 
 
 def user_turn_in_battle_stats(user_side, user):
@@ -34,48 +36,41 @@ def user_turn_in_battle_stats(user_side, user):
             user.disabled_moves[move_name] -= 1
             if user.disabled_moves[move_name] <= 0:
                 del user.disabled_moves[move_name]
-        user.disabled_moves = {k: v for k, v in user.disabled_moves.items() if k > 0}
+        # `if v > 0`, on the counter -- `k` is the move's *name*, and
+        # comparing a string to 0 raised TypeError on every single turn.
+        # The suppress() above swallowed it, which also meant the rest of
+        # this block was being skipped every turn.
+        user.disabled_moves = {k: v for k, v in user.disabled_moves.items()
+                               if v > 0}
     for key, values in user_side.in_battle_effects.items():
         user_side.in_battle_effects[key] -= 1 if values > 0 else 0
 
 
 # check if weather effect affects the move
 def onWeatherCheck(battleground, move):
-    if not move.ignoreWeather:
-        if battleground.weather_effect == 'Hail':  # hail
-            if move.name == "Blizzard":
-                move.accuracy = GUARANTEE_ACCURACY
-            elif move.name == "Solar Beam" or move.name == "Solar Blade":
-                move.power /= 2
-        elif battleground.weather_effect == 'Sunny':  # Sunny
-            if move.name == "Solar Beam" or move.name == "Solar Blade":
-                move.charging = ""
-            elif move.name == "Thunder":
-                move.accuracy /= 2
-        elif battleground.weather_effect == 'Rain':  # rain
-            if move.name == "Solar Beam" or move.name == "Solar Blade":
-                move.power /= 2
-            elif move.name == "Thunder" or move.name == "Hurricane" or move.name == "Thunderous Trident":
-                move.accuracy = GUARANTEE_ACCURACY
-        elif battleground.weather_effect == 'Sandstorm':  # sandstorm
-            if move.name == "Solar Beam" or move.name == "Solar Blade":
-                move.power /= 2
+    """Whatever today's weather does to this move.
+
+    This was twelve branches nested two deep -- four weathers by six moves --
+    which is a lookup table someone wrote as `if`s. It is the `weather_when`
+    column now; the effects it can name live in Scripts/Battle/move_rules.py.
+    """
+    move_rules.apply_weather_when(battleground, move)
 
 
 def onParticularMoveChange(user, target, move):
+    """The move-specific adjustments that are genuinely computations.
+
+    The four "double power when X" moves that used to be in this chain --
+    Brine, Venoshock, Facade, Hex -- are the `power_when` column now. What is
+    left reads a speed ratio, rolls a random stat, or checks a type: things no
+    cell can hold. See Scripts/Battle/move_rules.py.
+    """
+    move_rules.apply_power_when(user, target, move)
     if move.name == "Toxic" and "Poison" in user.type:
         move.accuracy = 1
-    elif move.name == "Brine" and target.battle_stats[0] <= target.hp // 2:
-        move.power *= 2
-    elif move.name == "Venoshock" and (target.status == "Poison" or target.status == "BadPoison"):
-        move.power *= 2
     elif move.name in ("Electro Ball", "Time Pressure"):
         relative_speed = target.battle_stats[5] / user.battle_stats[5]
         move.power = 40 if relative_speed > 1 else 60 if relative_speed > 0.5 else 80 if relative_speed > 0.3333 else 120 if relative_speed > 0.25 else 150
-    elif move.name == "Facade" and user.status != "Normal":
-        move.power *= 2
-    elif move.name == "Hex" and target.status != "Normal":
-        move.power *= 2
     elif move.name == "Acupressure":
         user.applied_modifier[random.randint(1, 7)] += 2
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
@@ -95,7 +90,7 @@ def onChargingMove(user, target, move):
     # non-frenzy moves
     elif (move.charging == "Charging" or move.charging == "Semi-invulnerable") and user.charging[0] == "":
         user.charging = [move.name, move.charging, 1]
-        print(f"{user.name} is charging power.")
+        narrator.say(f"{user.name} is charging power.")
         move.damage = 0
     # time to activate
     elif user.charging[0] != "" and user.charging[2] == 0:
@@ -110,33 +105,20 @@ def move_fail_checklist_before_execution(user, target, move, target_move):
     # disabled move
     with suppress(ValueError, KeyError):
         if user.disabled_moves[move.name] > 0:
-            print("The move failed.")
+            narrator.failed()
             return True
+    # the move's own condition, if it has one: see the fails_unless column
+    refused, why = move_rules.refuses(user, target, move, target_move)
+    if refused:
+        narrator.say(why)
+        return True
     # first turn priority move
     if 'j' in move.flags and user.volatile_status['Turn'] > 2:
-        print("The move failed.")
-        return True
-    # sucker punch
-    elif move.name == "Sucker Punch" and target_move.attack_type == "Status":
-        print("The move failed.")
-        return True
-    # belly drum
-    elif move.name == "Belly Drum" and (user.battle_stats[0] <= math.ceil(user.hp * move.deduct) or user.modifier[1] == 6):
-        print("The move failed.")
-        return True
-    elif move.name == "Dream Eater" and target.status != "Sleep":
-        print("The move failed.")
-        return True
-    elif move.name == "Snore" and user.status != "Sleep":
-        print("The move failed.")
+        narrator.failed()
         return True
     # powder moves
     elif 'g' in move.flags and 'Grass' in target.type:
-        print("The move failed.")
-        return True
-    # shell trap for turtonator
-    elif move.name == "Shell Trap" and 'a' not in target_move.flags:
-        print("The move failed.")
+        narrator.failed()
         return True
 
     return False
@@ -172,13 +154,16 @@ def move_fail_checklist_during_execution(user, target, move, target_move):
             # baneful bunker
             elif target.protection[0] == 3:
                 if user.status == "Normal":
-                    if ("Poison" or "Steel") not in user.type:
-                        print(f"{user.name} has been poisoned.")
+                    # ("Poison" or "Steel") is just "Poison" -- Python takes
+                    # the first truthy operand -- so Baneful Bunker was
+                    # poisoning Steel types
+                    if "Poison" not in user.type and "Steel" not in user.type:
+                        narrator.say(f"{user.name} has been poisoned.")
                         user.status = "Poison"
-        print("Opponent Pokemon protected the move.")
+        narrator.say("Opponent Pokemon protected the move.", "fail")
         return True
     elif target.status == "Fainted" and 'b' not in move.flags:  # fainted already
-        print("Opponent Pokemon is already fainted!")
+        narrator.say("Opponent Pokemon is already fainted!", "faint")
         return True
     return False
 
@@ -200,19 +185,19 @@ def other_effect_when_use_move(user, target, battleground, move):
 def fainting_blow_move_effect(user, target, move):
     if target.volatile_status['DestinyBond'] > 0:
         user.battle_stats[0] = 0
-        print(f"{user.name} is affected by destiny bond!")
+        narrator.say(f"{user.name} is affected by destiny bond!")
     if move.name == "Fell Stinger":
         user.applied_modifier = [0, 3, 0, 0, 0, 0, 0, 0, 0]
         user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
     if move.name == "Cannibalism":
-        print(f"{user.name} absorbs {target.name} and regenerates {math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.5)} HP.")
+        narrator.say(f"{user.name} absorbs {target.name} and regenerates {math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.5)} HP.", "heal")
         user.battle_stats[0] += min(user.hp - user.battle_stats[0], math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.5))
 
 
 def move_fail_consequence_upon_execution(user, target, move):
     # disrupting frenzy moves (e.g. outrage)
     if user.charging[0] != "":
-        print("Failed")
+        narrator.say("Failed")
         user.charging = ["", "", 0]
     elif move.crash > 0:
         user.battle_stats[0] -= math.floor(user.hp * move.crash)
@@ -223,9 +208,9 @@ def move_fail_consequence_upon_execution(user, target, move):
 def check_fainted(user, target):
     if target.status != "Fainted":  # check fainted or not
         if target.battle_stats[0] <= 0:  # out of HP
-            print(f"{target.side_color}{target.name} fainted!{CEND}")
+            narrator.fainted(target)
             target.status = "Fainted"
     if user.status != "Fainted":
         if user.battle_stats[0] <= 0:  # recoil damage trigger fainted
-            print(f"{user.side_color}{user.name} fainted!{CEND}")
+            narrator.fainted(user)
             user.status = "Fainted"

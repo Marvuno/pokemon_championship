@@ -41,7 +41,7 @@ rating flatters them.
 33   Diantha                      49   107   168   38.9%    1014    -259        +2
 34   Bugsy                        46   106   169   38.5%     981    -323        +2
 35   Rum                          52   102   173   37.1%    1046    -284        -1
-36   Voldemort                    60   102   173   37.1%     958    -353        -5
+36   Devoltorm                    60   102   173   37.1%     958    -353        -5
 37   Bojji                        35    97   178   35.3%     978    -383        +3
 38   Big Bryan                    37    95   180   34.5%     946    -371        +1
 39   Shuka                        33    94   181   34.2%     931    -424        +2
@@ -74,4 +74,4 @@ Worth a look:
   overrated   Demon Muzan              rated  378, finished 76.7% (-5 places)
   overrated   Expert Cynthia           rated  346, finished 74.5% (-5 places)
   overrated   Misty                    rated  103, finished 60.4% (-5 places)
-  overrated   Voldemort                rated   60, finished 37.1% (-5 places)
+  overrated   Devoltorm                rated   60, finished 37.1% (-5 places)

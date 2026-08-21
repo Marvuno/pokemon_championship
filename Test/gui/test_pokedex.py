@@ -1,4 +1,4 @@
-"""The Pokedex (query language, three sections), reward-screen compare, and
+"""The Pokedex (query language, four sections), reward-screen compare, and
 device-pixel sprite scaling."""
 import os
 import sys
@@ -159,10 +159,23 @@ left = {n[:-len("-left.gif")] for n in
 right = {n[:-len("-right.gif")] for n in
          os.listdir(os.path.join(ROOT, "Assets", "pokemon", "right"))
          if n.endswith("-right.gif")}
-missing_left = [e["name"] for e in DATA["pokemon"] if e["sprite"] not in left]
-missing_right = [e["name"] for e in DATA["pokemon"] if e["sprite"] not in right]
+#: Pokemon added to the table whose artwork has not been drawn yet.
+#: Declared rather than tolerated, so the checks below still fail for any
+#: *other* Pokemon with no sprite -- which is the case they exist to catch,
+#: a name that does not resolve because sprite_key mangles it.
+ART_PENDING = set()          # all drawn
+
+missing_left = [e["name"] for e in DATA["pokemon"]
+                if e["sprite"] not in left and e["name"] not in ART_PENDING]
+missing_right = [e["name"] for e in DATA["pokemon"]
+                 if e["sprite"] not in right and e["name"] not in ART_PENDING]
 check("every Pokemon resolves a left sprite", missing_left, [])
 check("...and a right one", missing_right, [])
+# and the list is not quietly hiding a Pokemon that does have art
+check("nothing in ART_PENDING actually has artwork",
+      sorted(n for n in ART_PENDING
+             if any(e["name"] == n and e["sprite"] in left
+                    for e in DATA["pokemon"])), [])
 check("the awkward names resolve too",
       sorted(e["sprite"] for e in DATA["pokemon"]
              if e["name"] in ("Farfetch'd", "Alolan Raichu",
@@ -175,7 +188,8 @@ print("\n== the window ==")
 dex = PokedexDialog(fonts, DATA, ROOT)
 dex.present("pokemon")
 app.processEvents()
-check("three sections", list(dex.sections), ["pokemon", "moves", "opponents"])
+check("four sections", list(dex.sections),
+      ["pokemon", "moves", "abilities", "opponents"])
 check("a row per Pokemon", len(dex.sections["pokemon"].rows),
       len(DATA["pokemon"]))
 check("a row per move", len(dex.sections["moves"].rows), len(DATA["moves"]))
@@ -266,12 +280,19 @@ dex.entry.setText("cynthia")
 dex._filter()
 app.processEvents()
 shown = " | ".join(texts(people))
-check("an opponent shows their rating",
-      any("346" in t for t in texts(people)) or "rated 346" in shown.lower())
+# Read the rating rather than hardcoding it: it was 346 until every rating
+# was multiplied by 5/3 (see constants.RATING_SCALE), and a literal here
+# only ever fails the next time the ladder is renumbered.
+from Scripts.Data.competitors import list_of_competitors as _roster  # noqa: E402
+_rating = str(_roster["Expert Cynthia"].strength)
+check("an opponent shows their rating (%s)" % _rating,
+      any(_rating in t for t in texts(people))
+      or ("rated %s" % _rating) in shown.lower())
 check("...their character ability", "CHARACTER ABILITY" in shown.upper())
 check("no 'always brings' -- their roster stays secret",
       "ALWAYS BRINGS" not in shown.upper())
-check("...and their strategy", "STRATEGY" in shown.upper())
+check("...and their ace, headed ACE rather than STRATEGY",
+      "ACE" in shown.upper())
 from GUI_qt.panels import _FittedArt                               # noqa: E402
 art = people.findChildren(_FittedArt)
 check("their portrait is drawn through the DPR-correct label", len(art), 1)
