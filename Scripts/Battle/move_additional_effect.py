@@ -178,6 +178,11 @@ def check_move_user_heal(turn, move, special_effect):
     turn.user.active.battle_stats[0] = min(turn.user.active.hp, turn.user.active.battle_stats[0] + math.floor(turn.user.active.hp * special_effect))
 
 
+#: how far a decimal in the move table may sit below the fraction it means
+#: before a floor() reads one short. See check_move_user_heal_by_weather.
+FRACTION_SLACK = 1e-6
+
+
 def check_move_user_heal_by_weather(turn, move, special_effect):
     """A heal whose size depends on the sky. Synthesis, and its two siblings
     if they are ever added.
@@ -189,8 +194,15 @@ def check_move_user_heal_by_weather(turn, move, special_effect):
     weather = turn.ground.weather_effect
     scale = 2 if weather == "Sunny" else 1 if weather == "Clear" else 0.5
     fraction = special_effect * scale
+    # FRACTION_SLACK, because the cell holds a *decimal approximation* of a
+    # fraction -- 0.333333333 for a third -- and flooring that is always one
+    # short on exactly the numbers that matter: floor(180 * 0.333333333) is
+    # 59, not 60. No number of extra digits fixes it either, since a float
+    # third is below a true third. Nudging up by a millionth restores the
+    # exact cases and changes nothing else: a third of 100 still floors to
+    # 33, and a sixth of 50 still floors to 8.
     mended = min(turn.user.active.hp - turn.user.active.battle_stats[0],
-                 math.floor(turn.user.active.hp * fraction))
+                 math.floor(turn.user.active.hp * fraction + FRACTION_SLACK))
     turn.user.active.battle_stats[0] += max(0, mended)
     narrator.say(f"{turn.user.active.name} draws {max(0, mended)} HP from "
                  f"the light.", "heal", pokemon=turn.user.active.name,

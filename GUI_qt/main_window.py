@@ -27,7 +27,8 @@ from GUI import ansi, bridge as B, prompt_parser as P, theme as T
 from GUI_qt import settings
 from GUI_qt.arena import ArenaBackdrop
 from GUI_qt.fonts import Fonts
-from GUI_qt.panels import (CareerDialog, CompareDialog, CreditsDialog,
+from GUI_qt.panels import (AppearanceDialog, CareerDialog, CompareDialog,
+                           CreditsDialog,
                            HistoryDialog, OpponentInfoDialog, RosterDialog,
                            SettingsDialog, StandingsDialog, StoryDialog)
 from GUI_qt.pokedex import PokedexDialog
@@ -93,6 +94,7 @@ class MainWindow(QWidget):
         self._last_bracket = None
         self._last_view_pokemon_ping = None
         self._last_story_ping = None
+        self._last_tutorial_ping = None
         self._last_result_seq = None
         self._last_reward_seq = None
         self._last_battle_seq = None
@@ -112,7 +114,20 @@ class MainWindow(QWidget):
         self.career_dialog.picked.connect(self._career_pick)
         self.career_dialog.dismissed.connect(self._career_closed)
         self.lore = {}               # filled in by bridge.py at startup
-        self.story_dialog = None
+        self.story_dialog = None       # Background reader
+        self.tutorial_dialog = None    # Tutorial reader
+        self.appearance_dialog = None  # built on first use
+        #: which gender's portraits are showing. The engine's gender
+        #: question is answered from this and never drawn -- see
+        #: _drive_appearance. 0 is the first it offers, so Male.
+        self._appearance_gender = 0
+        self._appearance_genders = ["Male", "Female"]
+        self._appearance_back = "9"
+        #: set while the first-run walkthrough is being read, so the
+        #: tutorial reader follows the background one by itself
+        self._guided = False
+        #: the tutorial ping arrived while the background was open
+        self._guided_tutorial = False
 
         self.setWindowTitle("Pokemon Champion")
         self.setObjectName("root")
@@ -206,12 +221,22 @@ class MainWindow(QWidget):
 
         layout.addStretch(1)
 
-        layout.addWidget(ActionButton(
-            "Settings", self.fonts, accent=T.TEXT_DIM,
-            on_click=self._open_settings), alignment=Qt.AlignVCenter)
-        # Story and Credits are on the title screen now, not up here: they are
-        # what you read before or after a run, and the header is for what you
-        # need during one.
+        # Named, not pictured. Icons were tried and reverted: at 22px the
+        # shapes carry less than the word does, and the row is read once and
+        # then known by position anyway.
+        #
+        # Background and Tutorial are separate on purpose: they used to be
+        # one five-page reader, so a player wanting a rules reminder had to
+        # page past the story to reach it. Credits is not here at all -- it
+        # is what you read before or after a run, so it lives on the title
+        # screen with New Game and Continue.
+        for caption, accent, handler in (
+                ("Background", T.ACCENT, self._open_background),
+                ("Tutorial", T.ACCENT, self._open_tutorial),
+                ("Settings", T.TEXT_DIM, self._open_settings)):
+            layout.addWidget(ActionButton(caption, self.fonts, accent=accent,
+                                          on_click=handler),
+                             alignment=Qt.AlignVCenter)
         # In the top bar rather than on a menu, so it is reachable from the
         # title screen, from the pre-battle menu and mid-battle alike. It is
         # pure reference material -- it reads a snapshot and touches no game
@@ -254,7 +279,7 @@ class MainWindow(QWidget):
         dialog.exec()
 
     def _open_credits(self):
-        """The closing note and Documentation/credits.txt, on request.
+        """The closing note and Documentation/credits.md, on request.
 
         It used to open itself the moment a run ended, over the top of the
         final standings. Whether you won is remembered from that moment so the
@@ -280,12 +305,57 @@ class MainWindow(QWidget):
                                                self)
         self.pokedex_dialog.present()
 
+    def _reader(self, attribute, pages, title, on_finish=None):
+        """Build (or rebuild) one of the two page readers and show it.
+
+        Rebuilt whenever it is opened guided, because `on_finish` belongs to
+        this particular run through the flow and a reader left over from a
+        previous open would carry the old one.
+        """
+        existing = getattr(self, attribute, None)
+        if existing is None or on_finish is not None:
+            existing = StoryDialog(self.fonts, self.lore, self.root, self,
+                                   pages=pages, title=title,
+                                   on_finish=on_finish)
+            setattr(self, attribute, existing)
+        existing.present()
+        return existing
+
+    def _open_background(self, on_finish=None):
+        return self._reader("story_dialog", StoryDialog.BACKGROUND_PAGES,
+                            "Background", on_finish)
+
+    def _open_tutorial(self, on_finish=None):
+        return self._reader("tutorial_dialog", StoryDialog.TUTORIAL_PAGES,
+                            "Tutorial", on_finish)
+
+    def _finished_background(self):
+        """End of the background pages during a first run.
+
+        The engine has already run tutorial() by now -- both are swallowed
+        and pinged, one after the other -- so the tutorial ping may have
+        arrived while the background reader was still open. Chain to it here
+        rather than letting it open on top of the page being read.
+        """
+        if self._guided_tutorial:
+            self._guided_tutorial = False
+            self._open_tutorial(on_finish=self._finished_walkthrough)
+        else:
+            self._finished_walkthrough()
+
+    def _finished_walkthrough(self):
+        """Both readers done. The engine is on its single Continue."""
+        self._guided = False
+
     def _open_story(self):
-        """The world's background and the how-to-play guide, any time."""
-        if self.story_dialog is None:
-            self.story_dialog = StoryDialog(self.fonts, self.lore, self.root, self)
-        self.story_dialog.show()
-        self.story_dialog.raise_()
+        """Alias for the Background reader.
+
+        "Story" was one five-page reader holding the background and the
+        tutorial together. It is two readers now, and Background is what
+        "story" always meant; this is kept so existing callers do not have
+        to know that.
+        """
+        return self._open_background()
 
     def _open_standings(self):
         self.standings_dialog.show()
@@ -375,9 +445,7 @@ class MainWindow(QWidget):
 
         # Two interchangeable backdrops in the same slot: the arena while a
         # match is live, the title/lobby view for everything else.
-        self.title_view = TitleView(self.fonts, self.root, self,
-                                    on_story=self._open_story,
-                                    on_credits=self._open_credits)
+        self.title_view = TitleView(self.fonts, self.root, self)
         self.stage_views = QStackedWidget(self)
         self.stage_views.addWidget(self.title_view)   # index 0
         self.stage_views.addWidget(self.arena)        # index 1
@@ -692,6 +760,17 @@ class MainWindow(QWidget):
         self.prompt_tag = _label("", self.fonts.eyebrow, T.ACCENT)
         head.addWidget(self.prompt_tag)
         head.addStretch(1)
+        # Credits sits in this bar rather than the header. It is what you
+        # read before or after a run, so it does not belong among the six
+        # things you reach *during* one -- but it does need to be reachable
+        # without leaving whatever screen you are on, which is why it is
+        # here and not on the title screen. This row is the action bar's
+        # permanent furniture: it survives _clear_actions, so the button is
+        # there whatever the game happens to be asking.
+        head.addWidget(ActionButton("Credits", self.fonts,
+                                    accent=T.TEXT_DIM,
+                                    on_click=self._open_credits),
+                       alignment=Qt.AlignVCenter)
         self.fallback_entry = QLineEdit()
         self.fallback_entry.setFont(self.fonts.small)
         self.fallback_entry.setFixedWidth(150)
@@ -827,12 +906,26 @@ class MainWindow(QWidget):
         if lore and lore is not self.lore:
             self.lore = lore
             self.story_dialog = None      # rebuilt on next open, with the text
+            self.tutorial_dialog = None
 
         # a new player: the engine's walkthrough now opens the reader
+        # A new player is walked through both readers in order. The engine
+        # runs backstory() then tutorial() back to back, so both pings can
+        # land before either reader is closed -- `_guided_tutorial` remembers
+        # that the second one is owed rather than opening it over the first.
+        ping = state.get("show_tutorial")
+        if ping is not None and ping != getattr(self, "_last_tutorial_ping",
+                                                None):
+            self._last_tutorial_ping = ping
+            if self._guided:
+                self._guided_tutorial = True   # chained after the background
+            else:
+                self._open_tutorial()
         ping = state.get("show_story")
         if ping is not None and ping != getattr(self, "_last_story_ping", None):
             self._last_story_ping = ping
-            self._open_story()
+            self._guided = True
+            self._open_background(on_finish=self._finished_background)
 
         info = state.get("opponent_info")
         if info is not None and info is not self._last_opponent_info:
@@ -1200,6 +1293,8 @@ class MainWindow(QWidget):
             self._pending_answers = []
         if request.kind == "career" and self._drive_career(request):
             return
+        if request.kind == "appearance" and self._drive_appearance(request):
+            return
         if request.kind == "reward" and self._drive_reward(request):
             return
         # off the reward screen: the choice is made, so the window goes away by
@@ -1361,7 +1456,7 @@ class MainWindow(QWidget):
 
     #: main.py's tournament-win fanfare, printed just before it asks to
     #: continue: the congratulations line, the career title count, and the
-    #: whole of Documentation/credits.txt.
+    #: whole of Documentation/credits.md.
     CHAMPION_RE = re.compile(r"won the Pokemon World Championship", re.I)
     TITLES_RE = re.compile(r"obtained\s+(\d+)\s+World Champion Title", re.I)
 
@@ -1423,6 +1518,96 @@ class MainWindow(QWidget):
         self._clear_actions()
         self.question.setText("\u2026")
         request.answer(value)
+
+    # -- who you are drives itself ----------------------------------------
+    def _drive_appearance(self, request):
+        """Answer choose_appearance() from the portrait window.
+
+        The engine asks two questions -- a gender, then a portrait -- because
+        a terminal can only ask one thing at a time. The player is shown one
+        screen: the five portraits, with both gender buttons under them.
+
+        So the gender question is never drawn. It is answered from
+        `_appearance_gender`, which starts at 0 (Male) and only changes when
+        the player presses the other button on the portrait screen. Pressing
+        it answers the portrait question with its go-back sentinel, which
+        sends the engine round its own loop to the gender question, which is
+        answered again from here -- and the portrait question comes back with
+        the other five. The window stays open throughout, so none of that
+        round trip is visible.
+
+        Returning False would render the question as a row of buttons reading
+        "Male 1".."Male 5", which is what this exists to avoid -- so an
+        unrecognised prompt inside the flow falls through to the normal bar
+        rather than being swallowed.
+        """
+        kind = B.appearance_prompt_kind(request.prompt)
+        if kind is None:
+            return False
+        prompt = self.memory.parse(request.prompt, request.recent)
+        picks = [c for c in prompt.choices if c.kind == "option"]
+
+        if kind == B.APPEARANCE_GENDER:
+            # Read the names off the question rather than keeping a second
+            # copy of APPEARANCE_GENDERS here, then answer without drawing
+            # anything. Clamped, so a roster with one gender cannot ask for
+            # an option that is not on offer.
+            if picks:
+                self._appearance_genders = [c.label for c in picks]
+                self._appearance_gender = min(self._appearance_gender,
+                                              len(picks) - 1)
+            self._answer(str(self._appearance_gender))
+            return True
+
+        if self.appearance_dialog is None:
+            self.appearance_dialog = AppearanceDialog(self.fonts, self.root,
+                                                      self)
+        self._clear_actions()
+        self.question.setText("Choose your trainer")
+        keys, back = self._split_portraits(picks)
+        if back is not None:
+            self._appearance_back = back
+        self.appearance_dialog.ask_portrait(
+            self._appearance_genders, self._appearance_gender, keys,
+            self._answer, self._switch_appearance_gender)
+        return True
+
+    @staticmethod
+    def _split_portraits(picks):
+        """(the portraits, the go-back value) out of one numbered list.
+
+        The engine has to print "9: Choose a different gender instead" as
+        another numbered line -- a terminal has nowhere else to put it -- so
+        the parser reads it as an ordinary choice and it arrived here as a
+        sixth portrait with no artwork behind it.
+
+        Told apart by *position*, not by wording: the engine accepts a
+        portrait only when `0 <= answer < len(offered)`, so the portraits are
+        exactly the contiguous run from zero and anything past the first gap
+        is a sentinel. Matching on the label would break the moment the
+        sentence is reworded.
+        """
+        numbered = []
+        for choice in picks:
+            try:
+                numbered.append((int(choice.value), choice.label))
+            except (TypeError, ValueError):
+                continue
+        numbered.sort()
+        keys, back = [], None
+        for value, label in numbered:
+            if back is None and value == len(keys):
+                keys.append(label)
+            elif back is None:
+                back = str(value)
+        return keys, back
+
+    def _switch_appearance_gender(self, index):
+        """The other gender button. Sends the engine back round its loop."""
+        if index == self._appearance_gender or self.request is None:
+            return
+        self._appearance_gender = index
+        self._answer(self._appearance_back)
 
     # -- the HISTORY screen drives itself ---------------------------------
     def _drive_career(self, request):

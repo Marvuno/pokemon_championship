@@ -1,274 +1,192 @@
-ID,Nickname,Name,Strength,Ability,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,Color,Quote,Strategy
-0,,Protagonist,5,,"Currently {} years old. You have won the U15 Pokemon Amateur Tournament 2022,
-being the youngest winner of the said tournament in history. You have been widely acknowledged as
-the best prodigy of the decade. As people proclaimed, you are very good at reading others' mind and often
-won at the most clutch moments, while huge comeback is also occassionally found in your fascinating Pokemon battle.",Protagonist,,,,,,,,,Green,,
-1,Goblin,Goblin,1,Dim,"Goblin is simply a goblin. Dim, old, and weak.",Low,"Grimmsnarl|iv=20|ability=Prankster|moves=Bulk Up,Foul Play,Play Rough,Leech Life",,,,,,low.mp3,ace.mp3,,I may be old. I may be weak. But I am certainly not blind.,"Ace: Grimmsnarl
+ID,Nickname,Name,Strength,Ability,Desc,Level,Poke1,Poke2,Poke3,Poke4,Poke5,Poke6,Music,Ace Music,Quote,Strategy
+0,,Protagonist,5,,"Being the youngest champion of U15 Pokemon Championship, you have been widely respected as the best prodigy of the generation. People are thrilled at your strategic capabilities and tactics that often clutch victories at the most challenging moments. You have earned your spot into the Official Pokemon Championship held per annum, where the best talents all around the universe compete against each other.",Protagonist,,,,,,,,,,
+1,Goblin,Goblin,1,Dim,"Goblin is simply a goblin. Dim, old, and weak.",Low,"Grimmsnarl|iv=20|ability=Prankster|moves=Bulk Up,Foul Play,Play Rough,Leech Life",,,,,,low.mp3,ace.mp3,I may be old. I may be weak. But I am certainly not blind.,"Ace: Grimmsnarl
 Ability: Dim
 Dim: decrease speed, but increase accuracy."
-2,Trasher,Trasher,3,Trashy,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate.
-He is well known for his Garbador, his first and strongest pokemon.",Low,"Garbodor|iv=25|ability=Aftermath|moves=Gunk Shot,Seed Bomb,Drain Punch,Self-Destruct",,,,,,low.mp3,ace.mp3,,I will prove to you that there is really treasure in a pile of trash!,"Ace: Garbodor
+2,Trasher,Trasher,3,Trashy,"Trasher grew up in places full of trash. He seeks to prove himself in the Pokemon World Championship to change his fate. He is well known for his Garbador, his first and strongest pokemon.",Low,"Garbodor|iv=25|ability=Aftermath|moves=Gunk Shot,Seed Bomb,Drain Punch,Self-Destruct",,,,,,low.mp3,ace.mp3,I will prove to you that there is really treasure in a pile of trash!,"Ace: Garbodor
 Ability: Trashy
 Trashy: poison-type moves' power increases by 30%."
-3,Jason,Jason,5,Procrastination,"Jason is a fresh graduate specialized in pokemon studies who thinks he is the real deal. He will actively avoid routine work by procrastinating until the last second, as he thinks these work do not prove his real ability. He fails his probation due to his bad working quality and remains jobless ever since.",Low,Durant,,,,,,low.mp3,ace.mp3,,Why do I need to do this by myself? There are better candidates.,"Ace: Durant
+3,Jason,Jason,5,Procrastination,"Jason is a fresh graduate specialized in pokemon studies who thinks he is the real deal. He will actively avoid routine work by procrastinating until the last second, as he thinks these work do not prove his real ability. He fails his probation due to his bad working quality and remains jobless ever since.",Low,Durant,,,,,,low.mp3,ace.mp3,Why do I need to do this by myself? There are better candidates.,"Ace: Durant
 Ability: Procrastination
 Procrastination: inverse the priority of the moves."
-4,Monkey King,Monkey King,8,Monkey,"Monkey King is the leader of the monkeys. After persuasion from his followers, he decided to participate into the
-Pokemon World Championship.",Low,Infernape,"Ambipom|iv=22|ability=Technician|moves=Fake Out,Double Hit,U-Turn,Aerial Ace",,,,,low.mp3,ace.mp3,,Ook-ook! Eeek-aak-eek!,"Ace: Infernape
+4,Monkey King,Monkey King,8,Monkey,"Monkey King is the leader of the monkeys. After persuasion from his followers, he decided to participate into the Pokemon World Championship.",Low,Infernape,"Ambipom|iv=22|ability=Technician|moves=Fake Out,Double Hit,U-Turn,Aerial Ace",,,,,low.mp3,ace.mp3,Ook-ook! Eeek-aak-eek!,"Ace: Infernape
 Ability: Monkey
 Monkey: occasionally yell like a monkey."
-5,Solanum,Solanum,9,Telekinesis,"Solanum has finally built a spaceship to escape from the Quantum Moon, so that he can participate into the Pokemon World
-Championship just in time.",Low,Alakazam,,,,,,low.mp3,ace.mp3,,"We do not have much connection, you and I. Still, this encounter feels special.
-I hope you won't mind if I think of you as a friend.","Ace: Alakazam
+5,Solanum,Solanum,9,Telekinesis,"Solanum has finally built a spaceship to escape from the Quantum Moon, so that he can participate into the Pokemon World Championship just in time.",Low,Alakazam,,,,,,low.mp3,ace.mp3,"We do not have much connection, you and I. Still, this encounter feels special. I hope you won't mind if I think of you as a friend.","Ace: Alakazam
 Ability: Telekinesis
 Telekinesis: increase Evasion for Psychic pokemon."
-6,President Rose,President Rose,14,Energy Imbalance,"President Rose is a moronic person in Pokemon Sword & Shield who seeks to obtain infinite energy from a legendary pokemon but
-backfired hard.",Low,Copperajah,,,,,,low.mp3,ace.mp3,,"1000 years later, I predict that there will be an energy crisis wiping the humanity.","Ace: Copperajah
+6,Alton,Alton,12,Calibration,"Alton is a 26-year-old mechanical engineer who trains Pokémon in his free time between workshop projects and blueprint revisions. He is a solid opponent who relies more on careful planning and creative strategies than raw power. Practical and methodical, Alton approaches every battle like an engineering problem that just needs the right solution.",Low,Psyduck,,,,,,low.mp3,ace.mp3,My blueprint is done… time for execution.,"Ace: Psyduck
+Ability: Calibration
+Calibration: moves will never miss the target."
+7,President Rose,President Rose,14,Energy Imbalance,President Rose is a moronic person in Pokemon Sword & Shield who seeks to obtain infinite energy from a legendary pokemon but backfired hard.,Low,Copperajah,,,,,,low.mp3,ace.mp3,"1000 years later, I predict that there will be an energy crisis wiping the humanity.","Ace: Copperajah
 Ability: Energy Imbalance
 Energy Imbalance: trigger Sudden Death at the last pokemon."
-7,Pudding,Pudding,17,Naive,Pudding is a small boy who likes snacks.,Low,Vanilluxe,,,,,,low.mp3,ace.mp3,,I love ice-cream!!!,"Ace: Vanilluxe
+8,Pudding,Pudding,17,Naive,Pudding is a small boy who likes snacks.,Low,Vanilluxe,,,,,,low.mp3,ace.mp3,I love ice-cream!!!,"Ace: Vanilluxe
 Ability: Naive
 Naive: trap opposing and own pokemon."
-8,Abota,Abota,21,Violence,"Abota was a Mongolian horse archer a long time ago. After his glorious retirement, he is addicted to Pokemon Battle.",Low,Galarian Rapidash,,,,,,low.mp3,ace.mp3,,"One stone can hit two birds;
-Give me one more shot, and I will wipe out your whole team with it.","Ace: Galarian Rapidash
+9,Abota,Abota,21,Violence,"Abota was a Mongolian horse archer a long time ago. After his glorious retirement, he is addicted to Pokemon Battle.",Low,Galarian Rapidash,,,,,,low.mp3,ace.mp3,"One stone can hit two birds; Give me one more shot, and I will wipe out your whole team with it.","Ace: Galarian Rapidash
 Ability: Violence
 Violence: moves with direct contact increase power by 30%."
-9,Bruno,Bruno,26,Mad Scientist,Bruno is an ordinary scientist.,Low,Eelektross,Ampharos,,,,,low.mp3,ace.mp3,,This is an interesting experiment.,"Ace: Eelektross
+10,Bruno,Bruno,26,Mad Scientist,Bruno is an ordinary scientist.,Low,Eelektross,Ampharos,,,,,low.mp3,ace.mp3,This is an interesting experiment.,"Ace: Eelektross
 Ability: Mad Scientist
 Mad Scientist: increase priority for electric-type and steel-type moves."
-10,Vardy,Vardy,33,Experienced,Vardy is an experienced footballer playing Forward for Leicester City.,Low,Talonflame,,,,,,low.mp3,ace.mp3,,"I am almost done with Leicester, to be honest.","Ace: Talonflame
+11,Vardy,Vardy,33,Experienced,Vardy is an experienced footballer playing Forward for Leicester City.,Low,Talonflame,,,,,,low.mp3,ace.mp3,"I am almost done with Leicester, to be honest.","Ace: Talonflame
 Ability: Experienced
 Experienced: halved recoil damage."
-11,Takagi,Takagi,37,Charm,Takagi is a crafty girl who has many small tricks and pranks. She still seeks Pokemon Battle as stress relief.,Low,Charmorin,,,,,,low.mp3,ace.mp3,,You finally look at me. Hehehe,"Ace: Charmorin (Custom)
+12,Takagi,Takagi,37,Charm,Takagi is a crafty girl who has many small tricks and pranks. She still seeks Pokemon Battle as stress relief.,Low,Charmorin,,,,,,low.mp3,ace.mp3,You finally look at me. Hehehe,"Ace: Charmorin (Custom)
 Ability: Charm
 Charm: distracting opponent and opposing pokemon, causing it to miss its move."
-12,Clown Marcus,Clown Marcus,40,Moody,"Marcus is a mentally-challenged trainer who somehow goes into the Playoffs stage since his opponents in the Preliminary stage are
-either sick or have forfeited their match. Truly the luckiest person ever.",Low,"Gyarados|iv=31|ability=Moxie|moves=Dragon Dance,Waterfall,Earthquake,Outrage",,,,,,low.mp3,ace.mp3,,I am an Idiot. I am a Clown. Please laugh at me!,"Ace: Gyarados
+13,Clown Marcus,Clown Marcus,40,Moody,Marcus is a mentally-challenged trainer who somehow goes into the Playoffs stage since his opponents in the Preliminary stage are either sick or have forfeited their match. Truly the luckiest person ever.,Low,"Gyarados|iv=31|ability=Moxie|moves=Dragon Dance,Waterfall,Earthquake,Outrage",,,,,,low.mp3,ace.mp3,I am an Idiot. I am a Clown. Please laugh at me!,"Ace: Gyarados
 Ability: Moody
 Moody: increase target Pokemon HP by 15% (15%), decrease target Pokemon HP by 15% (25%)."
-13,Mordekaiser,Mordekaiser,45,Death Realm,Mordekaiser is tired of battling with the other champions in League of Legends. He wants a change of his life.,Low,Boneknight,,,,,,low.mp3,ace.mp3,,I will silence the incessant thrum of mortal hearts.,"Ace: Boneknight (Custom)
+14,Mordekaiser,Mordekaiser,45,Death Realm,Mordekaiser is tired of battling with the other champions in League of Legends. He wants a change of his life.,Low,Boneknight,,,,,,low.mp3,ace.mp3,I will silence the incessant thrum of mortal hearts.,"Ace: Boneknight (Custom)
 Ability: Death Realm
 Death Realm: randomly increase stats by one stage when causing Pokemon to faint."
-14,Mount,Mount,49,Ball Trick,Mount is a prominent talent currently playing the position of CAM for the Chelsea Football Club.,Low,Cinderace,,,,,,low.mp3,ace.mp3,,You don't need eleven people when one is enough.,"Ace: Cinderace
+15,Mount,Mount,49,Ball Trick,Mount is a prominent talent currently playing the position of CAM for the Chelsea Football Club.,Low,Cinderace,,,,,,low.mp3,ace.mp3,You don't need eleven people when one is enough.,"Ace: Cinderace
 Ability: Ball Trick
 Ball Trick: increase power by 50% for ball/bomb moves."
-15,Dulunga,Dulunga,53,Desert Wind,"Dulunga was once an experienced desert soldier, and the desert has not finished with him. Sand follows him onto any field where something walks on the ground -- his or yours. He would still rather be playing the Pokemon TCG.",Low,Sandaconda,Gigalith,,,,,low.mp3,ace.mp3,,It takes skills to utilize the terrain for your advantage.,"Ace: Sandaconda
+16,Dulunga,Dulunga,53,Desert Wind,"Dulunga was once an experienced desert soldier, and the desert has not finished with him. Sand follows him onto any field where something walks on the ground -- his or yours. He would still rather be playing the Pokemon TCG.",Intermediate,Sandaconda,Gigalith,,,,,intermediate.mp3,ace.mp3,It takes skills to utilize the terrain for your advantage.,"Ace: Sandaconda
 Ability: Desert Wind
 Desert Wind: a Ground type on the field, either side, brings up a sandstorm."
-17,Bojji,Bojji,58,Nimble,"Bojji is a cursed giant with no physical strength. In compensation, he is extremely nimble, allowing him
-to dodge attack, and he is good at hitting the vital point of the opponent to win over them.",Intermediate,Scorchrome,,,,,,intermediate.mp3,ace.mp3,,...................,"Ace: Scorchrome (Custom)
+17,Bojji,Bojji,58,Nimble,"Bojji is a cursed giant with no physical strength. In compensation, he is extremely nimble, allowing him to dodge attack, and he is good at hitting the vital point of the opponent to win over them.",Intermediate,Scorchrome,,,,,,intermediate.mp3,ace.mp3,...................,"Ace: Scorchrome (Custom)
 Ability: Nimble
 Nimble: decrease attack by 2 stages, but increase speed by 2 stages."
-16,King Bosse,King Bosse,58,Heavy Blow,"King Bosse is known for one of the strongest man on Earth. He hit extremely hard, but he is also very slow.",Intermediate,Mamoswine,,,,,,intermediate.mp3,ace.mp3,,"Miranjo, just wait for a little more. I am coming.","Ace: Mamoswine
+18,King Bosse,King Bosse,58,Heavy Blow,"King Bosse is known for one of the strongest man on Earth. He hit extremely hard, but he is also very slow.",Intermediate,Mamoswine,,,,,,intermediate.mp3,ace.mp3,"Miranjo, just wait for a little more. I am coming.","Ace: Mamoswine
 Ability: Heavy Blow
 Heavy Blow: increase attack by 2 stages but decrease speed by 2 stages."
-18,Big Bryan,Big Bryan,62,Gluttony,"Big Bryan is an enormous guy. At school, he is famous for eating 5 bowls of rice during
-lunch time. If he stands on the chair and jumps, it is likely the chair will break.",Intermediate,Snorlax,,,,,,intermediate.mp3,ace.mp3,,Is that food?,"Ace: Snorlax
+19,Big Bryan,Big Bryan,62,Gluttony,"Big Bryan is an enormous guy. At school, he is famous for eating 5 bowls of rice during lunch time. If he stands on the chair and jumps, it is likely the chair will break.",Intermediate,Snorlax,,,,,,intermediate.mp3,ace.mp3,Is that food?,"Ace: Snorlax
 Ability: Gluttony
 Gluttony: consume unfavorable entry hazard and target's barrier (e.g. Tailwind, Light Screen etc.)."
-19,Bugsy,Bugsy,65,Buggy,"Bugsy is a Gym leader specialized in bug-type pokemon. He is the Gym leader of Azalea Gym.
-You can find him in Pokemon Generation II. Unfortunately, he has already been kicked out since he is too
-weak to be one. Since then, he dislikes bug Pokemon, and reestablish his team around his Ace only.",Intermediate,Yanmega,Araquanid,,,,,intermediate.mp3,ace.mp3,,Bug Pokemon are so useless. Prove me wrong.,"Ace: Yanmega
+20,Bugsy,Bugsy,65,Buggy,"Bugsy is a Gym leader specialized in bug-type pokemon. He is the Gym leader of Azalea Gym. You can find him in Pokemon Generation II. Unfortunately, he has already been kicked out since he is too weak to be one. Since then, he dislikes bug Pokemon, and reestablish his team around his Ace only.",Intermediate,Yanmega,Araquanid,,,,,intermediate.mp3,ace.mp3,Bug Pokemon are so useless. Prove me wrong.,"Ace: Yanmega
 Ability: Buggy
 Buggy: grant Speed Boost ability to bug-type pokemon."
-20,Aphelios,Aphelios,67,Fireworks,"Aphelios has lived in the world for 200 years. He is sick of staying in the world of League and instead seeks to find joy in
-Pokemon Battle. Due to his experience and time, he has developed several prominent Pokemon.",Intermediate,Blacephalon,,,,,,intermediate.mp3,ace.mp3,,"I may have lived for 200 years, but there is still so much to learn and master.","Ace: Blacephalon
+21,Aphelios,Aphelios,67,Fireworks,"Aphelios has lived in the world for 200 years. He is sick of staying in the world of League and instead seeks to find joy in Pokemon Battle. Due to his experience and time, he has developed several prominent Pokemon.",Intermediate,Blacephalon,,,,,,intermediate.mp3,ace.mp3,"I may have lived for 200 years, but there is still so much to learn and master.","Ace: Blacephalon
 Ability: Fireworks
 Fireworks: deduct-HP moves deduct 50% less HP (e.g. Mind Blown, Belly Drum, Explosion) and boost power for Mind Blown by 20%."
-21,Mindfield,Mindfield,70,Brain Wave,"Mindfield is a Professor specializing in Neuroscience. His main contribution includes
-successfully encouraging his University to open up the first-ever Pokemon major in the world.",Intermediate,Bruxish,,,,,,intermediate.mp3,ace.mp3,,"Neuroscience is by far the most exciting branch of science because the brain is the most fascinating object in the universe.
-Every human brain is different - the brain makes each human unique and defines who he or she is.","Ace: Bruxish
+22,Mindfield,Mindfield,70,Brain Wave,Mindfield is a Professor specializing in Neuroscience. His main contribution includes successfully encouraging his University to open up the first-ever Pokemon major in the world.,Intermediate,Bruxish,,,,,,intermediate.mp3,ace.mp3,Neuroscience is by far the most exciting branch of science because the brain is the most fascinating object in the universe. Every human brain is different - the brain makes each human unique and defines who he or she is.,"Ace: Bruxish
 Ability: Brain Wave
 Brain Wave: increase damage by 30% and additional effect chance by 30% for psychic-type moves."
-22,Shuka,Shuka,77,String Manipulation,"Karino Shuka is a main character of Darwin's Game as well as a member of Sunset Ravens.
-Shuka is typically friendly with people but can become deadly if needed.",Intermediate,Nidoqueen,Nidoking,,,,,intermediate.mp3,ace.mp3,,"If I didn't want to die, I shouldn't have been born, right?","Ace: Nidoqueen
+23,Shuka,Shuka,77,String Manipulation,Karino Shuka is a main character of Darwin's Game as well as a member of Sunset Ravens. Shuka is typically friendly with people but can become deadly if needed.,Intermediate,Nidoqueen,Nidoking,,,,,intermediate.mp3,ace.mp3,"If I didn't want to die, I shouldn't have been born, right?","Ace: Nidoqueen
 Ability: String Manipulation
 String Manipulation: decrease target Pokemon speed by 1 stage (20%)."
-23,Diantha,Diantha,82,Champion,"Diantha is the Champion of the Kalos region. However, she is well known to be the weakest champion in the Pokemon
-main series franchise.",Intermediate,Gardevoir,,,,,,intermediate.mp3,ace.mp3,,Witnessing the noble spirits of you and your Pokemon in battle has really touched my heart...,"Ace: Gardevoir
+24,Diantha,Diantha,82,Champion,"Diantha is the Champion of the Kalos region. However, she is well known to be the weakest champion in the Pokemon main series franchise.",Intermediate,Gardevoir,,,,,,intermediate.mp3,ace.mp3,Witnessing the noble spirits of you and your Pokemon in battle has really touched my heart...,"Ace: Gardevoir
 Ability: Champion
 Champion: increase Atk and SpA by 1 stage for Ace."
-24,Rum,Rum,87,Impatient,"Rum is the second-in-hand of the Black Organization. He is known to be ruthless and crafty, but he is also impatient.",Intermediate,Crobat,,,,,,intermediate.mp3,ace.mp3,,"After 25 years, they finally decided to introduce me, the Second-in-hand of the Black Organization,
-even before the ""Final Boss"". They even decided to create suspicion between me and 2 insane yet
-normal characters. I have had enough of this.","Ace: Crobat
+25,Rum,Rum,87,Impatient,"Rum is the second-in-hand of the Black Organization. He is known to be ruthless and crafty, but he is also impatient.",Intermediate,Crobat,,,,,,intermediate.mp3,ace.mp3,"After 25 years, they finally decided to introduce me, the Second-in-hand of the Black Organization, even before the ""Final Boss"". They even decided to create suspicion between me and 2 insane yet normal characters. I have had enough of this.","Ace: Crobat
 Ability: Impatient
 Impatient: trigger Sudden Death (1%), decrease own Pokemon HP by 12.5% and target Pokemon HP by 25% (20%)."
-25,Kurtosis,Kurtosis,92,Outlier,Kurtosis is an outlier. A black horse.,Intermediate,Spectrier,,,,,,intermediate.mp3,ace.mp3,,Kurtosis is a measure of the combined weight of a distribution's tails relative to the center of the distribution.,"Ace: Spectrier
+26,Kurtosis,Kurtosis,92,Outlier,Kurtosis is an outlier. A black horse.,Intermediate,Spectrier,,,,,,intermediate.mp3,ace.mp3,Kurtosis is a measure of the combined weight of a distribution's tails relative to the center of the distribution.,"Ace: Spectrier
 Ability: Outlier
 Outlier: grant Super Luck ability to pokemon."
-26,Therion,Therion,95,Thief,"Therion is a master thief known throughout the realm thanks to his multiple exploits in stealing.
-It is mentioned that almost no one knows of Therion's face despite his infamy, 
-and that he is the enemy of every wealthy home and person.",Intermediate,Gengar,,,,,,intermediate.mp3,ace.mp3,,Like a thief in the night.,"Ace: Gengar
+27,Therion,Therion,95,Thief,"Therion is a master thief known throughout the realm thanks to his multiple exploits in stealing. It is mentioned that almost no one knows of Therion's face despite his infamy,  and that he is the enemy of every wealthy home and person.",Intermediate,Gengar,,,,,,intermediate.mp3,ace.mp3,Like a thief in the night.,"Ace: Gengar
 Ability: Thief
 Thief: steal target pokemon positive stat stages (20%)."
-27,Devoltorm,Devoltorm,100,Tenebrous,"Devoltorm is a sorcerer who traded his name away for power and now insists everyone use the one he chose himself. He keeps an angelic face and a courtier's manners, and speaks of cruelty as though it were simply good sense. Those who served him say he was never angry -- only certain.",Intermediate,Bisharp,Nightdaunter,,,,,intermediate.mp3,ace.mp3,,"There is no good and evil, there is only power and those too weak to seek it.","Ace: Nightdaunter (Custom)
+28,Ophelia,Ophelia,98,Lamplighter,"Ophelia is a soft-spoken sanctuary keeper from the frozen northern peaks. Beneath her gentle, clerical demeanor lies an unshakeable resolve, she warms up the poor and those who suffer from freezing and hypothermia with her power of blessing and her Chandelure. Her lantern serves as a beacon in the darkest blizzards, leading weary travelers and lost children home. Her championship run is rather a testament of knowledge and patience, with her quietly beautiful, defensive battle style that smothers her opponents' momentum.",Intermediate,Chandelure,,,,,,intermediate.mp3,ace.mp3,"Those who get lost shall return, and those who suffer in winter cold deserve a good rest around cozy fire. Allow me to show you the light within the shadow.","Ace: Chandelure
+Ability: Lamplighter
+Lamplighter: at the end of each turn, whichever Pokemon whose HP is lower loses another sixteenth of its HP."
+29,Devoltorm,Devoltorm,100,Tenebrous,"Devoltorm is a sorcerer who traded his name away for power and now insists everyone use the one he chose himself. He keeps an angelic face and a courtier's manners, and speaks of cruelty as though it were simply good sense.",Intermediate,Bisharp,Nightdaunter,,,,,intermediate.mp3,ace.mp3,"There is no good and evil, there is only power and those too weak to seek it.","Ace: Nightdaunter (Custom)
 Ability: Tenebrous
 Tenebrous: increase damage by 30% and additional effect chance by 30% for dark-type moves."
-28,Berserker,Berserker,108,Sucking,"Berserker is a ruthless crazy barbarian who is more resilient when in danger. He is not good at capturing a lead but he is
-very good at comebacks.",Intermediate,Vindaxe,,,,,,intermediate.mp3,ace.mp3,,BUWARKKKKKKKKKKKKK!!!!!,"Ace: Vindaxe (Custom)
+30,Berserker,Berserker,108,Sucking,Berserker is a ruthless crazy barbarian who is more resilient when in danger. He is not good at capturing a lead but he is very good at comebacks.,Intermediate,Vindaxe,,,,,,intermediate.mp3,ace.mp3,BUWARKKKKKKKKKKKKK!!!!!,"Ace: Vindaxe (Custom)
 Ability: Sucking
 Sucking: drain 30% damage as HP at 50% HP or below."
-29,Steven,Steven,115,Champion,"Steven is the Champion of the Hoenn region. He is specialised in using Steel type Pokemon. However, this does not mean that
-he will be exclusively using Rock and Steel type Pokemon in the Championship.",Intermediate,Metagross,,,,,,intermediate.mp3,ace.mp3,,"Rock is Sturdy. Steel is Versatile.
-I wish your heart as hard as the mix of Rock and Steel.
-You still have a long journey, go for it!","Ace: Metagross
+31,Steven,Steven,115,Champion,"Steven is the Champion of the Hoenn region. He is specialised in using Steel type Pokemon. However, this does not mean that he will be exclusively using Rock and Steel type Pokemon in the Championship.",Intermediate,Metagross,,,,,,intermediate.mp3,ace.mp3,"Rock is Sturdy. Steel is Versatile. I wish your heart as hard as the mix of Rock and Steel. You still have a long journey, go for it!","Ace: Metagross
 Ability: Champion
 Champion: increase Atk and SpA by 1 stage for Ace."
-30,Yagami Light,Yagami Light,125,Death Note,"Light is characterized as hardworking, talented, and a natural genius. Highly perceptive and good with problem solving skills,
-Light is a skilled planner and good at mapping out scenarios. Furthermore, Light is very popular among peers and adored by
-his family members. He often carries a notebook on his hand for no reason.",Advanced,Xurkitree,,,,,,advanced.mp3,ace.mp3,,May I ask what is your name? ^_^,"Ace: Xurkitree
+32,Yagami Light,Yagami Light,125,Death Note,"Light is characterized as hardworking, talented, and a natural genius. Highly perceptive and good with problem solving skills, Light is a skilled planner and good at mapping out scenarios. Furthermore, Light is very popular among peers and adored by his family members. He often carries a notebook on his hand for no reason.",Intermediate,Xurkitree,,,,,,intermediate.mp3,ace.mp3,May I ask what is your name? ^_^,"Ace: Xurkitree
 Ability: Death Note
 Death Note: opposing pokemon with >1 stat stages will automatically suffer from Perish Count."
-31,Paul,Paul,137,Calm,"Paul is initially not a caring Trainer as he wants pure power from his Pokemon and the Trainers he faces to be strong.
-Paul is also known to release his Pokemon if he deems them weak or useless,
-which seems somewhat appropriate because of his ambition and seeing his Pokemon as tools for his own glory.",Advanced,Electivire,,,,,,advanced.mp3,ace.mp3,,Pathetic.,"Ace: Electivire
+33,Paul,Paul,137,Calm,"Paul is initially not a caring Trainer as he wants pure power from his Pokemon and the Trainers he faces to be strong. Paul is also known to release his Pokemon if he deems them weak or useless, which seems somewhat appropriate because of his ambition and seeing his Pokemon as tools for his own glory.",Intermediate,Electivire,,,,,,intermediate.mp3,ace.mp3,Pathetic.,"Ace: Electivire
 Ability: Calm
 Calm: immune to any non-volatile status."
-32,Lance,Lance,147,Champion,"Lance is a Dragon-type Trainer, a member of the Indigo Elite Four, and later the
-Champion of the Indigo Plateau. He is known for using 3 Dragonite in the
-Champion battle.",Advanced,Dragonite,,,,,,advanced.mp3,ace.mp3,,So you think you can defeat a dragon trainer? En garde.,"Ace: Dragonite
+34,Lance,Lance,147,Champion,"Lance is a Dragon-type Trainer, a member of the Indigo Elite Four, and later the Champion of the Indigo Plateau. He is known for using 3 Dragonite in the Champion battle.",Intermediate,Dragonite,,,,,,intermediate.mp3,ace.mp3,So you think you can defeat a dragon trainer? En garde.,"Ace: Dragonite
 Ability: Champion
 Champion: increase Atk and SpA by 1 stage for Ace."
-33,Lusamine,Lusamine,157,Ultra Boost,"Lusamine is the main antagonist of Pokemon Sun and Moon. She is the president of Aether Paradise but she is obsessed with
-Ultra Beasts. She can get really dangerous when she slowly descends into a psychopath.",Advanced,Nihilego,Bewear,,,,,intermediate.mp3,ace.mp3,,My sweet Pokemon... I promise I'll keep you safe... I'll protect you with my love.,"Ace: Bewear/Nihilego
+35,Lusamine,Lusamine,157,Ultra Boost,Lusamine is the main antagonist of Pokemon Sun and Moon. She is the president of Aether Paradise but she is obsessed with Ultra Beasts. She can get really dangerous when she slowly descends into a psychopath.,Advanced,Nihilego,Bewear,,,,,advanced.mp3,ace.mp3,My sweet Pokemon... I promise I'll keep you safe... I'll protect you with my love.,"Ace: Bewear/Nihilego
 Ability: Ultra Boost
 Ultra Boost: increase one random stat stage at the start."
-34,Bondrewd,Bondrewd,162,Calm,"Bondrewd 'The Novel', also known as 'The Lord of Dawn', 'The Sovereign of Dawn', is a legendary White Whistle Delver who has made
-many great discoveries about the secrets of the Abyss. A researcher fascinated by the Abyss, he has often resorted to illegal and
-morally questionable means in order to get funds for and conduct his research, including selling Artifacts and information from
-the depths illicitly, developing dangerous drugs, and even experimenting on living humans. He is ruthless, unethical, and insane.",Advanced,Tentacruel,,,,,,advanced.mp3,ace.mp3,,May your journey overflows with curses and blessing.,"Ace: Tentacruel
+36,Bondrewd,Bondrewd,162,Calm,"Bondrewd 'The Novel', also known as 'The Lord of Dawn', 'The Sovereign of Dawn', is a legendary White Whistle Delver who has made many great discoveries about the secrets of the Abyss. A researcher fascinated by the Abyss, he has often resorted to illegal and morally questionable means in order to get funds for and conduct his research, including selling Artifacts and information from the depths illicitly, developing dangerous drugs, and even experimenting on living humans. He is ruthless, unethical, and insane.",Advanced,Tentacruel,,,,,,advanced.mp3,ace.mp3,May your journey overflows with curses and blessing.,"Ace: Tentacruel
 Ability: Calm
 Calm: immune to any non-volatile status."
-35,Gin,Gin,167,Ruthless,"Gin is a merciless and efficient assassin. He has no compunctions about killing or threatening fellow teammates.
-Fitting his icy personality, Gin's displayed range of emotions so far is relatively limited. He is the main antagonist of
-Detective Conan and is the most loyal to the Black Organization.",Advanced,Naganadel,,,,,,advanced.mp3,ace.mp3,,"If life is a color, it is going to be Silver.","Ace: Naganadel
+37,Gin,Gin,167,Ruthless,"Gin is a merciless and efficient assassin. He has no compunctions about killing or threatening fellow teammates. Fitting his icy personality, Gin's displayed range of emotions so far is relatively limited. He is the main antagonist of Detective Conan and is the most loyal to the Black Organization.",Advanced,Naganadel,,,,,,advanced.mp3,ace.mp3,"If life is a color, it is going to be Silver.","Ace: Naganadel
 Ability: Ruthless
 Ruthless: deal damage depending on the difference between target HP and user HP, the higher the difference (target HP > user HP), the more damage (up to 1.7x). On the other hand, suffer 30% more damage from target pokemon."
-36,Misty,Misty,172,Soak,"Misty is the Gym Leader of Cerulean City's Gym. She is once specialized in Water-type Pokemon.
-She got bored of her Gym Leader life and decided to take a break to look for Ash Ketchum,
-thereby participating in the World Pokemon Championship.",Advanced,Starmie,,,,,,advanced.mp3,ace.mp3,,Sometimes I look at that Psyduck's face and I get a headache.,"Ace: Starmie
+38,Misty,Misty,172,Soak,"Misty is the Gym Leader of Cerulean City's Gym. She is once specialized in Water-type Pokemon. She got bored of her Gym Leader life and decided to take a break to look for Ash Ketchum, thereby participating in the World Pokemon Championship.",Advanced,Starmie,,,,,,advanced.mp3,ace.mp3,Sometimes I look at that Psyduck's face and I get a headache.,"Ace: Starmie
 Ability: Soak
 Soak: add Water type to pokemon."
-59,Ophelia,Ophelia,173,Lamplighter,"Ophelia is a funeral director who lights the lamps at Krusades' oldest crematorium. She speaks gently to opponents as if she speaks to the bereaved. She does not rush a match, but waits with you together.",Advanced,Chandelure,,,,,,advanced.mp3,ace.mp3,,Everyone burns down eventually. I only tend the wick.,"Ace: Chandelure
-Ability: Lamplighter
-Lamplighter: at the end of each turn, whichever Pokemon is further gone loses another sixteenth of its HP."
-37,Leon,Leon,177,Champion,"Leon is the Champion of the Galar region. He is pride of being known as one of the strongest Champions ever, being
-undefeated against a strong Gym Leader Raihan. However, this is definitely not the case. His objective is to
-win the Championship and especially Marvin to prove himself.",Advanced,Charizard,,,,,,advanced.mp3,ace.mp3,,I SHOULD BE THE REAL CHAMPION!,"Ace: Charizard
+39,Coco,Coco,175,Sparking Cascade,"Coco is a free-spirited 20-year-old girl who enjoys surfing and travelling. She travels the islands and the world with her trusted partners, challenging Gyms and fellow Trainers while chasing the thrill of every battle. Known for her bright energy and unshakable optimism, Coco gets electricized whenever she is in a battle.",Advanced,Alolan Raichu,,,,,,advanced.mp3,ace.mp3,Let the battle be electrifying!,"Ace: Alolan Raichu
+Ability: Sparking Cascade
+Sparking Cascade: starts off the battle with an electric terrain, and every turn there is a 10% chance that target non-flying type pokemon will be paralyzed (except ground and electric type)"
+40,Leon,Leon,177,Champion,"Leon is the Champion of the Galar region. He is pride of being known as one of the strongest Champions ever, being undefeated against a strong Gym Leader Raihan. However, this is definitely not the case. His objective is to win the Championship and especially Marvin to prove himself.",Advanced,Charizard,,,,,,advanced.mp3,ace.mp3,I SHOULD BE THE REAL CHAMPION!,"Ace: Charizard
 Ability: Champion
 Champion: increase Atk and SpA by 1 stage for Ace."
-38,Makise Kurisu,Makise Kurisu,182,Time Travel,"Kurisu Makise is the daughter of Shouichi Makise, a genius girl who graduated from university at the age of seventeen,
-and a member of the Brain Science Institute at Viktor Chondria University and the Future Gadget Lab.",Advanced,Tsareena,,,,,,advanced.mp3,ace.mp3,,I don't want to deny who I've been. Because even my failures are a part of who I am today.,"Ace: Tsareena
+41,Makise Kurisu,Makise Kurisu,182,Time Travel,"Kurisu Makise is the daughter of Shouichi Makise, a genius girl who graduated from university at the age of seventeen, and a member of the Brain Science Institute at Viktor Chondria University and the Future Gadget Lab.",Advanced,Tsareena,,,,,,advanced.mp3,ace.mp3,I don't want to deny who I've been. Because even my failures are a part of who I am today.,"Ace: Tsareena
 Ability: Time Travel
 Time Travel: immune to increased-priority moves."
-39,Titan,Titan,187,Gargantuan,"Titan is an organization consisting of 9 people. They all have the ability to transform into a titan. Hence, when you battled against
-Titan, you are essentially battling against 9 people at the same time.",Advanced,Kommo-o,,,,,,advanced.mp3,ace.mp3,,"When the old boys get together, they will always sing this song.","Ace: Kommo-o
+42,Titan,Titan,187,Gargantuan,"Titan is an organization consisting of 9 people. They all have the ability to transform into a titan. Hence, when you battled against Titan, you are essentially battling against 9 people at the same time.",Advanced,Kommo-o,,,,,,advanced.mp3,ace.mp3,"When the old boys get together, they will always sing this song.","Ace: Kommo-o
 Ability: Gargantuan
-Gargantuan: half damage from incoming attack (25%)."
-40,Jack the Ripper,Jack the Ripper,193,Irrational,"Jack the Ripper was an unidentified serial killer active in the impoverished districts in and around Whitechapel in the East End of London in 1888.
-In both criminal case files and the contemporary journalistic accounts, the killer was called the Whitechapel Murderer and Leather Apron.",Advanced,Darkrai,,,,,,advanced.mp3,ace.mp3,,Ninety years ago I was a freak. Today I'm an amateur. Ninety years later I will be a Pokemon professional.,"Ace: Darkrai
+Gargantuan: halved damage from incoming attack (25%)."
+43,Jack the Ripper,Jack the Ripper,193,Irrational,"Jack the Ripper was an unidentified serial killer active in the impoverished districts in and around Whitechapel in the East End of London in 1888. In both criminal case files and the contemporary journalistic accounts, the killer was called the Whitechapel Murderer and Leather Apron.",Advanced,Darkrai,,,,,,advanced.mp3,ace.mp3,Ninety years ago I was a freak. Today I'm an amateur. Ninety years later I will be a Pokemon professional.,"Ace: Darkrai
 Ability: Irrational
 Irrational: increase Atk, SpA, Spd by 1 stage, but confused for 2-5 turns."
-41,Rudolf,Rudolf,197,Irrational,"Rudolf is a ruler of a certain country. He has made the country better with controversial policies. To these days, some appreciate his thoughtfulness and execution, while some do not like how he bended the rules at times.",Advanced,Ygadr,,,,,,advanced.mp3,ace.mp3,,Those who bear defeat are the truly mighty ones.,"Ace: Ygadr (Custom)
+44,Rudolf,Rudolf,197,Irrational,"Rudolf is a ruler of a certain country. He has made the country better with controversial policies. To these days, some appreciate his thoughtfulness and execution, while some do not like how he bended the rules at times.",Advanced,Ygadr,,,,,,advanced.mp3,ace.mp3,Those who bear defeat are the truly mighty ones.,"Ace: Ygadr (Custom)
 Ability: Irrational
 Irrational: increase Atk, SpA, Spd by 1 stage, but confused for 2-5 turns."
-42,Evonne,Evonne,200,Frighten,"Evonne is a young lady based in Hong Kong, who currently works in an office as OL. She is typically kind and caring, but once provoked, she could show another side of her face and become extremely frightening.",Advanced,Tinkaton,,,,,,advanced.mp3,ace.mp3,,I can do all these on my own. I don't need you!,"Ace: Tinkaton
+45,Evonne,Evonne,200,Frighten,"Evonne is a young Hong Kong lady who works as Head of Compliance at an international conglomerate. She laughs a lot, and is normally amiable. But once provoked, she could become extremely frightening.",Advanced,Tinkaton,,,,,,advanced.mp3,ace.mp3,I can do all these on my own. I don't need you!,"Ace: Tinkaton
 Ability: Frighten
 Frighten: inflict Frighten condition (halved damage dealt) to all opponent pokemon when there are 2 pokemons left."
-43,Ash Ketchum,Ash Ketchum,213,Plot Armor,"Ash Ketchum is a 10-year old boy who never grows old. He has travelled in many different regions and participated in various Pokemon League Conferences.
-He was the winner of the Manalo Conference (S&M) and vowed to be a Pokemon master. Recently, he has entered the Master 8 in the World Coronation,
-seeking to defeat the undefeated Champion Leon after challenging other regional champions. Aside from his adventure, he is known for abandoning his Pokemon to Professor Oak
-when his journey ends. He usually releases his best Pokemon except his Pikachu, which could defeat legendary Pokemon while losing to a starter Pokemon at the same time.
-To sum up, this never-aged boy has an insane plot armor and is surrounded by girls.",Advanced,"Pikachu|iv=60|ability=Static|moves=Quick Attack,Iron Tail,Thunderbolt,Electro Ball",,,,,,advanced.mp3,ace.mp3,,"Pikachu, use Thunderbolt!","Ace: Pikachu (Empowered)
+46,Ash Ketchum,Ash Ketchum,213,Plot Armor,"Ash Ketchum is a 10-year old boy who never grows old. He has travelled in many different regions and participated in various Pokemon League Conferences. He was the winner of the Manalo Conference (S&M) and vowed to be a Pokemon master. Recently, he has entered the Master 8 in the World Coronation, seeking to defeat the undefeated Champion Leon after challenging other regional champions. Aside from his adventure, he is known for abandoning his Pokemon to Professor Oak when his journey ends. He usually releases his best Pokemon except his Pikachu, which could defeat legendary Pokemon while losing to a starter Pokemon at the same time. To sum up, this never-aged boy has an insane plot armor and is surrounded by girls.",Advanced,"Pikachu|iv=60|ability=Static|moves=Quick Attack,Iron Tail,Thunderbolt,Electro Ball",,,,,,advanced.mp3,ace.mp3,"Pikachu, use Thunderbolt!","Ace: Pikachu (Empowered)
 Ability: Plot Armor
 Plot Armor: last pokemon has 3 lives, it will thus recover all its HP twice upon fainted."
-44,King Bradley,King Bradley,227,Tenebrous,"King Bradley is the Wrath. He displays superhuman abilities when enraged. However, he is often perceived as a calm and humorous
-fuhrer. He is also the main antagonist in Fullmetal Alchemist.",Advanced,Marshadow,,,,,,advanced.mp3,ace.mp3,,"All power tends to corrupt, and absolute power corrupts absolutely. Great men are almost always bad men.","Ace: Marshadow
+47,King Bradley,King Bradley,227,Tenebrous,"King Bradley is the Wrath. He displays superhuman abilities when enraged. However, he is often perceived as a calm and humorous fuhrer. He is also the main antagonist in Fullmetal Alchemist.",Advanced,Marshadow,,,,,,advanced.mp3,ace.mp3,"All power tends to corrupt, and absolute power corrupts absolutely. Great men are almost always bad men.","Ace: Marshadow
 Ability: Tenebrous
 Tenebrous: increase damage by 30% and additional effect chance by 30% for dark-type moves."
-60,Celeste,Celeste,233,Celestial,"Celeste arrived the year the comet did, and nobody in the registry office can say from where. She is calm to the point of stillness, speaks of the match as something already written, and leaves a faint light on everything she touches -- her Pokemon knit themselves back together under it while she takes her time.",Advanced,Celesteela,,,,,,advanced.mp3,ace.mp3,,The stars have already read this. I am only turning the page.,"Ace: Celesteela
+48,Celeste,Celeste,233,Celestial,"Celeste arrived the year the comet did, and nobody in the registry office can say from where. She is calm to the point of stillness, speaks of the match as something already written, and leaves a faint light on everything she touches -- her Pokemon knit themselves back together under it while she takes her time.",Advanced,Celesteela,,,,,,advanced.mp3,ace.mp3,The stars have already read this. I am only turning the page.,"Ace: Celesteela
 Ability: Celestial
-Celestial: her status moves also raise Speed, and her Pokemon mend a sixteenth of their HP every turn."
-45,Privy,Privy,247,Helper,"Privy is a Chatbot developed by World Champion Marvin in his spare time.
-It unexpectedly obtained the ability to think. With its inherent ability,
-It is able to order Pokemon in battle and has won in many. Thus,
-it obtained the Wildcard to participate in the World Championship as an exception.
-(Note: DeepZenGo also obtained Wildcard in one of the World Go Championships)",Advanced,"Genesect|iv=28|ability=Download|moves=Shift Gear,Fell Stinger,Iron Head,Blaze Kick",,,,,,advanced.mp3,ace.mp3,,How may I help you?,"Ace: Genesect
+Celestial: status moves  raise Speed, and Pokemon mend a sixteenth of their HP every turn."
+49,Privy,Privy,247,Helper,"Privy is a Chatbot developed by World Champion Marvin in his spare time. It unexpectedly obtained the ability to think. With its inherent ability, It is able to order Pokemon in battle and has won in many. Thus, it obtained the Wildcard to participate in the World Championship as an exception.",Advanced,"Genesect|iv=28|ability=Download|moves=Shift Gear,Fell Stinger,Iron Head,Blaze Kick",,,,,,advanced.mp3,ace.mp3,How may I help you?,"Ace: Genesect
 Ability: Helper
 Helper: start with Reflect."
-46,Ginko,Ginko,253,Wanderer,"Ginko is the main character who is followed throughout the Mushishi series solving Mushi cases.
-He rarely comes back to the same show location more than once, to reinforce his 'wanderer' status.",Advanced,Fairyflame,Volcarona,,,,,advanced.mp3,ace.mp3,,"If you throw your life away, you won't even have the capacity to feel regret.","Ace: Fairyflame
+50,Ginko,Ginko,253,Wanderer,"Ginko is the main character who is followed throughout the Mushishi series solving Mushi cases. He rarely comes back to the same show location more than once, to reinforce his 'wanderer' status.",Advanced,Fairyflame,Volcarona,,,,,advanced.mp3,ace.mp3,"If you throw your life away, you won't even have the capacity to feel regret.","Ace: Fairyflame
 Ability: Wanderer
 Wanderer: start with Tailwind."
-47,Violet Evergarden,Violet Evergarden,260,Motivator,"Violet is a former soldier who was enlisted in the Leidenschaftlich army and fought in the war, where she was treated as nothing more than a weapon.
-Violet became an Auto Memories Doll at the CH Postal Company after the war, seeking to understand the meaning of the words ""I love you,""
-which was said to her by her major Gilbert Bougainvillea, during the War's final battle.",Advanced,"Magearna|iv=28|ability=Soul-Heart|moves=Shift Gear,Ice Beam,Thunderbolt,Iron Head",,,,,,advanced.mp3,ace.mp3,,"It is a pleasure to meet you. If it is your wish, I will travel anywhere to meet your request.
-Auto Memory Doll, Violet Evergarden, at your service.","Ace: Magearna
+51,Violet Evergarden,Violet Evergarden,260,Motivator,"Violet is a former soldier who was enlisted in the Leidenschaftlich army and fought in the war, where she was treated as nothing more than a weapon. Violet became an Auto Memories Doll at the CH Postal Company after the war, seeking to understand the meaning of the words ""I love you,"" which was said to her by her major Gilbert Bougainvillea, during the War's final battle.",Advanced,"Magearna|iv=28|ability=Soul-Heart|moves=Shift Gear,Ice Beam,Thunderbolt,Iron Head",,,,,,advanced.mp3,ace.mp3,"It is a pleasure to meet you. If it is your wish, I will travel anywhere to meet your request. Auto Memory Doll, Violet Evergarden, at your service.","Ace: Magearna
 Ability: Motivator
 Motivator: start with Light Screen."
-48,Faker,Faker,280,Killer Instinct,"Faker is the most famous LOL player. He is best known for his
-Zed outplay in a clip. He has won 3 Championships with T1 and stayed with them every since.",Advanced,Faker-Greninja,,,,,,advanced.mp3,ace.mp3,,Even solo killing me once puts that player in the spotlight for eternity.,"Ace: Faker-Greninja (Custom)
+52,Faker,Faker,280,Killer Instinct,Faker is the most famous LOL player. He is best known for his Zed outplay in a clip. He has won 6 Championships with T1 and stayed with them every since.,Advanced,Faker-Greninja,,,,,,advanced.mp3,ace.mp3,Even solo killing me once puts that player in the spotlight for eternity.,"Ace: Faker-Greninja (Custom)
 Ability: Killer Instinct
 Killer Instinct: deal double damage (10%)."
-49,Albert Einstein,Albert Einstein,288,Light Speed,"Albert Einstein was a German-born theoretical physicist, widely acknowledged to be one of the greatest and most influential physicists of all time.
-Einstein is best known for developing the theory of relativity, but he also made important contributions to the development of the theory of quantum mechanics.",Advanced,Porygon-Z,,,,,,advanced.mp3,ace.mp3,,I have no special talent. I am only passionately curious.,"Ace: Porygon-Z
+53,Albert Einstein,Albert Einstein,288,Light Speed,"Albert Einstein was a German-born theoretical physicist, widely acknowledged to be one of the greatest and most influential physicists of all time. Einstein is best known for developing the theory of relativity, but he also made important contributions to the development of the theory of quantum mechanics.",Advanced,Porygon-Z,,,,,,advanced.mp3,ace.mp3,I have no special talent. I am only passionately curious.,"Ace: Porygon-Z
 Ability: Light Speed
 Light Speed: increase Spd by 1 stage and add Electric type to pokemon."
-61,Auraia,Auraia,309,Serene Grace,"Auraia shines both on and off the screen, captivating audiences with her genuine warmth and effortless elegance. Often seen draped in soft whites and luminous pastels that highlight her natural beauty, she exudes an approachable grace that makes her feel like a close friend. Her star power isn't just about glamour; it's rooted in her down-to-earth spirit and magnetic kindness.",Advanced,Alolan Ninetales,,,,,,advanced.mp3,ace.mp3,,"True beauty isn't found in a spotlight, but in the light you share with others.","Ace: Alolan Ninetales
+54,Auraia,Auraia,309,Serene Grace,"Auraia shines both on and off the screen, captivating audiences with her genuine warmth and effortless elegance. Often seen draped in soft whites and luminous pastels that highlight her natural beauty, she exudes an approachable grace that makes her feel like a close friend. Her star power isn't just about glamour; it's rooted in her down-to-earth spirit and magnetic kindness.",Advanced,Alolan Ninetales,,,,,,advanced.mp3,ace.mp3,"True beauty isn't found in a spotlight, but in the light you share with others.","Ace: Alolan Ninetales
 Ability: Serene Grace
 Serene Grace: moves whose secondary effect lands less than half the time are twice as likely to land it."
-50,Mivy Wenceslas,Mivy Wenceslas,333,Infiltration,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland.
-He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings.
-After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,Victini,Psyvinstry,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.,"Ace: Victini
+55,Mivy Wenceslas,Mivy Wenceslas,333,Infiltration,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland. He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings. After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,Victini,Psyvinstry,,,,,lower_elite_battle.mp3,elite_ace.mp3,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.,"Ace: Victini
 Ability: Infiltration
 Infiltration: apply Dead Calm and Mold Breaker ability to pokemon (moves will ignore target ability and weather)."
-51,Elias Ainsworth,Elias Ainsworth,387,Curse of Forest,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride.
-Although he is scary-looking, he is actually kind and straightforward.
-Without Chise by his side, he got lonely and looked for other partners.
-That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,Dreadigo,Brambleblood,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,It is the instinct of the weak to be afraid of the strange.,"Ace: Dreadigo (Custom)
+56,Elias Ainsworth,Elias Ainsworth,387,Curse of Forest,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride. Although he is scary-looking, he is actually kind and straightforward. Without Chise by his side, he got lonely and looked for other partners. That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,Dreadigo,Brambleblood,,,,,lower_elite_battle.mp3,elite_ace.mp3,It is the instinct of the weak to be afraid of the strange.,"Ace: Dreadigo (Custom)
 Ability: Curse of Forest
 Curse of Forest: apply Grass type to target pokemon and may flinch with attacking moves (20%)."
-52,Animenz,Animenz,447,Musical,"One of the Lower Elite Four. Animenz is greatest anime pianist in the history.
-His masterful piano technique allows him to master Pokemon battle in a short time.",Elite,Pianotic,Toxtricity,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?","Ace: Pianotic (Custom)
+57,Animenz,Animenz,447,Musical,One of the Lower Elite Four. Animenz is greatest anime pianist in the history. His masterful piano technique allows him to master Pokemon battle in a short time.,Elite,Pianotic,Toxtricity,,,,,lower_elite_battle.mp3,elite_ace.mp3,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?","Ace: Pianotic (Custom)
 Ability: Musical
 Musical: may induce Freeze (1/6), Paralysis (1/2) or Sleep (1/3) to target pokemon when using Special moves (20%)."
-53,Magnus Carlsen,Magnus Carlsen,480,Blunders,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history.
-While preparing his openings for the next World Chess Championship, he got addicted into
-Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,Sworphin,,,,,lower_elite_battle.mp3,elite_ace.mp3,DarkRed,"Without the element of enjoyment, it is not worth trying to excel at anything.","Ace: Chesiquen (Custom)
+58,Magnus Carlsen,Magnus Carlsen,480,Blunders,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history. While preparing his openings for the next World Chess Championship, he got addicted into Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,Sworphin,,,,,lower_elite_battle.mp3,elite_ace.mp3,"Without the element of enjoyment, it is not worth trying to excel at anything.","Ace: Chesiquen (Custom)
 Ability: Blunders
 Blunders: target pokemon damages itself instead (10%)."
-54,Reaper Conan,Reaper Conan,535,Silhouette,"One of the Upper Elite Four. Conan was once a prominent detective who solved many cases. Soon, he realised his ability to never get old
-and his ability to bring death to people around. Slowly he descended into the dark side of his mind. He held the title of 
-Grim Reaper. He will usually display childlike and naive smile in front of the public, but mercilessly murdered people without
-hesitation.",Elite,Decidueye,Apoptoxitic,Honchkrow,Arcanine,Sylveon,Kogoshaka,upper_elite_battle.mp3,elite_ace.mp3,DarkRed,"Is this the life of an Antagonist? Is this the fate of a Grim Reaper?
-NO! I still can fight! I still got my Plot Armor! I will reap your soul and your spirit!","Ace: Kogoshaka (Custom Boss)
+59,Reaper Conan,Reaper Conan,535,Silhouette,"One of the Upper Elite Four. Conan was once a prominent detective who solved many cases. Soon, he realised his ability to never get old and his ability to bring death to people around. Slowly he descended into the dark side of his mind. He held the title of Grim Reaper. He will usually display childlike and naive smile in front of the public, but mercilessly murdered people without hesitation.",Elite,Decidueye,Apoptoxitic,Honchkrow,Arcanine,Sylveon,Kogoshaka,upper_elite_battle.mp3,elite_ace.mp3,Is this the life of an Antagonist? Is this the fate of a Grim Reaper? NO! I still can fight! I still got my Plot Armor! I will reap your soul and your spirit!,"Ace: Kogoshaka (Custom Boss)
 Ability: Silhouette
 Silhouette: apply Illusion ability to pokemon and halved damage from incoming attack with disguise."
-55,Expert Cynthia,Expert Cynthia,577,Old Legends,"One of the Upper Elite Four. Cynthia held the title of Pokemon Expert. She is the Champion of the Sinnoh region and is praised to be one
-of the strongest Champions among many regions. She came in with a very comprehensive team and her intelligence and experience in
-Pokemon Battle could easily win anyone.",Elite,Spiritomb,Roserade,Milotic,Togekiss,Lucario,Garchomp,upper_elite_battle.mp3,elite_ace.mp3,DarkRed,"Once a Champion, always a Champion.
-You may have defeated me. But you will never go above me.","Ace: Garchomp
+60,Expert Cynthia,Expert Cynthia,577,Old Legends,One of the Upper Elite Four. Cynthia held the title of Pokemon Expert. She is the Champion of the Sinnoh region and is praised to be one of the strongest Champions among many regions. She came in with a very comprehensive team and her intelligence and experience in Pokemon Battle could easily win anyone.,Elite,Spiritomb,Roserade,Milotic,Togekiss,Lucario,Garchomp,upper_elite_battle.mp3,elite_ace.mp3,"Once a Champion, always a Champion. You may have defeated me. But you will never go above me.","Ace: Garchomp
 Ability: Old Legends
 Old Legends: immune to fairy-type attacking moves and gain boost at the start."
-56,Demon Muzan,Demon Muzan,630,Blood Magic,"One of the Upper Elite Four. Muzan held the title of Demon King. He is the leader of the demons. Ruthless and bloodthirsty, he granted
-his Pokemon his Blood Moon magic to be extremely aggressive, strong and fierce. Muzan's game-changing trait could easily win
-anyone in the Playoffs.",Elite,Gyutaro,Gyokko,Hantengu,Akaza,Douma,Kokushibo,upper_elite_battle.mp3,elite_ace.mp3,DarkRed,"Head down and kneel. Prostrate before me.
-You are merely a worthless lowlife longing to achieve immortality.
-If you are willing to be my slave, I might consider sparing some of my blood to you.","Ace: Kokushibo (Custom Boss)
+61,Demon Muzan,Demon Muzan,630,Blood Magic,"One of the Upper Elite Four. Muzan held the title of Demon King. He is the leader of the demons. Ruthless and bloodthirsty, he granted his Pokemon his Blood Moon magic to be extremely aggressive, strong and fierce. Muzan's game-changing trait could easily win anyone in the Playoffs.",Elite,Gyutaro,Gyokko,Hantengu,Akaza,Douma,Kokushibo,upper_elite_battle.mp3,elite_ace.mp3,"Head down and kneel. Prostrate before me. You are merely a worthless lowlife longing to achieve immortality. If you are willing to be my slave, I might consider sparing some of my blood to you.","Ace: Kokushibo (Custom Boss)
 Ability: Blood Magic
 Blood Magic: drain 20% damage as HP for all attacking moves."
-57,Emperor Marvuno,Emperor Marvuno,833,Primordial,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient.
-Although Krusades is a mountainous area, Marvuno finds the wayto bring water and prosperity to Krusades, making it the richest place in the world.
-To commemorate such achievement, Marvuno uses a Rain Team, and he himself has the ability to guarantee rain in any circumstance.",Elite,Kingdra,Scizor,Barraskewda,Dracovish,Tanjiro,Poseidon,upper_elite_battle.mp3,elite_ace.mp3,DarkRed,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so.","Ace: Poseidon (Custom Boss)
+62,Emperor Marvuno,Emperor Marvuno,833,Primordial,"One of the Upper Elite Four. Marvuno held the title of The Emperor. He is the Emperor of Krusades. He is calm, humble and resilient. Although Krusades is a mountainous area, Marvuno finds the wayto bring water and prosperity to Krusades, making it the richest place in the world. To commemorate such achievement, Marvuno uses a Rain Team, and he himself has the ability to guarantee rain in any circumstance.",Elite,Kingdra,Scizor,Barraskewda,Dracovish,Tanjiro,Poseidon,upper_elite_battle.mp3,elite_ace.mp3,"Everything that happens happens as it should, and if you observe carefully, you will find this to be so.","Ace: Poseidon (Custom Boss)
 Ability: Primordial
 Primordial: always Rain and apply Swift Swim ability to pokemon."
-58,Champion Marvin,Champion Marvin,1000,Last Stand,"Marvin has been the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated.
-After observing his games, all people recognize that he could easily secure multiple World Champion Titles in the
-Pokemon World Championship. In the Unofficial Pokemon Championship, Marvin effortlessly won 6-0 against his opponent, Demon Muzan, 
-one of the Upper Elite Four, in the Grand Final. This mystic figure is rumoured to have beaten the Upper Elite Four countless times, 
-because he has obtained the two True Pokemon Legends. One is the ruler of the heavens, the other is the warlord of the underworld.",Champion,Galvantula,Cloyster,Blaziken,Krusadian Salamence,Armadragdon,Memoraider,champion_battle.mp3,elite_ace.mp3,Yellow,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic.
-This is going to be one of the most spectacular Pokemon battle in history.
-Unfortunate for you, the history only remembers the victor, and that will be me as always.
+63,Champion Marvin,Champion Marvin,1000,Last Stand,"Marvin has been the undoubted World Champion. His true strength has never been revealed to anybody. He is legendary, mystical and sophisticated. After observing his games, all people recognize that he could easily secure multiple World Champion Titles in the Pokemon World Championship. In the Unofficial Pokemon Championship, Marvin effortlessly won 6-0 against his opponent, Demon Muzan, one of the Upper Elite Four, in the Grand Final. This mystic figure is rumoured to have beaten the Upper Elite Four countless times, because he has obtained the two True Pokemon Legends. One is the ruler of the heavens, the other is the warlord of the underworld.",Champion,Galvantula,Cloyster,Blaziken,Krusadian Salamence,Armadragdon,Memoraider,champion_battle.mp3,elite_ace.mp3,"Every warrior wants a worthy opponent. There is no redress in fighting the pathetic. This is going to be one of the most spectacular Pokemon battle in history. Unfortunate for you, the history only remembers the victor, and that will be me as always.
 ","Ace: Armadragdon & Memoraider (Custom Boss)
 Ability: Last Stand
 Last Stand: regen all HP and increase all stats by 1 stage for the last pokemon."

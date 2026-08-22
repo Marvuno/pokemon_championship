@@ -10,6 +10,8 @@ from Scripts.Data.moves import *
 from Scripts.Battle.type_immunity import *
 from Scripts.Battle.context import Side, Turn
 from Scripts.Battle.weather import weather_desc
+from Scripts.Battle import terrain
+from Scripts.Battle.constants import GUARANTEE_ACCURACY
 from Scripts.Data.competitors import ability_text
 from Scripts.Art import narrator
 
@@ -18,6 +20,12 @@ from Scripts.Art import narrator
 #: coin flip. At or above this, the move is already reliable and is left
 #: alone.
 SERENE_GRACE_CEILING = 0.5
+
+#: Sparking Cascade's per-turn paralysis roll, and the types the current
+#: does not reach: Flying is not standing in it, Ground earths it, Electric
+#: is made of it.
+SPARKING_CASCADE_CHANCE = 0.1
+SPARKING_CASCADE_IMMUNE = frozenset(("Flying", "Ground", "Electric"))
 
 
 def notice(battleground, side=None):
@@ -159,6 +167,65 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # exactly 50% it does nothing.
         if move.effect_accuracy < SERENE_GRACE_CEILING:
             move.effect_accuracy = min(1, move.effect_accuracy * 2)
+            notice(battleground, user_side)
+
+    def sparking_cascade(*args):
+        # Coco's battles are fought on a live floor. Two halves, two phases.
+        if abilityphase == 1:
+            # "starts off the battle with an electric terrain" -- the battle,
+            # not every switch-in. Phase 1 fires whenever anything comes in,
+            # so without the turn check her terrain would be re-laid all
+            # game and could never lapse, which is not what the card says.
+            #
+            # It runs on the arena's own opening clock (NATURAL_TURNS) rather
+            # than a move's five: this is the ground the battle starts on,
+            # the same as a naturally rolled terrain, not something somebody
+            # spent a turn laying.
+            # `turn` is 1 on a fresh Battleground, not 0 -- switching in at
+            # the start of the battle happens before the first increment.
+            if (battleground.turn <= 1
+                    and terrain.current(battleground) != "Electric"):
+                battleground.terrain = "Electric"
+                battleground.terrain_turn = terrain.NATURAL_TURNS
+                if battleground.reality:
+                    narrator.say(terrain.TERRAIN_ARRIVES["Electric"],
+                                 "weather", terrain="Electric")
+                notice(battleground, user_side)
+        elif abilityphase == 8:
+            # and the current keeps arcing: a tenth of the time, whatever is
+            # standing in it seizes up. Flying types are not standing in it;
+            # Ground and Electric shrug the current off.
+            # blocks_status returns (blocked, what to say) -- a tuple, and
+            # therefore always truthy. Unpacked, not tested.
+            blocked, _ = terrain.blocks_status(battleground, target,
+                                               "Paralysis")
+            if (target.status == "Normal" and target.battle_stats[0] > 0
+                    and not (SPARKING_CASCADE_IMMUNE & set(target.type or []))
+                    and not blocked
+                    and random.random() < SPARKING_CASCADE_CHANCE):
+                # No status_effect_immunity_check here: the three types it
+                # would refuse for Paralysis are the three excluded above,
+                # and it wants a move to read the type off -- there is no
+                # move at the end of a turn.
+                paralysis = Paralysis(1)
+                target.status = paralysis[0]
+                target.volatile_status['NonVolatile'] = paralysis[1]
+                if battleground.reality:
+                    narrator.say(f"{target.name} is paralysed by the "
+                                 f"current!", "status", pokemon=target.name,
+                                 status="Paralysis")
+                notice(battleground, user_side)
+
+    def calibration(*args):
+        # every move measured before it is thrown, so none of them miss.
+        #
+        # An accuracy of exactly 0 is left alone, and that is not a rounding
+        # nicety: 0 is the engine's sentinel for "this move does not reach"
+        # -- what Psychic Terrain, Queenly Majesty and Dazzling set to stop a
+        # priority move. Calibration makes a throw accurate; it does not make
+        # an impossible throw possible.
+        if 0 < move.accuracy < GUARANTEE_ACCURACY:
+            move.accuracy = GUARANTEE_ACCURACY
             notice(battleground, user_side)
 
     def violence(*args):
@@ -616,6 +683,11 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Celestial": ((2, 8), celestial, "Custom"),
         # Phase 2 is "using a move", before the effect roll is read.
         "Serene Grace": (2, serene_grace, "Custom"),
+        # Two phases: the opening, when the floor goes live, and the end of
+        # every turn, when the current has its chance.
+        "Sparking Cascade": ((1, 8), sparking_cascade, "Custom"),
+        # Phase 2 is "using a move", before the accuracy roll is read.
+        "Calibration": (2, calibration, "Custom"),
         "Violence": (2, violence),
         "Naive": (1, naive),
         "Telekinesis": (1, telekinesis),

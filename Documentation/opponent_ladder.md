@@ -1,3 +1,8 @@
+# Opponent ladder
+
+Generated. Do not edit by hand -- see the harness in `Test/` that writes it.
+
+```
 Opponent ladder
 56 competitors, 5 matches per pairing, 6v6, 7700 battles in 1430s
 
@@ -75,3 +80,4 @@ Worth a look:
   overrated   Expert Cynthia           rated  346, finished 74.5% (-5 places)
   overrated   Misty                    rated  103, finished 60.4% (-5 places)
   overrated   Devoltorm                rated   60, finished 37.1% (-5 places)
+```

@@ -11,7 +11,7 @@ with is the rating their team can actually earn.
     python Test/ai_rating_simulation.py --limit 12       first 12 competitors
     python Test/ai_rating_simulation.py --workers 4      smaller machines
 
-Writes Documentation/ai_rating_simulation.txt.
+Writes Documentation/ai_rating_simulation.md.
 
 
 Teams follow the shipped rating, never the earned one
@@ -282,6 +282,20 @@ def tally(names, results, original):
     return ladders, record, kills, peak, trough
 
 
+def as_markdown(title, body):
+    """Wrap a fixed-width report as a markdown document.
+
+    The body is aligned columns and ruled separators, and markdown
+    reflows plain text -- so it goes inside a fence rather than being
+    left to collapse into a paragraph. The title is outside it, so the
+    file still reads as a document and not as one big code block.
+    """
+    return ("# %s" % title + chr(10) * 2
+            + "Generated. Do not edit by hand." + chr(10) * 2
+            + "```" + chr(10) + body.rstrip(chr(10))
+            + chr(10) + "```" + chr(10))
+
+
 def write_report(path, names, original, ladders, record, kills, peak, trough,
                  matches, elapsed):
     shipped = ladders["shipped_formula"]
@@ -378,7 +392,8 @@ def write_report(path, names, original, ladders, record, kills, peak, trough,
                peak["shipped_formula"][name]))
 
     with open(path, "w", encoding="utf-8") as out:
-        out.write("\n".join(lines) + "\n")
+        out.write(as_markdown("What each competitor's rating is worth",
+                              chr(10).join(lines)))
     return len(lines)
 
 
@@ -395,7 +410,7 @@ def main():
                              "report can be recomputed without replaying "
                              "16,000 battles")
     parser.add_argument("--out", default=os.path.join(
-        ROOT, "Documentation", "ai_rating_simulation.txt"))
+        ROOT, "Documentation", "ai_rating_simulation.md"))
     args = parser.parse_args()
 
     roster = _cached_engine()[0]

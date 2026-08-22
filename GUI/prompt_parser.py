@@ -172,7 +172,28 @@ def parse(prompt, recent_output=""):
 
     choices, seen = [], set()
     _collect(prompt, choices, seen)
-    _collect(_tail_block(recent), choices, seen)
+
+    # Options printed before the prompt, but only if they are numbered
+    # *differently* from the ones the prompt lists itself. A single question
+    # never gives two things the same number, so an overlap means the block on
+    # screen belongs to a different screen -- and topping the prompt's own
+    # list up from it is how scouting produced a ghost button. About Opponent
+    # prints the opponent's team as `0:`..`5:`; the pre-battle menu then asks
+    # its question listing `0:`..`4:` inline. Five of the six were already
+    # claimed, so the sixth Pokemon arrived as an extra option -- and clicking
+    # it answered `5` to a menu with no option 5, which printed a complaint
+    # and redrew the bar. A button that vanished and did nothing.
+    #
+    # A gap rule cannot separate these: only two plain lines sit between that
+    # list and the prompt, fewer than the switch window has on a good day.
+    # Disjointness can. The switch window lists `8:` and `9:` inline and gets
+    # its Pokemon (`0:`..`5:`) from the block above it, which is exactly the
+    # case this keeps working.
+    nearby, nearby_seen = [], set()
+    _collect(_tail_block(recent), nearby, nearby_seen)
+    if not (nearby_seen & seen):
+        for choice in nearby:
+            _add(choices, seen, choice.value, choice.label, choice.kind)
 
     # sentinels are described in prose, so they come last and never overwrite
     # a real option with the same number

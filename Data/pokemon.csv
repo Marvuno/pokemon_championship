@@ -84,7 +84,7 @@ ID,Name,Type1,Type2,Type3,Ability,SAbility,HP,Atk,Def,SpA,SpDef,Spd,Total,Move1,
 83,Durant,Bug,Steel,,Swarm,Hustle,58,109,112,48,48,109,484,Hone Claws,Stone Edge,X-Scissor,Iron Head,Superpower,,Medium,N
 84,Drampa,Normal,Dragon,,Berserk,Cloud Nine,78,60,85,135,91,36,485,Hyper Voice,Draco Meteor,Fire Blast,Calm Mind,Extrasensory,Hurricane,Medium,N
 85,Drednaw,Water,Rock,,Strong Jaw,Swift Swim,90,115,90,48,68,74,485,Liquidation,Jaw Lock,Rock Polish,Smart Strike,Ice Fang,Stone Edge,Medium,N
-86,Alolan Raichu,Electric,Psychic,,Surge Surfer,,60,85,50,95,85,110,485,Thunderbolt,Fake Out,Encore,Light Screen,Volt Switch,Surf,Medium,N
+86,Alolan Raichu,Electric,Psychic,,Surge Surfer,,60,85,50,95,85,110,485,Thunderbolt,Fake Out,Encore,Electric Terrain,Volt Switch,Surf,Medium,N
 87,Appletun,Grass,Dragon,,Thick Fat,,110,85,80,100,80,30,485,Apple Acid,Dragon Pulse,Curse,Reflect,Light Screen,,Medium,N
 88,Lycanroc (Midnight),Rock,,,Vital Spirit,No Guard,85,115,75,55,75,82,487,Scary Face,Play Rough,Bulk Up,Stone Edge,Thunder Fang,Iron Tail,Medium,N
 89,Scrafty,Dark,Fighting,,Moxie,Intimidate,65,90,115,45,115,58,488,High Jump Kick,Stone Edge,Swagger,Scary Face,Iron Head,Throat Chop,Medium,N
@@ -173,7 +173,7 @@ ID,Name,Type1,Type2,Type3,Ability,SAbility,HP,Atk,Def,SpA,SpDef,Spd,Total,Move1,
 172,Chandelure,Fire,Ghost,,Flash Fire,Infiltrator,60,55,90,145,90,80,520,Shadow Ball,Flamethrower,Memento,Energy Ball,Psychic,Calm Mind,High,N
 173,Rotom (Frost),Electric,Ice,,Levitate,,50,65,107,105,107,86,520,Blizzard,Dark Pulse,Thunder,Thunder Wave,Rain Dance,Hex,High,N
 174,Cloyster,Water,Ice,,Skill Link,,50,95,180,85,45,70,525,Icicle Spear,Shell Smash,Liquidation,Pin Missile,Rock Blast,Icicle Crash,High,N
-175,Sylveon,Fairy,,,Pixelate,,95,65,65,110,130,60,525,Hyper Voice,Calm Mind,Moonblast,Shadow Ball,Misty Terrain,,High,N
+175,Sylveon,Fairy,,,Pixelate,,95,65,65,110,130,60,525,Hyper Voice,Calm Mind,Moonblast,Shadow Ball,,,High,N
 176,Lucario,Fighting,Steel,,Adaptability,Justified,70,110,70,115,70,90,525,Aura Sphere,Dragon Pulse,Meteor Mash,Extreme Speed,Close Combat,,High,N
 177,Ceruledge,Fire,Ghost,,Flash Fire,Weak Armor,75,125,80,60,100,85,525,Shadow Claw,Shadow Sneak,Swords Dance,Psycho Cut,Bitter Blade,,High,N
 178,Greninja,Water,Dark,,Protean,,72,95,67,103,71,122,530,Shadow Sneak,Extrasensory,Work Up,Water Shuriken,Haze,Rock Slide,High,N

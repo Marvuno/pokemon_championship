@@ -483,7 +483,7 @@ STATUS_WORDS = {
     "Bad Poison": "badly poisoned", "Freeze": "frozen", "Sleep": "asleep",
     "Confused": "confused", "Flinch": "flinching",
 }
-#: single-letter move flags, from Documentation/documentation.txt, written as
+#: single-letter move flags, from Documentation/documentation.md, written as
 #: whole sentences -- "It ball or bomb." was not English
 FLAG_NAMES = {
     "a": "It makes contact.",

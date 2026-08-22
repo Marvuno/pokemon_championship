@@ -98,25 +98,11 @@ class TitleView(QWidget):
         layout.addWidget(self.game_name)
         layout.addStretch(2)
 
-        # The reference screens, offered right here. They were only reachable
-        # from the header strip, which is easy to miss and reads as chrome.
-        row = QHBoxLayout()
-        row.setSpacing(10)
-        row.addStretch(1)
-        # Story and Credits, and only those. Standings and Your Team mean
-        # nothing before a run has started -- there are no matchups and no
-        # team yet -- so offering them here was offering two dead ends. They
-        # live in the header during a game, where they have something to show.
-        for text, accent, handler in (("Story", T.ACCENT, on_story),
-                                      ("Credits", T.TEXT_DIM, on_credits)):
-            if handler is None:
-                continue
-            button = ActionButton(text, fonts, accent=accent,
-                                  on_click=handler)
-            button.setMinimumWidth(190)
-            row.addWidget(button)
-        row.addStretch(1)
-        layout.addLayout(row)
+        # No buttons here. Story and Credits used to be a row on this
+        # backdrop; Background and Tutorial are in the header now and Credits
+        # is in the action bar below, both of which are reachable from every
+        # screen rather than only this one. `on_story` and `on_credits` are
+        # still accepted so nothing that constructs this has to change.
         layout.addStretch(1)
         # Bottom right, small: a credit, not a headline.
         layout.addWidget(label("Game Developer: Marvin Hui", fonts.small,

@@ -168,10 +168,19 @@ holders = {name: [p for p, mon in list_of_pokemon.items()
                   if name in (mon.moveset or [])]
            for name in ("Electric Terrain", "Grassy Terrain",
                         "Misty Terrain", "Psychic Terrain")}
-check("something knows each of them, or terrain never happens",
-      sorted(n for n, who in holders.items() if not who), [])
+# A terrain move nobody learns is either a deliberate gap or an editing
+# accident, and from the outside those look identical -- so the gap has to be
+# declared. TR.UNLEARNED is where, and this fails on one that is neither
+# learnable nor listed.
+check("every terrain move is learnable or declared unlearned",
+      sorted(n for n, who in holders.items()
+             if not who and n not in TR.UNLEARNED), [])
+check("...and nothing is declared unlearned that somebody does learn",
+      sorted(n for n in TR.UNLEARNED if holders.get(n)), [])
 for name, who in sorted(holders.items()):
-    print("   %-17s %s" % (name, ", ".join(who)))
+    print("   %-17s %s" % (name, ", ".join(who)
+                           or "-- unlearned: %s"
+                           % TR.UNLEARNED.get(name, "?")))
 
 print()
 print("-- the ground a battle opens on --")

@@ -121,8 +121,7 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
         sound(audio="Assets/music/confirm.mp3")
     elif not user.main:
         if sum(1 for pokemon in user.team if pokemon.status != "Fainted") == 1:
-            colors = {"": CWHITE2, "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
-            narrator.say(f"\n{colors[user.color]}{CBOLD}{user.nickname}: {user.quote}{CEND}")  # will add quotes on competitor
+            narrator.say(f"\n{CWHITE2}{CBOLD}{user.nickname}: {user.quote}{CEND}")  # will add quotes on competitor
             music(audio=f"Assets/music/{user.ace_music}", loop=True)
 
     return user_team[0]

@@ -143,7 +143,6 @@ def team_generation(participant, rand=False):
 
 
 def round_begin():
-    colors = {"": "", "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
     GameSystem.participants.sort(key=lambda x: list_of_competitors[x].stage, reverse=True)
     print(f"\nRound {GameSystem.stage}:\n")
 
@@ -152,13 +151,12 @@ def round_begin():
         participant.match_id = i // 2
         bold = CBOLD if participant.championship > 0 else ''
         crown = f' |{participant.championship}|' if participant.championship > 0 else ''
-        print(colors[participant.color] + bold + EntryBox(participant.id, f"{participant.nickname} [{participant.strength}]{crown}", participant.stage - 1, ).structure + CEND)
+        print(bold + EntryBox(participant.id, f"{participant.nickname} [{participant.strength}]{crown}", participant.stage - 1, ).structure + CEND)
         if i % 2 != 0:
             print("\n")
 
 
 def scoreboard():
-    colors = {"": "", "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
 
     # calculating opponent stage as tiebreaks
     for participant in GameSystem.participants:
@@ -175,7 +173,7 @@ def scoreboard():
     attendance = list_of_competitors['Protagonist'].participation
     for index, competitor in enumerate(GameSystem.participants):
         competitor = list_of_competitors[competitor]
-        print(f"{CBOLD}{colors[competitor.color]}", end='')
+        print(f"{CBOLD}", end='')
         print(f"||  {index + 1}{' ' * (3 - len(str(index + 1)))} "
               f"|| {competitor.nickname}[{competitor.strength}]{' ' * (20 - len(competitor.nickname) - len(str(competitor.strength)))} "
               f"||  {competitor.stage - 1}  || {competitor.opponent_score}{' ' * (2 - len(str(competitor.opponent_score)))} "
@@ -267,7 +265,6 @@ def elo_rating():
     to that opponent -- so meeting somebody twice in one run would have
     scored the second meeting with the result of the first.
     """
-    colors = {"": "", "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
     me = list_of_competitors['Protagonist']
     rating_change = 0
     with suppress(IndexError):
@@ -285,7 +282,7 @@ def elo_rating():
             rating_change += individual_rating_change
 
             narrator.say(
-                f"{colors[opponent.color]}{opponent.nickname}: "
+                f"{opponent.nickname}: "
                 f"{'Win' if won else 'Lose'} "
                 f"[{'+' if individual_rating_change >= 0 else '-'}"
                 f"{abs(individual_rating_change)}]{CEND}",

@@ -122,6 +122,7 @@ def summary(slot):
         return {"slot": slot, "used": True, "damaged": True}
     return {"slot": slot, "used": True,
             "nickname": player.get("nickname") or "?",
+            "appearance": player.get("appearance") or "",
             "rating": player.get("rating") or 0,
             "participation": player.get("participation") or 0,
             "championship": player.get("championship") or 0,
@@ -247,6 +248,9 @@ def save(list_of_competitors, path=None, slot=None):
         "version": VERSION,
         "player": {
             "nickname": player.nickname,
+            # who they chose to be, per slot -- the career history
+            # shows this portrait for the rest of the save
+            "appearance": getattr(player, "appearance", "") or "",
             "rating": player.strength,
             "participation": player.participation,
             "championship": player.championship,
@@ -406,6 +410,7 @@ def _load_json(data, list_of_competitors, list_of_pokemon):
     player = list_of_competitors["Protagonist"]
     saved = data.get("player") or {}
     player.nickname = saved.get("nickname", player.nickname)
+    player.appearance = saved.get("appearance", "") or ""
     player.strength = int(saved.get("rating", player.strength))
     player.participation = int(saved.get("participation", 0))
     player.championship = int(saved.get("championship", 0))

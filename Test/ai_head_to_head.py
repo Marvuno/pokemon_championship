@@ -44,7 +44,7 @@ pilot needs something to fly.
     python Test/ai_head_to_head.py --teams 50           quicker, rougher
     python Test/ai_head_to_head.py --workers 4          smaller machines
 
-Writes Documentation/ai_head_to_head.txt.
+Writes Documentation/ai_head_to_head.md.
 """
 import argparse
 import io
@@ -338,6 +338,20 @@ def run(tasks, workers, worker=play, label="battles"):
     return results
 
 
+def as_markdown(title, body):
+    """Wrap a fixed-width report as a markdown document.
+
+    The body is aligned columns and ruled separators, and markdown
+    reflows plain text -- so it goes inside a fence rather than being
+    left to collapse into a paragraph. The title is outside it, so the
+    file still reads as a document and not as one big code block.
+    """
+    return ("# %s" % title + chr(10) * 2
+            + "Generated. Do not edit by hand." + chr(10) * 2
+            + "```" + chr(10) + body.rstrip(chr(10))
+            + chr(10) + "```" + chr(10))
+
+
 def report(path, bands, arms, control_counts, teams, elapsed):
     """arms is arm -> (counts, by_side, habits)."""
     lines = []
@@ -453,7 +467,8 @@ def report(path, bands, arms, control_counts, teams, elapsed):
     add("-" * 74)
 
     with open(path, "w", encoding="utf-8") as out:
-        out.write(chr(10).join(lines) + chr(10))
+        out.write(as_markdown("Smart AI vs dumb AI",
+                              chr(10).join(lines)))
     return lines
 
 
@@ -464,7 +479,7 @@ def main():
     parser.add_argument("--workers", type=int, default=0,
                         help="worker processes (default: cores - 2)")
     parser.add_argument("--out", default=os.path.join(
-        ROOT, "Documentation", "ai_head_to_head.txt"))
+        ROOT, "Documentation", "ai_head_to_head.md"))
     args = parser.parse_args()
 
     workers = args.workers or max(1, (os.cpu_count() or 2) - 2)

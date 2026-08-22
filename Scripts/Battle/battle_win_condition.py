@@ -240,7 +240,6 @@ def choose_pokemon(protagonist, opponent, battleground):
 
 
 def round_end(stage):
-    colors = {"": CWHITE2, "Yellow": CYELLOW2, "DarkRed": CRED, "Green": CGREEN2}
 
     def result_announcement(victor, loser, main):
         """Print the matchup line, and return it as (winner, loser) scores.
@@ -254,7 +253,7 @@ def round_end(stage):
         # for world champ
         victor_crown, loser_crown = f' |{victor.championship}|' if victor.championship > 0 else '', f' |{loser.championship}|' if loser.championship > 0 else ''
         victor_bold, loser_bold = CBOLD if victor.championship > 0 else '', CBOLD if loser.championship > 0 else ''
-        narrator.say(colors[victor.color] + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
+        narrator.say(CWHITE2 + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
         if main:  # the protagonist battle
             print((CGREEN if loser.main else CGREY) + loser_bold + EntryBox(loser.id, f"{loser.nickname} [{loser.strength}]{loser_crown}",
                                    loser.stage - 1, loser.result).structure, "\n" + CEND)

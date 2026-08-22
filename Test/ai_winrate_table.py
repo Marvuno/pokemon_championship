@@ -20,7 +20,7 @@ and just declines to weight them.
     python Test/ai_winrate_table.py --cache <file>         reuse battles
     python Test/ai_winrate_table.py --matches 3 --limit 12 quicker
 
-Writes Documentation/ai_win_rate_table.txt.
+Writes Documentation/ai_win_rate_table.md.
 """
 import argparse
 import json
@@ -65,6 +65,20 @@ def tally(names, results):
         head[won][lost] = head[won].get(lost, 0) + 1
         head[lost].setdefault(won, 0)
     return record, margin, head
+
+
+def as_markdown(title, body):
+    """Wrap a fixed-width report as a markdown document.
+
+    The body is aligned columns and ruled separators, and markdown
+    reflows plain text -- so it goes inside a fence rather than being
+    left to collapse into a paragraph. The title is outside it, so the
+    file still reads as a document and not as one big code block.
+    """
+    return ("# %s" % title + chr(10) * 2
+            + "Generated. Do not edit by hand." + chr(10) * 2
+            + "```" + chr(10) + body.rstrip(chr(10))
+            + chr(10) + "```" + chr(10))
 
 
 def write_report(path, names, original, record, margin, head, matches,
@@ -147,7 +161,8 @@ def write_report(path, names, original, record, margin, head, matches,
         add("        none -- every pairing was split at least once")
 
     with open(path, "w", encoding="utf-8") as out:
-        out.write("\n".join(lines) + "\n")
+        out.write(as_markdown("Win rate table",
+                              chr(10).join(lines)))
     return len(lines), order
 
 
@@ -162,7 +177,7 @@ def main():
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--workers", type=int, default=0)
     parser.add_argument("--out", default=os.path.join(
-        ROOT, "Documentation", "ai_win_rate_table.txt"))
+        ROOT, "Documentation", "ai_win_rate_table.md"))
     args = parser.parse_args()
 
     if args.cache and os.path.exists(args.cache):
@@ -189,7 +204,7 @@ def main():
 
     # the Elo ordering, if that report is around, purely to contrast with
     rating_order = None
-    elo = os.path.join(ROOT, "Documentation", "ai_rating_simulation.txt")
+    elo = os.path.join(ROOT, "Documentation", "ai_rating_simulation.md")
     if os.path.exists(elo):
         import re
         rows, started = [], False

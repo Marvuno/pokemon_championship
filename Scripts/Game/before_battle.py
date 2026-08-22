@@ -18,7 +18,8 @@ MENU = ((0, "proceed_to_battle", "Battle"),
         (1, "view_pokemon", "View My Pokemon"),
         (2, "switch_order", "Switch Pokemon Order"),
         (3, "about_opponent", "Scout Opponent"),
-        (4, "check_history", "Check History"))
+        (4, "check_history", "Check History"),
+        (5, "career_history", "Career History"))
 
 
 def before_battle_option(protagonist, opponent):
@@ -59,6 +60,26 @@ def before_battle_option(protagonist, opponent):
             continue
         if option == 0:
             return
+
+
+def career_history(protagonist, opponent):
+    """The full HISTORY screen, the same one the title menu offers.
+
+    "Check History" beside it is a different thing: your record against the
+    competitor you are about to face. This is everybody's career -- the
+    champion roll, any competitor's titles and their head-to-head -- which
+    was reachable only from the title screen, so during a run you could not
+    look up who you were about to play.
+
+    Imported inside the function on purpose. `start_interface` imports
+    `game_procedure`, which reaches this module, so a module-level import
+    would close the circle. It also means the *patched* `history_screen` is
+    the one that gets called: the interface rebinds it so the screen is
+    driven by its own window, and a name bound at import time would have
+    frozen the original.
+    """
+    from Scripts.Game.start_interface import history_screen
+    history_screen(protagonist)
 
 
 def proceed_to_battle(protagonist, opponent):

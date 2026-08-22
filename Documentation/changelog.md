@@ -1,12 +1,48 @@
-Pokemon Championship v1.2.1 (graphics update)
+Pokemon Championship v1.2 (graphics update)
 
-Changed
-- completely revamped the text-based interface with graphic-based application with Claude and Leonardo.ai
-- revised the rating for some characters
-- re-characterized Adolf Hitler to Rudolf due to legal issues
-- now allows player to keep as much as 6 pokemons regardless of win/loss record for the run
-- now allows player to view opponent team statistics when given the opportunity to swap
-- now allows player to view the match up results from the start and the journey
+Graphics Update (Highlights)
+- revamped text-based interface into graphic-based application with Claude and Leonardo.ai
+- re-characterized characters due to legal issues: Adolf Hitler -> Rudolf; Voldemort -> Devoltorm
+- pokedex to record all characters, moves, abilities and pokemon
+- career history enhanced to show match-up result from start to end during the battle, and all past battle history / record in History section
+- added graphics for tutorial, and background story
+
+Game Mechanics
+- now allows player to keep all Pokemon regardless of win/loss record for the run
+- now allows player to view opponent team statistics when given the opportunity to swap upon victory
+- now allows player to view opponent team, stat changes, non-volatile condition, weather, terrain, rooms all in battle interface
+- added Fast Comparison for recommending swap based on base stats
+- added Options to tweak game difficulty and volume
+- added Starter Pokemon for new player to select
+- revised rating table and mechanics for Pokemon distribution based on ratings, with simpler algorithm, and improved fairness between players and AI
+- now allows up to 4 save slots
+- added Terrain (same as original Pokemon series)
+
+Pokemon & Characters
+- added new Pokemon: Amoonguss, Slowbro, Glimmora, Baxcalibur, Kingambit, Tinkaton, Espathra, Ceruledge, Revavroom
+- added new abilities: Toxic Debris, Thermal Exchange, Supreme Overload, Filter
+- added new moves: Gigaton Hammer, Kowtow Cleave, Guillotine, Bitter Blade, Lumina Crash, Electric Terrain, Grassy Terrain, Misty Terrain, Psychic Terrain, Synthesis
+- added new characters: Jason, Evonne, Celeste, Auraia, Ophelia, Coco, Alton
+- added new character abilities: Procrastination, Frighten, Celestial, Serene Grace, Lamplighter, Spark Cascade, Calibration
+- some Pokemon's moves changed to add Terrain moves
+- added splash art and gender for player to choose, and revised description of main character
+
+Rebalancing
+- NERF Divine Power 1.5x -> 1.25x
+- REVISED Dulunga's character ability Desert Wind: now brews up sandstorm when a Ground type pokemon on either side is on the field
+- revised ratings and tier of some characters: some characters have been moved up and down the ladder after rebalancing
+
+Coding & Organization
+- coding mainly powered by Claude Code Opus 5.0, including GUI graphical interface and some game mechanics changes
+- backtesting added for rebalancing characters
+- moves now integrated into csv instead of Python file
+- custom team now integrated into competitors directly
+
+Bugfixes
+- Pudding's character ability Naive never trap both Pokemon
+- Protean and Libero now work as intended
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Pokemon Championship v1.1.1 (bugfix)
 

@@ -1,3 +1,8 @@
+# Win rate table
+
+Generated. Do not edit by hand -- see the harness in `Test/` that writes it.
+
+```
 Win rate and knockout score -- no rating arithmetic
 ==============================================================================
 
@@ -109,3 +114,4 @@ Hardest and easiest match-ups on record
         Devoltorm              beat King Bosse             10-0
         Devoltorm              beat Goblin                 10-0
         Devoltorm              beat Abota                  10-0
+```

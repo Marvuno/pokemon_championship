@@ -2225,34 +2225,56 @@ class StandingsDialog(QDialog):
 
 
 class StoryDialog(QDialog):
-    """The background and the four tutorial pages, as the artwork they are.
+    """A page-by-page reader for the illustrated pages in Assets/generated.
 
-    Assets/generated holds Background.jpg and Tutorial_1..4.jpg: finished
-    pages with all their text already set into the picture. So this is a
-    reader, not a text panel -- five pages in that order, with Back and Next,
-    and no scrolling, because each page is meant to be taken in whole.
+    Two readers rather than one. The background and the tutorial are
+    different things -- one is why you are here, the other is how to play --
+    and binding them into a single five-page sequence meant a returning
+    player who wanted a rules reminder had to page past the lore to reach it.
+    They are separate buttons in the header now, and this class is the reader
+    both of them use. Pass `pages`.
 
-    The engine prints its own versions of these exactly once, inside the
-    "are you a first-timer?" branch of a new game, so anyone continuing a
-    save could never see them again. This is reachable from the Story button
-    at any time. The captured text is kept as a fallback for a page whose
-    artwork is missing.
+    Each page is a finished illustration with its own text set into it, so
+    this is a reader and not a text panel: no scrolling, because a page is
+    meant to be taken in whole. The captured terminal text is kept as a
+    fallback for a page whose artwork is missing.
+
+    `on_finish` makes it a *guided* reader, which is how a new player meets
+    it: reaching the end (or closing) calls it exactly once, and the flow
+    behind it moves on to whatever comes next. Without it the reader is just
+    reference material you can open and shut at will.
     """
 
     #: filename in Assets/generated, page title, and which captured lore to
     #: fall back on -- in the order they are meant to be read
-    PAGES = (("Background.jpg", "The World", "backstory"),
-             ("Tutorial_1.jpg", "Tutorial #1 — Receiving Pokemon", "tutorial"),
-             ("Tutorial_2.jpg", "Tutorial #2 — Before Battle", "tutorial"),
-             ("Tutorial_3.jpg", "Tutorial #3 — In Battle", "tutorial"),
-             ("Tutorial_4.jpg", "Tutorial #4 — End Game", "tutorial"))
+    BACKGROUND_PAGES = (
+        ("BKGD_1.jpg", "Background — The Region", "backstory"),
+        ("BKGD_2.jpg", "Background — The Championship", "backstory"),
+        ("BKGD_3.jpg", "Background — The Prize", "backstory"),
+        ("BKGD_4.jpg", "Background — The Favourites", "backstory"),
+        ("BKGD_5.jpg", "Background — The Elite Eight", "backstory"),
+        ("BKGD_6.jpg", "Background — Your Wildcard", "backstory"),
+    )
+    TUTORIAL_PAGES = (
+        ("TUT_1.jpg", "Tutorial #1 — Receiving Pokemon", "tutorial"),
+        ("TUT_2.jpg", "Tutorial #2 — Before Battle", "tutorial"),
+        ("TUT_3.jpg", "Tutorial #3 — In Battle", "tutorial"),
+        ("TUT_4.jpg", "Tutorial #4 — End Game", "tutorial"),
+        ("TUT_5.jpg", "Tutorial #5 — Your Career", "tutorial"),
+    )
+    #: kept so a caller that passes nothing still gets something to read
+    PAGES = BACKGROUND_PAGES
 
-    def __init__(self, fonts, lore, project_root=".", parent=None):
+    def __init__(self, fonts, lore, project_root=".", parent=None,
+                 pages=None, title="Story & Guide", on_finish=None):
         super().__init__(parent)
         self.fonts, self.lore = fonts, lore or {}
         self.root_dir = project_root
+        self.PAGES = tuple(pages) if pages else self.BACKGROUND_PAGES
+        self.on_finish = on_finish
+        self._finished = False
         self.index = 0
-        self.setWindowTitle("Story & Guide")
+        self.setWindowTitle(title)
         self.setStyleSheet("background: %s;" % T.BG)
         # Borderless, filling the screen. Each page is a finished illustration
         # with its own text set into it at 1376x768 -- shown in a modest
@@ -2292,7 +2314,7 @@ class StoryDialog(QDialog):
         row.addWidget(self.counter)
         row.addStretch(1)
         row.addWidget(ActionButton("Close", fonts, sub="or press Escape",
-                                   accent=T.TEXT_DIM, on_click=self.close))
+                                   accent=T.TEXT_DIM, on_click=self.finish))
         row.addWidget(self.forward)
         outer.addLayout(row)
 
@@ -2300,13 +2322,63 @@ class StoryDialog(QDialog):
 
     # -- navigation --------------------------------------------------------
     def step(self, delta):
+        """Page. Past the last page is 'done', when there is somewhere to go.
+
+        In guided mode Next on the final page reads Continue and finishes,
+        so a new player never has to find the Close button to get on with
+        the game -- they just keep pressing the same button.
+        """
+        if delta > 0 and self.index >= len(self.PAGES) - 1:
+            if self.on_finish is not None:
+                self.finish()
+            return
         self.index = max(0, min(len(self.PAGES) - 1, self.index + delta))
         self._show_page()
+
+    def present(self):
+        """Show it, including for the second and later time.
+
+        `_finished` is a latch so a reader cannot report twice on the way
+        out. Reopening the same instance has to clear it, or `finish()`
+        short-circuits and **the Close button does nothing** -- which is
+        exactly what happened to the Background reader on the top bar from
+        its second open onwards, and left a window nothing could shut.
+        """
+        self._finished = False
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def finish(self):
+        """Close, and let whatever is driving the flow know. Once only.
+
+        Every way out lands here -- the button, Escape, the window manager --
+        because the engine is blocked on a keypress behind this window and a
+        reader that closed without saying so would strand it. Same trap as
+        the swap window (see CLAUDE.md).
+        """
+        if self._finished:
+            return
+        self._finished = True
+        callback, self.on_finish = self.on_finish, None
+        self.close()
+        if callback is not None:
+            callback()
+
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        self.finish()
+
+    def reject(self):
+        # Escape routes here without ever raising closeEvent -- see the traps
+        # in CLAUDE.md.
+        super().reject()
+        self.finish()
 
     def keyPressEvent(self, event):
         """Arrow keys and page keys too -- it is a reader."""
         if event.key() == Qt.Key_Escape:
-            self.close()
+            self.finish()
         elif event.key() in (Qt.Key_Left, Qt.Key_PageUp, Qt.Key_Backspace):
             self.step(-1)
         elif event.key() in (Qt.Key_Right, Qt.Key_PageDown, Qt.Key_Space):
@@ -2319,9 +2391,17 @@ class StoryDialog(QDialog):
         self.heading.setText(title)
         self.counter.setText("%d / %d" % (self.index + 1, len(self.PAGES)))
         # Disabled rather than hidden at the ends, so the row does not jump
-        # around as you page through.
+        # around as you page through. In guided mode the last page's Next
+        # becomes Continue instead of going dead, because there *is*
+        # somewhere further to go.
         self.back.set_enabled(self.index > 0)
-        self.forward.set_enabled(self.index < len(self.PAGES) - 1)
+        last = self.index >= len(self.PAGES) - 1
+        if last and self.on_finish is not None:
+            self.forward.set_title("Continue")
+            self.forward.set_enabled(True)
+        else:
+            self.forward.set_title("Next")
+            self.forward.set_enabled(not last)
 
         path = os.path.join(self.root_dir, "Assets", "generated", filename)
         picture = QPixmap(path) if os.path.exists(path) else None
@@ -2341,8 +2421,279 @@ class StoryDialog(QDialog):
     # The page looks after its own scaling -- see _FittedArt.
 
 
+class AppearanceDialog(QDialog):
+    """Who you are: one screen, five portraits, and a Male/Female switch.
+
+    The engine asks this as two numbered questions (`choose_appearance` in
+    start_interface.py) because a terminal can only ask one thing at a time.
+    The window does not: it opens straight onto the five male portraits with
+    both gender buttons underneath, and switching gender swaps the pictures
+    where they stand.
+
+    **Nothing moves when you switch.** The five frames are built once at a
+    fixed size and only their pixmaps change, so the row cannot re-flow, and
+    the gender buttons are built once and only re-styled -- a rebuilt layout
+    would jump, and the two arrangements are identical anyway. That is the
+    whole reason `set_portraits` swaps pictures instead of `clear_layout` and
+    a fresh row.
+
+    Underneath, switching gender answers the engine's portrait question with
+    its go-back sentinel and re-answers the gender question with the new
+    choice; the loop is invisible because this window never closes during it.
+    Only clicking a portrait ends the screen.
+    """
+
+    #: portraits are 848x1264, so a hair under 2:3
+    ASPECT = 1264.0 / 848.0
+    #: room for the heading and the gender row. The portraits carry no
+    #: caption -- a picture you are choosing between five of does not need
+    #: to be told it is "Male 3", and the filename is not part of the game.
+    CHROME = 240
+
+    def __init__(self, fonts, project_root=".", parent=None):
+        super().__init__(parent)
+        self.fonts = fonts
+        self.root_dir = project_root
+        self._answer = None
+        self._on_gender = None
+        self._locked = False        # set once a portrait is taken
+        self._slots = []            # the five (frame, art, caption) columns
+        self._gender_buttons = {}
+        self._active = 0            # which gender's portraits are showing
+        self.setWindowTitle("Your Trainer")
+        self.setStyleSheet("background: %s;" % T.BG)
+        # Frameless and filling the screen, like the story readers: these are
+        # large illustrations and a modest window wastes them.
+        self.setWindowFlag(Qt.FramelessWindowHint, True)
+        screen = QGuiApplication.primaryScreen()
+        if screen is not None:
+            self.setGeometry(screen.geometry())
+        else:
+            self.resize(1280, 800)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(self.SIDE_MARGIN, 20,
+                                 self.SIDE_MARGIN, 16)
+        outer.setSpacing(10)
+
+        self.heading = _label("Choose your appearance", fonts.title, T.TEXT,
+                              align=Qt.AlignCenter)
+        outer.addWidget(self.heading)
+        self.subheading = _label(
+            "Click a portrait to choose it. This is stamped on the save and "
+            "shown in your career history.", fonts.small, T.TEXT_DIM,
+            align=Qt.AlignCenter)
+        outer.addWidget(self.subheading)
+
+        self.body = QHBoxLayout()
+        self.body.setSpacing(self.COLUMN_GAP)
+        self.body.setContentsMargins(0, 0, 0, 0)
+        holder = QWidget(self)
+        holder.setLayout(self.body)
+        outer.addWidget(holder, 1)
+
+        self.footer = QHBoxLayout()
+        self.footer.setSpacing(12)
+        foot = QWidget(self)
+        foot.setLayout(self.footer)
+        outer.addWidget(foot)
+
+    # -- layout ------------------------------------------------------------
+    #: outer margins, the gap between columns, and what a column's own layout
+    #: adds around its picture. That last one is the easy one to forget: a
+    #: QVBoxLayout defaults to a 9px margin on every side, so five columns
+    #: quietly claimed 90px the width calculation knew nothing about -- and
+    #: the fifth portrait ran off the edge. The column layouts are flattened
+    #: to zero below, so this only has to cover the two real gaps.
+    SIDE_MARGIN = 24
+    COLUMN_GAP = 16
+    #: slack left over after the five boxes, so the row has visible air at
+    #: both ends instead of sitting flush against them. Without it the
+    #: arithmetic comes out exact and a single pixel of rounding clips the
+    #: last portrait -- which is how this was noticed.
+    ROW_SLACK = 48
+
+    def _sizes(self, count):
+        """One portrait's box: as tall as the window allows, then as wide."""
+        count = max(1, count)
+        tall = max(240, self.height() - self.CHROME)
+        wide = max(120, int(tall / self.ASPECT))
+        room = (self.width() - 2 * self.SIDE_MARGIN - self.ROW_SLACK
+                - self.COLUMN_GAP * (count - 1)) // count
+        if wide > room:
+            wide, tall = max(80, room), int(max(80, room) * self.ASPECT)
+        return wide, tall
+
+    def _apply_sizes(self):
+        """Re-fit the row to the window it is actually in.
+
+        The boxes are a fixed size so the row cannot re-flow when the gender
+        changes -- but "fixed" has to mean fixed to the *current* window.
+        They were measured once at build time, before the dialog had been
+        shown and while it still had its constructor geometry, so on a
+        display bigger than that guess every portrait came out too small and
+        the row sat off-centre. Measuring again on show and on resize costs
+        nothing and cannot shift anything, because a gender switch changes
+        neither.
+        """
+        if not self._slots:
+            return
+        wide, tall = self._sizes(len(self._slots))
+        for art in self._slots:
+            frame = art.parentWidget()
+            if frame is not None:
+                frame.setFixedSize(wide, tall)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._apply_sizes()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._apply_sizes()
+
+    def _build_slots(self, count):
+        """The five columns, once. Fixed size, so nothing can re-flow."""
+        clear_layout(self.body)
+        self._slots = []
+        wide, tall = self._sizes(count)
+        self.body.addStretch(1)
+        for index in range(count):
+            column = QVBoxLayout()
+            column.setSpacing(6)
+            column.setContentsMargins(0, 0, 0, 0)
+            art = _ClickableArt(None)
+            art.clicked.connect(lambda i=index: self._take(i))
+            # _FittedArt is QSizePolicy.Ignored, so a layout reserves no space
+            # for it and it draws over its neighbours. It has to sit in a
+            # fixed-size container -- see the traps in CLAUDE.md. That
+            # container is also what keeps the row from moving when the
+            # pictures are swapped.
+            frame = QWidget(self)
+            frame.setFixedSize(wide, tall)
+            inner = QVBoxLayout(frame)
+            inner.setContentsMargins(0, 0, 0, 0)
+            inner.addWidget(art)
+            column.addWidget(frame, 0, Qt.AlignHCenter)
+            wrap = QWidget(self)
+            wrap.setLayout(column)
+            self.body.addWidget(wrap, 0, Qt.AlignVCenter)
+            self._slots.append(art)
+        self.body.addStretch(1)
+
+    def _build_genders(self, genders, active):
+        """The two buttons, once. Re-styled on a switch, never rebuilt."""
+        clear_layout(self.footer)
+        self._gender_buttons = {}
+        self.footer.addStretch(1)
+        for index, name in enumerate(genders):
+            button = ActionButton(
+                name, self.fonts,
+                accent=T.ACCENT if index == active else T.TEXT_DIM,
+                emphasis=(index == active),
+                on_click=lambda i=index: self._switch(i))
+            button.setMinimumWidth(190)
+            button.setMinimumHeight(54)
+            self.footer.addWidget(button)
+            self._gender_buttons[index] = button
+        self.footer.addStretch(1)
+
+    def _mark_active(self, active):
+        """Which gender is showing, without rebuilding either button."""
+        for index, button in self._gender_buttons.items():
+            button.set_accent(T.ACCENT if index == active else T.TEXT_DIM,
+                              emphasis=(index == active))
+
+    # -- the question ------------------------------------------------------
+    def ask_portrait(self, genders, active, keys, answer, on_gender):
+        """Show `keys` as pictures. Called again on every gender switch.
+
+        The second and later calls only swap pixmaps and captions -- see the
+        class docstring. `on_gender(index)` is how the window asks for the
+        other set; `answer(index)` is a portrait being taken.
+        """
+        self._answer, self._on_gender = answer, on_gender
+        self._active = active
+        if len(self._slots) != len(keys):
+            self._build_slots(len(keys))
+        if set(self._gender_buttons) != set(range(len(genders))):
+            self._build_genders(genders, active)
+        else:
+            self._mark_active(active)
+        self.set_portraits(keys)
+        if not self.isVisible():
+            self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def set_portraits(self, keys):
+        """Swap the five pictures. No captions: the portrait is the choice."""
+        for art, key in zip(self._slots, keys):
+            path = os.path.join(self.root_dir, "Assets", "Player",
+                                "%s.jpg" % key)
+            picture = QPixmap(path) if os.path.exists(path) else None
+            if picture is not None and not picture.isNull():
+                art.set_picture(picture)
+                art.setToolTip("Choose this trainer")
+            else:
+                # the only case a name is shown, and only because there is
+                # nothing else to show
+                art.set_picture(None)
+                art.setText("(artwork missing)")
+                art.setToolTip("Choose this trainer")
+                art.setAlignment(Qt.AlignCenter)
+
+    # -- plumbing ----------------------------------------------------------
+    def _switch(self, index):
+        """A gender button. The one already showing is not a change.
+
+        Guarded here rather than only in the caller because this window is
+        what knows which set is on screen -- and reporting a press of the
+        active button would send the engine round its go-back loop to arrive
+        at exactly the same five portraits.
+        """
+        handler = self._on_gender
+        if handler is None or self._locked or index == self._active:
+            return
+        handler(index)
+
+    def _take(self, index):
+        """A portrait was clicked. That ends it."""
+        if self._locked:
+            return
+        self._locked = True
+        answer, self._answer = self._answer, None
+        self.close()
+        if answer is not None:
+            answer(str(index))
+
+    def keyPressEvent(self, event):
+        # Escape does *not* dismiss this. The engine loops on the question
+        # until it gets a valid answer, so walking away would leave the
+        # player looking at an empty action bar with the worker blocked in
+        # input() -- the swap-window trap in CLAUDE.md. There is no "no
+        # thanks" answer to give it, so the only way past is to choose.
+        if event.key() == Qt.Key_Escape:
+            return
+        super().keyPressEvent(event)
+
+    # No closeEvent override, and that is deliberate. The first cut had one
+    # that called event.ignore() until a portrait was taken, on the same
+    # reasoning as Escape above -- and **a dialog that refuses to close
+    # blocks QApplication.quit() outright**: app.exec() never returns and the
+    # process hangs until something kills it. It cost a 30-minute harness
+    # timeout to find, because the run itself finished normally and wrote its
+    # report first; only the shutdown hung.
+    #
+    # Nothing is lost by accepting. The window is frameless, so it has no
+    # close button, and Escape is swallowed above -- a player has no way to
+    # close it. The only things that can are the window manager and
+    # application shutdown, and in both cases refusing is worse than
+    # allowing.
+
+
 class CreditsDialog(QDialog):
-    """End of run: the closing note plus Documentation/credits.txt.
+    """End of run: the closing note plus Documentation/credits.md.
 
     The engine does print the credits, but only into the scrolling log
     where they arrive as an undifferentiated wall of text mixed in with
@@ -2394,7 +2745,7 @@ class CreditsDialog(QDialog):
         layout.addWidget(scroll, 1)
 
     def _credits_text(self, project_root):
-        path = os.path.join(project_root, "Documentation", "credits.txt")
+        path = os.path.join(project_root, "Documentation", "credits.md")
         try:
             with open(path, "r", encoding="utf-8", errors="replace") as f:
                 return f.read().rstrip()

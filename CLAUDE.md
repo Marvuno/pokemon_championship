@@ -519,6 +519,30 @@ the context too. A refactor that misses them fails the playthrough suite
 rather than the fingerprint, because the fingerprint plays AI-vs-AI and never
 loads the interface -- which is exactly what happened here, twice.
 
+## A prompt gets its own buttons, and nobody else's
+
+`prompt_parser.parse` reads the prompt *and* whatever was printed just
+before it, because several screens print their list first and then ask a bare
+question -- the switch window lists only `8:` and `9:` inline and gets the
+party from the block above it.
+
+The risk in that is picking up a list belonging to the previous screen, and it
+happened. `about_opponent` prints the opponent's team as `0:`..`5:`; the
+pre-battle menu then asks its own question listing `0:`..`4:` inline. Five of
+the six numbers were already claimed, so **the sixth Pokemon arrived as an
+extra button** -- and clicking it answered `5` to a menu with no option 5,
+which printed a complaint and redrew the bar. A button that vanished and did
+nothing, and only ever with a six-Pokemon team, which is why it looked
+intermittent.
+
+The rule is **disjointness**: a block printed earlier is used only when it is
+numbered differently from what the prompt lists itself. A single question
+never gives two things the same number, so an overlap means two screens. A
+gap rule cannot separate these -- only two plain lines sit between that list
+and the prompt, fewer than the switch window has on a good day.
+
+`test_prompt_options` holds every real prompt shape on both sides of it.
+
 ## The engine's own rules
 
 Three invariants, one suite: `Test/gui/test_engine_integrity.py`. Each of
@@ -735,6 +759,83 @@ readable only by digging the child QLabel out of the widget tree, which meant
 nothing could tell "Play Again" from "Close" -- and `Test/gui/soak.py`'s list
 of buttons a crash-sweep must never press was silently matching none of the
 game's real buttons.
+
+## Starting a career
+
+`choose_appearance` in `start_interface.py`, between the name and the
+starter. Two numbered questions -- a gender, then one of five portraits from
+`Assets/Player` -- so the terminal build works unchanged, and
+`AppearanceDialog` recognises them and shows the pictures instead of five
+buttons reading their filenames. Tagged `appearance`, the same mechanism
+`history_screen` uses (see `APPEARANCE_PROMPTS`).
+
+**The gender question is never drawn.** The window shows one screen -- the
+five portraits, with both gender buttons under them -- and answers the gender
+question from `_appearance_gender`, which starts at 0 (Male). Pressing the
+other button answers the portrait question with its go-back sentinel, which
+sends the engine round its own loop to the gender question, answered again
+from here, and the portrait question comes back with the other five. The
+window stays open throughout, so none of that round trip is visible.
+
+**Nothing on that screen may move when the gender changes.** The five frames
+are built once at a fixed size and only their pixmaps and captions change;
+the gender buttons are built once and only recoloured, which is what
+`ActionButton.set_accent` is for. `clear_layout` and a fresh row would work
+and would also make the row jump. `test_batch` compares every widget's
+geometry either side of a switch.
+
+Only clicking a portrait ends the screen. It is written to the save and shown
+in that slot's career history for good, which is why the window refuses
+Escape -- the engine loops on the question, so there is no answer that means
+"not yet".
+
+The portrait reaches the career screen through `character_art()`, which is
+the one place a competitor's picture is resolved. The player's is the only
+one that comes from `Assets/Player` rather than `Assets/characters`, and the
+only one that is per *save slot* rather than per competitor.
+
+This replaced an age in the protagonist's description. An age is either
+wrong immediately or has to be incremented on a schedule nothing in the game
+tracks.
+
+## The background and the tutorial
+
+Two readers, not one. `StoryDialog` takes its `pages`:
+`BACKGROUND_PAGES` is `BKGD_1`..`BKGD_6`, `TUTORIAL_PAGES` is
+`TUT_1`..`TUT_5`. They were a single five-page sequence, so a returning
+player who wanted a rules reminder had to page past the lore to reach it.
+
+`on_finish` makes it a **guided** reader, which is how a new player meets it:
+the last page's Next reads Continue, and every way out -- that button, the
+Close button, Escape, the window manager -- reports exactly once. It has to,
+because the engine is blocked on a keypress behind it. Same trap as the swap
+window.
+
+`bridge.py` swallows the pauses inside `backstory()` and `tutorial()` by
+stubbing `builtins.input` for the duration. The tutorial pauses four times
+between its sections -- reasonable for a terminal that would otherwise scroll
+the text away, but here each one arrived as a Continue button stacked over a
+reader the player had already paged through. One keypress for the whole
+walkthrough now, at the end.
+
+Both are pinged through state (`show_story`, `show_tutorial`) and the engine
+runs them back to back, so **both pings can land before either reader is
+closed**. `_guided_tutorial` remembers that the second is owed rather than
+opening it over the top of the first.
+
+## The top bar
+
+    Credits  Background  Tutorial  Settings  Pokedex  Standings  Your Team  –  ✕
+
+Credits and Story used to be a row of buttons on the title screen, which
+meant the lore became unreachable the moment a run started. They are all
+reference material -- they read a snapshot and touch no game state -- so
+there is no reason for them to be somewhere you have to leave a battle to
+find. Standings and Your Team are still hidden until there is a game to look
+at.
+
+`ActionButton.set_title` changes a button's caption in place, keeping
+`self.title` in step -- that attribute is what tells one button from another.
 
 ## Screens that rebuild on every state update
 
@@ -1045,7 +1146,7 @@ about +280 of inflation on everybody. So the report also runs the formula
 with the cushion off, and *that* column is the one to read as "what this
 roster is worth".
 
-Results in `Documentation/ai_rating_simulation.txt`.
+Results in `Documentation/ai_rating_simulation.md`.
 
 ### What the rating simulation cannot tell you
 
@@ -1097,7 +1198,7 @@ nearly the optimal policy, which would explain both halves of the result: the
 smart AI's extra information is worth something only once priority and
 effects start to matter. Not yet tested.
 
-Results in `Documentation/ai_head_to_head.txt`.
+Results in `Documentation/ai_head_to_head.md`.
 
 ## Open
 

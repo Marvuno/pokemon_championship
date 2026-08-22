@@ -139,7 +139,7 @@ def roll_iv(ace, floor):
 
 
 class Competitor:
-    def __init__(self, raw_id, nickname, name, strength=1, ability="", desc="", level="", music="", ace_music="", color="", quote="", strategy=""):
+    def __init__(self, raw_id, nickname, name, strength=1, ability="", desc="", level="", music="", ace_music="", quote="", strategy=""):
         self.id, self.match_id = None, None
         self.raw_id = raw_id
         self.nickname = nickname
@@ -168,8 +168,11 @@ class Competitor:
         #: rather than by round. `opponent`/`win_order` are the ordered
         #: record.
         self.run_lost_to = []
-        self.color = color
         self.quote = quote
+        #: the protagonist's chosen portrait, as a key into
+        #: Assets/Player ("Male 3"). Empty for everybody else, and for
+        #: a career begun before the picker existed.
+        self.appearance = ""
         self.team = []
         self.unused_team = []
         self.switching = 0
@@ -205,7 +208,7 @@ with open('Data/competitors.csv', encoding="ISO-8859-1") as f:
     list_of_competitors = {}
     for row in reader:
         list_of_competitors[row['Name']] = Competitor(row['ID'], row['Nickname'], row['Name'], int(row['Strength']), row['Ability'], row['Desc'], row['Level'],
-                                                      row['Music'], row['Ace Music'], row['Color'], row['Quote'], row['Strategy'])
+                                                      row['Music'], row['Ace Music'], row['Quote'], row['Strategy'])
         for i in range(1, 7):
             if row[f'Poke{i}'] != '':
                 # An Ace, not a bare string. A cell may carry the IV,

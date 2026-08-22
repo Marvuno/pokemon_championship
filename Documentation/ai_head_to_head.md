@@ -1,3 +1,8 @@
+# Smart AI vs dumb AI
+
+Generated. Do not edit by hand.
+
+```
 DOES THE SMART AI'S SWITCHING COST IT THE LOW BANDS?
 ==========================================================================
 
@@ -59,3 +64,4 @@ At the weakest band (rating 20) the smart AI went from 42.6% to
 43.6% (+/- 2.3) with its switching removed.
 VERDICT: no measurable change -- switching is not the cause.
 --------------------------------------------------------------------------
+```

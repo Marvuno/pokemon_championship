@@ -1,4 +1,7 @@
+# To-do list
+
 - long-term goals
+
     1. playable in website/app
     2. basic graphics (partial obtained)
 

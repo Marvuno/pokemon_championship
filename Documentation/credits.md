@@ -1,4 +1,4 @@
-<<CREDITS>>
+# Credits
 
 Music:
 start1.mp3 - "Tavern Loop One" by Alexander Nakarada

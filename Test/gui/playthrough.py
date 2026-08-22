@@ -161,6 +161,9 @@ ALLOWED_WINDOWS = {
     "MainWindow", "RosterDialog", "OpponentInfoDialog", "SettingsDialog",
     "HistoryDialog", "CareerDialog", "StandingsDialog", "StoryDialog",
     "CreditsDialog", "CompareDialog", "ArtLightbox", "PokedexDialog",
+    # who you are, at the start of a new career -- a real screen the player
+    # answers, not a window that escaped
+    "AppearanceDialog",
     "QMenu", "QToolTip", "QComboBoxPrivateContainer",
 }
 

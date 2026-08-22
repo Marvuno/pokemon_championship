@@ -1,4 +1,9 @@
-Pokemon
+# Game changes
+
+What this game changes from the series it borrows from.
+
+# Pokemon
+
 1. Several custom pokemon are added, including:
 - Snowchild ['Normal', 'Ice']
 - Kuroseh ['Fighting', 'Fairy']

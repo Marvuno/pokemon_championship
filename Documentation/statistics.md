@@ -1,3 +1,8 @@
+# Roster statistics
+
+Generated. Do not edit by hand -- see the harness in `Test/` that writes it.
+
+```
 Total Number of Pokemon: 239
 Normal: 20 || [4, 4, 7, 3, 1, 1] 
 Fire: 21 || [0, 2, 3, 10, 6, 0] 
@@ -693,3 +698,4 @@ Light Screen: 15
 Swords Dance: 15
 Shadow Ball: 16
 Earthquake: 17
+```

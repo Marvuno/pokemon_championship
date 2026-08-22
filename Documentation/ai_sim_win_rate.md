@@ -1,3 +1,8 @@
+# Per-Pokemon win rates
+
+Generated. Do not edit by hand -- see the harness in `Test/` that writes it.
+
+```
 Win Rate:
 Pianotic:                 74.0% || Round: 96  || Tier: Ultra High
 Genesect:                 68.9% || Round: 106 || Tier: Very High
@@ -231,3 +236,4 @@ Farfetch'd:               31.4% || Round: 102 || Tier: Very Low
 Shedinja:                 30.9% || Round: 94  || Tier: Low
 Carnivine:                30.6% || Round: 111 || Tier: Very Low
 Magikarp:                 27.2% || Round: 103 || Tier: Very Low
+```

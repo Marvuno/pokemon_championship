@@ -210,6 +210,27 @@ REWARD_PROMPTS = (
 )
 
 
+#: choose_appearance()'s two questions. The generic action bar would answer
+#: these with buttons reading "Male 1".."Male 5", which is no way to pick a
+#: picture -- AppearanceDialog shows the portraits instead. See
+#: Scripts/Game/start_interface.py.
+APPEARANCE_GENDER = "gender"
+APPEARANCE_PICK = "portrait"
+APPEARANCE_PROMPTS = (
+    ("choose your gender", APPEARANCE_GENDER),
+    ("choose your appearance", APPEARANCE_PICK),
+)
+
+
+def appearance_prompt_kind(text):
+    """Which of choose_appearance()'s questions this is, or None."""
+    lowered = (text or "").lower()
+    for marker, kind in APPEARANCE_PROMPTS:
+        if marker in lowered:
+            return kind
+    return None
+
+
 def reward_prompt_kind(text):
     """Which of choose_pokemon()'s questions this is, or None."""
     lowered = (text or "").lower()
@@ -525,6 +546,19 @@ def character_art(competitor):
     Returns "" when there is no artwork, which the interface reads as "just
     show the write-up".
     """
+    # The player's portrait is the one they chose at the start of the career,
+    # and it lives in Assets/Player rather than Assets/characters -- there is
+    # no fixed picture of the protagonist, which is the point of choosing one.
+    # It is stored on the save, so it is per slot: two careers in two slots
+    # show two different trainers.
+    if _g(competitor, "main", False):
+        chosen = str(_g(competitor, "appearance", "") or "").strip()
+        if chosen:
+            relative = os.path.join("Assets", "Player", chosen + ".jpg")
+            if os.path.exists(relative):
+                return relative
+        return ""            # a career begun before the picker existed
+
     name = str(_g(competitor, "name", "") or _g(competitor, "nickname", ""))
     for candidate in (name, str(_g(competitor, "nickname", ""))):
         if not candidate:
@@ -1348,6 +1382,8 @@ def install_hooks(bridge, game_main):
     # print straight into the log where the artwork versions of the same
     # pages cannot be seen at all. Ping the interface to open its reader
     # instead, and swallow the printing -- the reader is the walkthrough now.
+    # which state key opening each reader is pinged through
+    PAGE_PINGS = {"backstory": "show_story", "tutorial": "show_tutorial"}
     for func_name in ("backstory", "tutorial"):
         original_page = getattr(start, func_name, None)
         if original_page is None:
@@ -1355,9 +1391,20 @@ def install_hooks(bridge, game_main):
 
         def make_page(original_page=original_page, func_name=func_name):
             def wrapper(*a, **kw):
-                bridge.capture_quiet(original_page, *a, **kw)
-                if func_name == "backstory":
-                    bridge.publish(show_story=time.time())
+                # input() is stubbed out for the duration. tutorial() pauses
+                # four times between its sections, and those pauses exist for
+                # a terminal that would otherwise scroll the text away. Here
+                # the pages are a reader with its own Next button, so each
+                # one arrived as a Continue button stacked over the reader --
+                # five clicks to get past a walkthrough the player had
+                # already paged through.
+                real_input = builtins.input
+                builtins.input = lambda prompt="": ""
+                try:
+                    bridge.capture_quiet(original_page, *a, **kw)
+                finally:
+                    builtins.input = real_input
+                bridge.publish(**{PAGE_PINGS[func_name]: time.time()})
                 return None
             return wrapper
 
@@ -1389,6 +1436,29 @@ def install_hooks(bridge, game_main):
             bridge.publish(career_open=False)
 
     patch_everywhere("history_screen", original_screen, history_screen)
+
+    # -- who you are -------------------------------------------------------
+    # Same arrangement as history_screen above: every input() inside
+    # choose_appearance() is tagged, and the interface answers it from a
+    # window showing the five portraits rather than from a row of buttons
+    # reading their filenames. See APPEARANCE_PROMPTS.
+    original_appearance = getattr(start, "choose_appearance", None)
+    if original_appearance is not None:
+
+        def choose_appearance(protagonist, *a, **kw):
+            previous = bridge.next_input_kind
+            bridge.next_input_kind = "appearance"
+            try:
+                return original_appearance(protagonist, *a, **kw)
+            finally:
+                bridge.next_input_kind = previous
+                # the picture the career screen shows from here on
+                bridge.publish(appearance=str(
+                    getattr(protagonist, "appearance", "") or ""),
+                    appearance_open=False)
+
+        patch_everywhere("choose_appearance", original_appearance,
+                         choose_appearance)
 
     original_list = start.participant_list
 

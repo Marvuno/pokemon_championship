@@ -50,6 +50,23 @@ NATURAL_TURNS = 10
 #: Four terrains at 5 means one in five battles opens on some terrain, and
 #: four in five on none.
 NATURAL_CHANCE = 5
+
+#: Terrain-laying moves that no Pokemon in this roster learns, and are
+#: therefore reachable only by the arena's own opening roll.
+#:
+#: Declared rather than left to be noticed, the same bargain as KNOWN_INERT
+#: in abilities.py: a move nobody can use is either a deliberate gap or an
+#: editing accident, and the two look identical from the outside. Sylveon
+#: carried Misty Terrain for a while and does not any more -- that is the
+#: designer's call, so it is written down here instead of being quietly
+#: handed to another Fairy.
+#:
+#: Give it to somebody and delete the entry; `test_terrain` fails on a
+#: terrain move that is *neither* learnable nor listed here.
+UNLEARNED = {
+    "Misty Terrain": "no Fairy in the roster carries it; the arena's own "
+                     "opening roll is the only way it happens",
+}
 #: what a terrain does to the type it favours
 BOOST = 1.3
 #: and what it does to the type it blunts

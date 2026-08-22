@@ -25,7 +25,7 @@ competitor -- rating, roster and all -- and not a random six.
 It runs at roughly five battles a second, so the full 55-competitor round
 robin at five each is about 7,400 battles and half an hour. Progress goes to
 stderr as it works. --only or --pair is the way to ask a narrower question
-quickly; the table is written to Documentation/opponent_ladder.txt either way.
+quickly; the table is written to Documentation/opponent_ladder.md either way.
 
 Test/ai_simulation.py is the older, Pokemon-focused sibling: same battle
 engine, but it asks which *Pokemon* win rather than which competitors.
@@ -42,6 +42,21 @@ import time
 from contextlib import redirect_stdout, suppress
 from copy import deepcopy
 
+
+def as_markdown(title, body):
+    """Wrap a fixed-width report as a markdown document.
+
+    The body is aligned columns and ruled separators, and markdown
+    reflows plain text -- so it goes inside a fence rather than being
+    left to collapse into a paragraph. The title is outside it, so the
+    file still reads as a document and not as one big code block.
+    """
+    return ("# %s" % title + chr(10) * 2
+            + "Generated. Do not edit by hand." + chr(10) * 2
+            + "```" + chr(10) + body.rstrip(chr(10))
+            + chr(10) + "```" + chr(10))
+
+
 if __name__ == "__main__":                       # run from the project root
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(
         __file__))))
@@ -53,7 +68,7 @@ from Scripts.Battle.battle_win_condition import wins_a_draw
 from Scripts.Game.game_procedure import team_generation
 from Scripts.Game.game_system import *
 
-REPORT = os.path.join("Documentation", "opponent_ladder.txt")
+REPORT = os.path.join("Documentation", "opponent_ladder.md")
 
 #: battles the engine could not finish -- reported, not fatal
 FAULTS = []
@@ -348,7 +363,7 @@ def main(argv=None):
     print("\n" + text)
     if not args.no_write:
         with open(REPORT, "w", encoding="utf-8") as handle:
-            handle.write(text + "\n")
+            handle.write(as_markdown("Opponent ladder", text))
         print("\nwritten to %s" % REPORT)
     return 0
 

@@ -31,23 +31,31 @@ def check(label, got, want):
         failures.append(label)
 
 
-# ------------------------------------------------------ 1. the story reader
-story = StoryDialog(w.fonts, {"backstory": "b", "tutorial": "t"}, ROOT)
+# ------------------------------------------------------ 1. the two readers
+# Background and Tutorial used to be one five-page reader. They are two now,
+# because wanting a rules reminder should not mean paging past the lore --
+# so what this checks is that each is a complete reader in its own right.
+story = StoryDialog(w.fonts, {"backstory": "b", "tutorial": "t"}, ROOT,
+                    pages=StoryDialog.BACKGROUND_PAGES)
 story.resize(1020, 660)
 story.show()
 app.processEvents()
-check("reader has five pages", len(story.PAGES), 5)
-check("page order starts on the background",
+check("the background reader has six pages", len(story.PAGES), 6)
+check("...all of them BKGD art",
       [p[0] for p in story.PAGES],
-      ["Background.jpg", "Tutorial_1.jpg", "Tutorial_2.jpg",
-       "Tutorial_3.jpg", "Tutorial_4.jpg"])
-check("opens on page 1", story.counter.text(), "1 / 5")
+      ["BKGD_%d.jpg" % n for n in range(1, 7)])
+check("the tutorial reader has five",
+      len(StoryDialog.TUTORIAL_PAGES), 5)
+check("...all of them TUT art",
+      [p[0] for p in StoryDialog.TUTORIAL_PAGES],
+      ["TUT_%d.jpg" % n for n in range(1, 6)])
+check("opens on page 1", story.counter.text(), "1 / 6")
 check("Back is disabled at the start", story.back.disabled, True)
 check("Next is enabled at the start", story.forward.disabled, False)
 check("page 1 shows artwork, not text",
       story.page.pixmap() is not None and not story.page.pixmap().isNull(),
       True)
-for expected in ("2 / 5", "3 / 5", "4 / 5", "5 / 5"):
+for expected in ("2 / 6", "3 / 6", "4 / 6", "5 / 6", "6 / 6"):
     story.step(1)
     app.processEvents()
     if story.counter.text() != expected:
@@ -55,19 +63,125 @@ for expected in ("2 / 5", "3 / 5", "4 / 5", "5 / 5"):
               expected)
         break
 else:
-    check("paging forward walks 1 -> 5", story.counter.text(), "5 / 5")
-check("Next disabled on the last page", story.forward.disabled, True)
+    check("paging forward walks 1 -> 6", story.counter.text(), "6 / 6")
+check("Next disabled on the last page, unguided", story.forward.disabled,
+      True)
 check("Back enabled on the last page", story.back.disabled, False)
 story.step(1)
-check("Next past the end does nothing", story.counter.text(), "5 / 5")
+check("Next past the end does nothing", story.counter.text(), "6 / 6")
 if HEADED:
-    story.grab().save(os.path.join(OUT, "story_page5.png"))
-for _ in range(6):
+    story.grab().save(os.path.join(OUT, "story_page6.png"))
+for _ in range(8):
     story.step(-1)
-check("Back past the start does nothing", story.counter.text(), "1 / 5")
+check("Back past the start does nothing", story.counter.text(), "1 / 6")
+
+# Guided: a new player is walked through, and the last page's Next becomes
+# the way on rather than going dead. Every way out has to report, because
+# the engine is blocked on a keypress behind it.
+for exit_name, leave in (("Continue on the last page",
+                          lambda d: d.step(1)),
+                         ("the Close button", lambda d: d.finish()),
+                         ("closing the window", lambda d: d.close())):
+    done = []
+    guided = StoryDialog(w.fonts, {}, ROOT,
+                         pages=StoryDialog.TUTORIAL_PAGES,
+                         on_finish=lambda: done.append(1))
+    guided.show()
+    app.processEvents()
+    for _ in range(len(guided.PAGES) - 1):
+        guided.step(1)
+    check("guided: last page offers Continue", guided.forward.title,
+          "Continue")
+    leave(guided)
+    app.processEvents()
+    check("guided: %s reports exactly once" % exit_name, done, [1])
+    leave(guided)                       # and never twice
+    check("guided: %s does not report twice" % exit_name, done, [1])
+
 check("every page has artwork on disk",
       all(os.path.exists(os.path.join(ROOT, "Assets", "generated", p[0]))
-          for p in story.PAGES), True)
+          for p in StoryDialog.BACKGROUND_PAGES
+          + StoryDialog.TUTORIAL_PAGES), True)
+
+# ---------------------------------------------------- 1b. who you are
+# One screen: five portraits with both gender buttons under them. The engine
+# still asks two questions; the window never draws the first one.
+from GUI_qt.panels import AppearanceDialog                          # noqa: E402
+
+picker = AppearanceDialog(w.fonts, ROOT)
+chosen, switched = [], []
+MALE = ["Male %d" % n for n in range(1, 6)]
+FEMALE = ["Female %d" % n for n in range(1, 6)]
+
+picker.ask_portrait(["Male", "Female"], 0, MALE, chosen.append,
+                    switched.append)
+app.processEvents()
+check("it opens straight onto the portraits", picker.heading.text(),
+      "Choose your appearance")
+check("all five are shown at once", len(picker._slots), 5)
+check("both gender buttons are there", len(picker._gender_buttons), 2)
+
+# the one thing this screen must not do is move when the gender changes
+def geometry():
+    return [art.parentWidget().geometry().getRect()
+            for art in picker._slots]
+
+before = geometry()
+pictures_before = [art.pixmap().cacheKey() if art.pixmap() else None
+                   for art in picker._slots]
+picker._switch(1)
+check("pressing the other gender asks for it", switched, [1])
+picker.ask_portrait(["Male", "Female"], 1, FEMALE, chosen.append,
+                    switched.append)
+app.processEvents()
+check("nothing moves when the gender changes", geometry(), before)
+check("...but the portraits do change",
+      [art.pixmap().cacheKey() if art.pixmap() else None
+       for art in picker._slots] != pictures_before, True)
+# and no name is written under any of them -- the picture is the choice
+check("the portraits are unlabelled",
+      [art.text() for art in picker._slots], [""] * 5)
+check("pressing the gender already showing does nothing",
+      (picker._switch(1), switched)[1], [1])
+check("nothing is committed by switching", chosen, [])
+
+picker._take(3)
+check("clicking a portrait answers with its index", chosen, ["3"])
+check("...and there is no going back after it", picker._locked, True)
+picker._switch(0)
+check("...not even the gender buttons", switched, [1])
+check("every portrait exists on disk",
+      all(os.path.exists(os.path.join(ROOT, "Assets", "Player",
+                                      "%s %d.jpg" % (g, n)))
+          for g in ("Male", "Female") for n in range(1, 6)), True)
+picker.close()
+
+# --- no dialog may refuse to close ----------------------------------------
+# A closeEvent that calls event.ignore() blocks QApplication.quit(): the
+# event loop never returns and the process hangs. AppearanceDialog had one,
+# to stop the player walking away from a question the engine loops on, and it
+# hung the playthrough harness for thirty minutes -- the run finished and
+# wrote its report, and only the shutdown stuck. Escape is the right place to
+# refuse; closeEvent never is.
+import GUI_qt.panels as PANELS                                      # noqa: E402
+from PySide6.QtWidgets import QDialog                               # noqa: E402
+
+stubborn = []
+for _name in dir(PANELS):
+    _cls = getattr(PANELS, _name)
+    if not (isinstance(_cls, type) and issubclass(_cls, QDialog)):
+        continue
+    _own = _cls.__dict__.get("closeEvent")
+    import inspect                                                  # noqa: E402
+    # only ones written in Python here -- a class that inherits Qt's own
+    # closeEvent has a C++ method_descriptor, which has no source to read
+    if not inspect.isfunction(_own):
+        continue
+    _src = inspect.getsource(_own)
+    _code = chr(10).join(l.split("#", 1)[0] for l in _src.splitlines())
+    if "ignore()" in _code:
+        stubborn.append(_name)
+check("no dialog refuses to close", stubborn, [])
 if HEADED:
     story.grab().save(os.path.join(OUT, "story_page1.png"))
 story.close()

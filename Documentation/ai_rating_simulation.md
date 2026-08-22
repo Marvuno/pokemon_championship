@@ -1,3 +1,8 @@
+# What each competitor's rating is worth
+
+Generated. Do not edit by hand -- see the harness in `Test/` that writes it.
+
+```
 What each competitor's rating is actually worth
 ==============================================================================
 
@@ -200,3 +205,4 @@ Goblin                        1 |      2      1     10 |     18      1     25
 Trasher                       3 |      2      1     12 |     15      3     29
 Solanum                       9 |      1      1     18 |     20      7     37
 Vardy                        33 |      1      1     42 |     23     16     55
+```

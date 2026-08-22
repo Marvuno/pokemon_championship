@@ -31,7 +31,7 @@ def main():
             print("Congratulations! You have won the Pokemon World Championship!!!")
             print(f"You have obtained {list_of_competitors['Protagonist'].championship + 1} World Champion Title(s) in your career!\n")
             music(audio='Assets/music/credits.mp3', loop=False)
-            with open('Documentation/credits.txt', 'r') as f:
+            with open('Documentation/credits.md', 'r') as f:
                 for line in f:
                     print(line.rstrip())
             input("\nPress any key to proceed.")

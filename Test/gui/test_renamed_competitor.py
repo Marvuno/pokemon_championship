@@ -107,8 +107,13 @@ for folder in ("Scripts", "GUI", "GUI_qt", "Data", "Documentation"):
             for old in savefile.RENAMED:
                 if old in text:
                     looked.append("%s (%s)" % (path.replace(os.sep, "/"), old))
-# savefile.py is allowed to: it is the file that holds the map
-looked = [hit for hit in looked if "savefile.py" not in hit]
+# Two files are allowed to say it. savefile.py holds the rename map itself,
+# and a changelog exists precisely to record that the name used to be that --
+# scrubbing the old name out of the history of the rename would leave the
+# entry describing nothing.
+ALLOWED = ("savefile.py", "changelog")
+looked = [hit for hit in looked
+          if not any(name in hit for name in ALLOWED)]
 check("no data file or module mentions a renamed competitor", looked, [])
 
 print()

@@ -222,9 +222,15 @@ def main_screen():
     if option == 0:
         noob_confirmation = input("Are you a first-timer? Please enter 'Y' if you are new to the game (backstory, rules and tutorial): ").upper()
         if noob_confirmation == 'Y':
+            # One keypress at the end of both, not one between them and
+            # four more inside the tutorial. In the window these are
+            # page-by-page readers (Assets/generated/BKGD_*.jpg and
+            # TUT_*.jpg) and the reader's own Next button is the paging,
+            # so every extra pause here put a second Continue button
+            # over the top of it.
             backstory()
-            input("Enter any key to continue...")
             tutorial()
+            input("Enter any key to continue...")
         # name input
         # Both fields, not just the nickname, and compared case-insensitively.
         # A competitor has a nickname ("Lady Evonne") and an internal name
@@ -261,6 +267,10 @@ def main_screen():
         # After the name, and outside the first-timer branch above, so it
         # happens whether the tutorial was taken or skipped. Before
         # team_generation below, which fills the rest of the team around it.
+        # Appearance first: you decide who you are, then what you
+        # bring. Both are outside the first-timer branch, so they
+        # happen whether the tutorial was taken or skipped.
+        choose_appearance(list_of_competitors['Protagonist'])
         choose_starter(list_of_competitors['Protagonist'])
     # continue -- the loop above already sent you back if there was no save,
     # so getting here means there is one
@@ -358,6 +368,70 @@ def choose_starter(protagonist):
 
     print(f"\n{CBOLD}{CGREEN2}{chosen} joins you. Good luck out there.{CEND}")
     protagonist.team.append(chosen)
+    return chosen
+
+
+#: how many portraits each gender offers. The files are "Male 1.jpg" ..
+#: "Male 5.jpg" and the same for Female, in Assets/Player.
+APPEARANCE_GENDERS = ("Male", "Female")
+APPEARANCE_CHOICES = 5
+#: answering this to the portrait question goes back to the gender question
+APPEARANCE_BACK = 9
+
+
+def appearance_options(gender):
+    """The portrait keys offered for a gender, in order."""
+    return ["%s %d" % (gender, n) for n in range(1, APPEARANCE_CHOICES + 1)]
+
+
+def choose_appearance(protagonist):
+    """Pick who you are: a gender, then one of five portraits.
+
+    Two questions rather than one, and only the first is revocable --
+    answering APPEARANCE_BACK to the portraits goes back to the gender. Once
+    a portrait is taken it is taken: it is stamped on the save and shown in
+    that slot's career history from then on, so there is no undo past it.
+
+    This is what replaced the age in the protagonist's description. An age
+    is either wrong immediately or has to be incremented on a schedule
+    nothing in the game tracks; a portrait the player picks is neither.
+
+    Printed as a numbered list like every other question here, so the
+    terminal build works unchanged. The window recognises the two questions
+    and shows the five pictures rather than five names -- see
+    APPEARANCE_PROMPTS in GUI/bridge.py.
+    """
+    chosen = None
+    while chosen is None:
+        print("")
+        print(f"{CBOLD}{CYELLOW2}Who are you?{CEND}")
+        for index, gender in enumerate(APPEARANCE_GENDERS):
+            print(f"{CBOLD}{index}: {gender}{CEND}")
+        gender = None
+        while gender is None:
+            with suppress(ValueError):
+                answer = int(input("Please choose your gender: "))
+                if 0 <= answer < len(APPEARANCE_GENDERS):
+                    gender = APPEARANCE_GENDERS[answer]
+
+        offered = appearance_options(gender)
+        print("")
+        print(f"{CBOLD}{CYELLOW2}Choose your appearance.{CEND}")
+        for index, key in enumerate(offered):
+            print(f"{CBOLD}{index}: {key}{CEND}")
+        print(f"{CBOLD}{APPEARANCE_BACK}: Choose a different gender "
+              f"instead{CEND}")
+        while chosen is None:
+            with suppress(ValueError):
+                answer = int(input("Please choose your appearance: "))
+                if answer == APPEARANCE_BACK:
+                    break                      # back out to the gender
+                if 0 <= answer < len(offered):
+                    chosen = offered[answer]
+
+    protagonist.appearance = chosen
+    print("")
+    print(f"{CBOLD}{CGREEN2}That is you. Good luck out there.{CEND}")
     return chosen
 
 

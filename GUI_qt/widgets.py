@@ -381,6 +381,7 @@ class ActionButton(RoundedPanel):
         super().__init__(parent, bg=base_bg, border=base_border,
                          radius=T.RADIUS_MD)
         self._base_bg, self._accent = base_bg, QColor(accent)
+        self._emphasis = bool(emphasis)     # so set_accent can keep it
         #: what it says. Kept as an attribute because the title was
         #: otherwise readable only by digging out the child QLabel -- which
         #: meant nothing could tell "Play Again" from "Close", and
@@ -422,6 +423,38 @@ class ActionButton(RoundedPanel):
             sub_label.setStyleSheet("color: %s; background: transparent;"
                                     % T.TEXT_FAINT)
             layout.addWidget(sub_label)
+
+    def set_accent(self, accent, emphasis=None):
+        """Recolour in place, keeping the button's size and position.
+
+        For a button that toggles between selected and not -- the gender
+        switch on the appearance screen. Rebuilding it would work and would
+        also be a new widget in the layout, which is exactly what that screen
+        must not do: nothing on it is allowed to move when the selection
+        changes. This is the same recolouring `__init__` does, applied after
+        the fact.
+        """
+        if emphasis is None:
+            emphasis = self._emphasis
+        self._emphasis = bool(emphasis)
+        self._accent = QColor(accent)
+        self._base_bg = (T.mix(T.PANEL_RAISED, accent, 0.14) if emphasis
+                         else T.PANEL_RAISED)
+        self.set_style(bg=self._base_bg,
+                       border=accent if emphasis else T.LINE_SOFT)
+
+    def set_title(self, title):
+        """Change what it says, in place.
+
+        `self._labels[0]` is the title label -- the rest are the subtitle and
+        the hotkey, which this must not touch. Kept in step with
+        `self.title`, since that attribute is what tells one button from
+        another (see the note on it above).
+        """
+        if title == self.title or not self._labels:
+            return
+        self.title = title
+        self._labels[0].setText(title)
 
     def set_enabled(self, on):
         """Grey out or restore the button in place.
