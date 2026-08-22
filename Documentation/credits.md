@@ -21,5 +21,6 @@ credits.mp3 - Pokemon X&Y Credits
 
 Graphics:
 Credits to ProjectPokemon, theSLAYER and pkparaiso for 3D animated sprites of all original Pokemon! Thank you for the generosity!
+Credits to Claude, and Leonardo.ai for game development and graphics support!
 
-Pokemon Championship || Copyright 2022 Marvin Hui
+Pokemon Championship || Copyright 2026 Marvin Hui
