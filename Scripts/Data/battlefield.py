@@ -18,6 +18,13 @@ class Battleground:
         self.terrain_turn = 0
         # other factors
         self.battle_continuation = True
+        #: a second move to run inside this same turn, and a guard so the
+        #: repeat cannot queue another. Set by the Wizardry and Overloaded
+        #: character abilities, read once by move_order_and_execution.
+        #: On the battleground because it is rebuilt per battle, so it
+        #: cannot leak from one to the next.
+        self.encore_move = None
+        self.encore_running = False
         self.reality = True
         self.sudden_death = False
         # stackable

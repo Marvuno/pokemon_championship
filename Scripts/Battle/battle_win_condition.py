@@ -88,6 +88,7 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         pokemon.previous_move = ""
         pokemon.disabled_moves = {}
         pokemon.disguise, pokemon.transform = False, False
+        pokemon.roosting = None
         with suppress(AttributeError):
             # copies: a Pokemon's live typing is what moves like Forest's
             # Curse add to, and handing it the same list the default is held

@@ -18,14 +18,39 @@ def check_volatile_status(pokemon, move):
     if pokemon.status in non_volatile_status.keys():  # check non_volatile_status first
         move_execution_inability = non_volatile_status[pokemon.status](pokemon, move)
         if move_execution_inability:
+            _interrupt_charge(pokemon)
             return move_execution_inability
 
     for status, consequence in volatile_status.items():  # then volatile status
         if pokemon.volatile_status[status] > 0:
             move_execution_inability = consequence(pokemon, move)
             if move_execution_inability:
+                _interrupt_charge(pokemon)
                 return move_execution_inability
     return move_execution_inability
+
+
+def _interrupt_charge(pokemon):
+    """Something stopped this Pokemon moving, so a two-turn move is over.
+
+    A Pokemon half-way through Fly, Dig or Dive is *semi-invulnerable* --
+    `battle_move_execution` reads `charging[1]` and makes almost everything
+    miss it. Falling asleep, freezing or flinching left that state standing:
+    the move never resolved, the charge never cleared, and the Pokemon
+    stayed untouchable for the rest of the battle while doing nothing. Yawn
+    into Fly was the reliable way to see it -- the target dozes off on the
+    turn it should have come down, and is immune from then on.
+
+    In the real games an interrupted two-turn move is simply cancelled and
+    the Pokemon is back in reach, which is what this does. Charging moves
+    (Solar Beam) are cancelled the same way; they were not *hiding* anything,
+    but a charge that survives the turn it was supposed to fire on would
+    resume out of nowhere later.
+    """
+    if pokemon.charging[0] != "":
+        narrator.say(f"{pokemon.name} could not finish "
+                     f"{pokemon.charging[0]}.", "fail")
+        pokemon.charging = ["", "", 0]
 
 
 def fainting(pokemon, move):

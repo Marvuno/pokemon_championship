@@ -1405,6 +1405,11 @@ class CareerDialog(QDialog):
     the title screen. See CAREER_PROMPTS in GUI/bridge.py.
     """
 
+    #: how wide this window is allowed to get. The tables inside are the
+    #: reason it is generous: a Head to Head row is a name, a rating and a
+    #: full record, and there are five tabs of them.
+    WIDEST = 1560
+
     #: rank -> colour, for the championship-history chips
     PODIUM = {1: T.ACCENT, 2: T.TEXT, 3: T.TEXT}
     TABS = ("Opponents", "Champions", "Career", "Tournaments",
@@ -1430,8 +1435,15 @@ class CareerDialog(QDialog):
         self.setStyleSheet("background: %s;" % T.BG)
         screen = QGuiApplication.primaryScreen()
         room = screen.availableGeometry() if screen else None
-        self.resize(min(1180, room.width() - 60) if room else 1180,
-                    min(820, room.height() - 60) if room else 760)
+        # As wide as the display allows, up to WIDEST. The old cap was 1180,
+        # which was not enough for the tables this window holds: Head to Head
+        # is a competitor's name, their rating and a full win/loss record on
+        # one row, and Tournaments is a row per championship ever held. Both
+        # were being elided or wrapped on a display with plenty of room to
+        # spare. It is still a resize rather than a fixed size, so it can be
+        # dragged smaller.
+        self.resize(min(self.WIDEST, room.width() - 60) if room else 1180,
+                    min(880, room.height() - 60) if room else 760)
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(12, 12, 12, 12)

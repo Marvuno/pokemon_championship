@@ -79,6 +79,10 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     user_team[0].modifier = [0] * 9
     user_team[0].protection = [0, 0]
     user_team[0].charging = ["", "", 0]
+    # A move locked away is locked for the Pokemon standing there, not for
+    # the rest of the battle -- leaving the field clears every source of a
+    # lock at once (Disable, Cursed Body, the Torment character ability),
+    # because they all write to this one dict.
     user_team[0].disabled_moves = {}
     user_team[0].previous_move = ""
     # reset volatile status except sleeping turns

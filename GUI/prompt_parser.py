@@ -25,7 +25,19 @@ RE_NUMBERED = re.compile(r"^\s*(\d{1,3})\s*[:.]\s*(.+?)\s*$")
 # boxed menu row: "| 0 NEW GAME |"
 RE_BOXED = re.compile(r"\|\s*(\d{1,3})\s+([A-Z][A-Z0-9 /'\-]*?)\s*\|")
 # python tuple list printed straight into a prompt: "[(0, 'Pikachu'), ...]"
-RE_TUPLE = re.compile(r"\(\s*(\d{1,3})\s*,\s*['\"]([^'\"]*)['\"]\s*\)")
+#
+# The quote is captured and back-referenced so the closing one has to match
+# the opening one, and the name itself may contain the *other* quote. That is
+# not a nicety: Python's repr switches to double quotes for a string holding
+# an apostrophe, so a team list prints as
+#
+#     [(0, 'Pikachu'), (1, "Farfetch'd")]
+#
+# and a character class that ended at either quote stopped inside the name,
+# failed to find the ")" after it, and dropped the entry. Farfetch'd and
+# Sirfetch'd were missing from the switch-order and keep-team screens --
+# silently, since the rest of the list parsed fine.
+RE_TUPLE = re.compile(r"""\(\s*(\d{1,3})\s*,\s*(['"])(.*?)\2\s*\)""")
 # sentinel described in a sentence: "Enter 9 when you are done"
 RE_SENTINEL = re.compile(
     r"(?:enter|input|press|type)\s+['\"]?(\d{1,3})['\"]?\s+"
@@ -146,7 +158,7 @@ def _collect(text, into, seen):
     for m in RE_BOXED.finditer(text):
         _add(into, seen, m.group(1), m.group(2))
     for m in RE_TUPLE.finditer(text):
-        _add(into, seen, m.group(1), m.group(2))
+        _add(into, seen, m.group(1), m.group(3))   # 2 is the quote itself
 
 
 def _add(into, seen, value, label, kind="option"):

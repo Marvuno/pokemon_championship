@@ -230,6 +230,20 @@ def compare_speed(turn, player_move, opponent_move):
     player.battle_stats[5] = speed_adjustment(protagonist, player, battleground)
     opponent.battle_stats[5] = speed_adjustment(competitor, opponent, battleground)
 
+    # Abilities that decide *when* a Pokemon moves, fired here because here is
+    # the last moment before the question is settled -- see ORDER_PHASE. Each
+    # side is given its own move, so Prankster and Gale Wings adjust the
+    # priority of the move their holder is about to use.
+    #
+    # After speed_adjustment, not before: that reads paralysis, Tailwind and
+    # Trick Room off the base speed, and Swift Swim doubles what comes out.
+    # Nothing compounds, because move_selection rebuilds battle_stats from
+    # nominal_base_stats at the top of every turn.
+    UseAbility(turn, player_move, abilityphase=ORDER_PHASE)
+    UseCharacterAbility(turn, player_move, abilityphase=ORDER_PHASE)
+    UseAbility(turn.flip(), opponent_move, abilityphase=ORDER_PHASE)
+    UseCharacterAbility(turn.flip(), opponent_move, abilityphase=ORDER_PHASE)
+
     # "the player moves first" and "the enemy moves first" are the same
     # context read from either end now, rather than two orderings of nine
     # arguments. flip() is the whole difference.
@@ -372,6 +386,16 @@ def end_of_turn(turn, player_move, opponent_move):
             sound(audio="Assets/music/sudden_death.mp3")
             battleground.sudden_death = True
 
+        # Roost lasts the turn and no longer. Restored from the copy the
+        # handler took, not from default_type, so a type added during this
+        # battle survives -- see check_move_roost.
+        for roosted in (player, opponent):
+            if getattr(roosted, "roosting", None):
+                roosted.type = list(roosted.roosting)
+                roosted.roosting = None
+                if "Flying" in roosted.type:
+                    roosted.volatile_status['Grounded'] = 0
+
         # hp decreasing modifier
         player.battle_stats[0] = hp_decreasing_modifier(player, opponent, battleground)
         opponent.battle_stats[0] = hp_decreasing_modifier(opponent, player, battleground)
@@ -390,8 +414,21 @@ def end_of_turn(turn, player_move, opponent_move):
             opponent = switch_fainted_pokemon_at_end_of_turn(competitor, protagonist, opponent_team, player_team, battleground)
             check_fainted(player, opponent)
 
-    # player / opponent may have been reassigned by the fainted-switch loop
-    # above, so the context is built here rather than reused.
+    # The next turn starts from whoever is at the front of each team.
+    #
+    # `player` and `opponent` are locals, and only the fainted-switch loop
+    # above reassigns them -- so anything *else* that replaced team[0]
+    # during the turn left them stale, and the next turn ran with the
+    # Pokemon that had left as its `active` while the team already held the
+    # replacement. The replacement then executed the move chosen for the
+    # one that had gone: 14 moves in 60 battles, once a character ability
+    # started forcing switches at the end of a turn.
+    #
+    # Side.active is stored rather than derived on purpose (see CLAUDE.md)
+    # -- mid-switch the two genuinely differ. A turn *boundary* is not
+    # mid-switch: here the active Pokemon is team[0] by definition, and
+    # after the loop above the two already agree, so this is the same
+    # value by a route that cannot go stale.
     move_selection(Turn(battleground,
-                        Side(protagonist, player_team, player),
-                        Side(competitor, opponent_team, opponent)))
+                        Side(protagonist, player_team, player_team[0]),
+                        Side(competitor, opponent_team, opponent_team[0])))

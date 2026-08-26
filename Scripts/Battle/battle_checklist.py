@@ -143,6 +143,9 @@ def move_order_and_execution(turn, move, target_move):
     # status condition
     user_health_condition = check_volatile_status(user, move)
     fail, immune = True, False
+    #: the move reached the target even if it did no damage. Only
+    #: the self-switching effect reads this -- see below.
+    connected = False
 
     if not user_health_condition and move.name != "Switching":
         narrator.used(user_side.side_color, user.name, move.name)
@@ -180,6 +183,18 @@ def move_order_and_execution(turn, move, target_move):
                         # no effect move and not a charging move
                         if move.damage <= 0 and move.attack_type != "Status" and move.charging not in ("Charging", "Semi-invulnerable"):
                             immune = True
+                            # ...but "did no damage" and "never connected" are
+                            # different things, and one effect cares about
+                            # the difference. U-turn leaves the field because
+                            # it *hit*, not because it hurt -- so an ability
+                            # that reduces the damage to nothing (Illusion's
+                            # halving on a weak hit, Silhouette's, an
+                            # absorbing ability) stopped it switching out, and
+                            # the player was left standing there. The type
+                            # chart is what decides whether it connected at
+                            # all: a real immunity is 0x.
+                            if getattr(move, "type_effectiveness", 1):
+                                connected = True
 
                         # trigger effects when using move
                         other_effect_when_use_move(user, target, battleground, move)
@@ -223,6 +238,33 @@ def move_order_and_execution(turn, move, target_move):
                             UseCharacterAbility(turn, move, abilityphase=6)
                             UseCharacterAbility(turn.flip(), move, abilityphase=7)
                             fail = False
+                        elif connected and "switching" in str(
+                                move.effect_type):
+                            # It hit; it just did not hurt. U-turn and its kin
+                            # still leave the field.
+                            move_special_effect(turn, move)
+                            fail = False
+                            break
+                        else:
+                            # A move the target is immune to does not get to
+                            # keep striking. Phase 5 is inside this loop --
+                            # rightly, since Rough Skin and its kin answer
+                            # every hit -- but the *absorbing* abilities are
+                            # there too, and they heal a quarter of maximum
+                            # HP each time they fire.
+                            #
+                            # Water Shuriken hits up to five times. Against
+                            # Water Absorb that was five quarters: the move
+                            # reported 0 damage, as it should, and refilled a
+                            # nearly-fainted Pokemon to full. Volt Absorb and
+                            # Dry Skin had the same arithmetic waiting.
+                            #
+                            # In the real games an absorbed move is negated
+                            # outright -- one trigger, then nothing -- and a
+                            # multi-hit move against an immune target stops
+                            # rather than swinging four more times at
+                            # somebody it cannot touch.
+                            break
             # the move is dodged
             else:
                 narrator.say(f"\nOpponent Pokemon avoided the attack!\n")
@@ -251,6 +293,46 @@ def move_order_and_execution(turn, move, target_move):
             user.ineffective_moves.get(target.name, set()).discard(move.name)
     user.modifier, target.modifier = check_modifier_limit(user), check_modifier_limit(target)
     narrator.say("")
+
+    # -- a move that goes off twice --------------------------------------
+    # Two character abilities ask for a second move inside the one turn:
+    # Overloaded repeats what was just used, Wizardry rolls a fresh one. They
+    # set `encore_move` on the battleground as their move resolves; this is
+    # the only place that reads it, because this is the only place that knows
+    # a move has finished.
+    #
+    # `encore_running` is not belt and braces. The repeat runs the same code
+    # path, so the ability fires again on the way through and would queue
+    # another -- a Pokemon with Wizardry would take its turn until the
+    # recursion limit stopped it. One extra move per turn, and the flag is
+    # cleared however the repeat ends.
+    #
+    # **Only once the move actually worked.** The ability sets its intent as
+    # the move goes off, which is before anyone knows whether it landed, so
+    # the decision is made here where the answer is known:
+    #
+    #   fail            the move missed, was refused, or hit an immunity
+    #   name Switching  swapping out is not a move to follow up
+    #   charging set    the Pokemon committed to Fly or Dig rather than
+    #                   landing anything; it is eligible on the turn it
+    #                   comes down, which is the turn the charge clears
+    #
+    # Without these the extra move fired on misses and on switches, and the
+    # log read as a mess of moves nobody had chosen.
+    encore = getattr(turn.ground, "encore_move", None)
+    turn.ground.encore_move = None
+    worked = (not fail and move.name != "Switching"
+              and user.charging[0] == ""
+              and user.status != "Fainted" and target.status != "Fainted")
+    if (encore is not None and worked
+            and not getattr(turn.ground, "encore_running", False)):
+        narrator.say(f"{user.name} is not finished -- {encore.name} follows.",
+                     "ability")
+        turn.ground.encore_running = True
+        try:
+            move_order_and_execution(turn, encore, target_move)
+        finally:
+            turn.ground.encore_running = False
 
 
 # reducing hp at the end of each turn

@@ -29,6 +29,7 @@ from Scripts.Battle.type_immunity import *
 from Scripts.Battle.context import Side, Turn
 from Scripts.Battle.constants import has_ability
 
+from Scripts.Battle.constants import ORDER_PHASE
 from Scripts.Battle.ability_effects import REGISTRY, AbilityCall
 
 #: the old name for the registry, kept because it reads well at call sites
@@ -40,7 +41,14 @@ list_of_abilities = REGISTRY
 #: at a call site says nothing on its own.
 PHASES = {1: "switching in", 2: "using a move", 3: "being targeted",
           4: "dealing damage", 5: "taking damage", 6: "after dealing damage",
-          7: "after taking damage", 8: "end of turn", 9: "switching out"}
+          7: "after taking damage", 8: "end of turn", 9: "switching out",
+          # 10 is the odd one out, and deliberately so: 1..9 all happen once
+          # a Pokemon is already taking its turn, which is too late for an
+          # ability that decides *when* the turn is taken. Swift Swim doubled
+          # a Speed the order had already been read from. Fired from
+          # compare_speed, after the speed adjustment and before the
+          # comparison -- see ORDER_PHASE in Scripts/Battle/constants.py.
+          ORDER_PHASE: "before the turn order is decided"}
 
 #: Abilities a Pokemon actually holds that have NO entry in the registry, and
 #: why. These do nothing whatsoever in a battle.

@@ -1,4 +1,66 @@
-Pokemon Championship v1.2 (graphics update)
+Pokemon Championship v1.2.3
+
+Interface
+- Will now show moves that are disabled and reason for disabling
+- Career history window's width is expanded
+
+Pokemon & Characters
+- added new Pokemon: Kartana, Archeops, Overqwil, Fezandipiti, Mega Scizor, Delphox, Goodra, Heatran, Jirachi, Steelix, Tangrowth, Volcanion
+- added new abilities: Toxic Chain
+- added new moves: Barb Barrage, Snipe Shot, Roost, Steam Eruption, Magma Storm
+- added new characters: Samantha, Beatrice, Velvet, The Trio, Vex, Serena
+- added new character abilities: Anger Point, Tension Release, Wizardry, Overloaded, Synchronize, Torment
+- removed characters: AL
+
+Rebalancing
+- REMOVE CHARACTER ABILITY Monkey: Monkey King now has no character ability
+- REWORK CHARACTER ABILITY Light Speed: no longer grants +1 Spd or the Electric type; the battle now starts on Electric Terrain and the Pokemon are immune to Ground-type damage
+- ADJUST CHARACTER ABILITY Primordial: every 10 turns, brings the rain back if anything cleared it; Pokemon move 1.5x faster while it is raining instead of 2x
+- ADJUST CHARACTER ABILITY Moody: 15% swing -> 10% swing, and the chances go from 15%/25% to 10%/20%
+- NERF CHARACTER ABILITY Killer Instinct: 20% chance -> 10% chance
+- NERF CHARACTER ABILITY Blunders: damage no longer takes type effectiveness into effect
+- NERF CHARACTER ABILITY Plot Armor: still 3 lives, but revives to half HP rather than a full bar
+- NERF CHARACTER ABILITY Gargantuan: 25% chance -> 15% chance
+- BUFF CHARACTER ABILITY Old Legends: will reduce a random stat except crit ratio for target Pokemon when switched in
+- BUFF CHARACTER ABILITY Serene Grace: doubled secondary effect at any point, but capped at 80% except for moves where secondary effect is 80% or above by default
+- BUFF CHARACTER ABILITY Blood Magic: drains 33% instead of 20% of the damage actually dealt
+- BUFF CHARACTER ABILITY Infiltration: entry hazards no longer affect own Pokemon
+- BUFF CHARACTER ABILITY Overloaded: 10% chance -> 20% chance
+- BUFF CHARACTER ABILITY Brain Wave: Psychic move damage +30% -> +50%
+- BUFF CHARACTER ABILITY Tenebrous: now covers Ghost-type moves as well as Dark-type
+
+- NERF MOVE History Rewritten: no longer disable moves
+- NERF MOVE Regin of Terror: Power 90 -> 80, no longer reduce speed and accuracy by 1 stage
+- NERF MOVE Draconic Blade: Power 75 -> 70
+- BUFF MOVE Bodhisattva: Power 60 -> 80
+
+- NERF STATUS CONDITION Frighten: damage dealt reduced by 1/2 -> damage dealt reduced by 1/3
+
+- ADJUST CHARACTER Mivy Wenceslas: character ability Infiltration -> Wizardry
+- ADJUST CHARACTER Emperor Marvuno: replace Scizor with Cloyster
+- ADJUST CHARACTER Champion Marvin: replace Cloyster with Mega Scizor
+
+Coding & Organization
+- Align coding logic for implementation of character abilities
+
+Miscellaneous
+- amended character ability name of Berserker
+- changed the quote of Rum
+- removed Flame Charge for Genesect
+- adjusted ratings and rankings of competitors
+- adjusted tiers of certain Pokemon
+
+Bugfixes
+- Farfetch'd will now be shown in the list of Pokemon switching and Pokemon retention list
+- Semi-invulnerable moves e.g. Fly will now be effected by drowsy effect and fail
+- Damaging moves will no longer deal zero damage, and opponent reaching zero HP will no longer revive in normal circumstances
+- U-Turn will now switch out Pokemon when against target Pokemon with illusion
+- Bodhisattva now properly deals super effective damage to Flying type, instead of 0 damage
+- Ruthless divided by the holder's current HP, which is zero the moment it faints, so a Pokemon knocked out by recoil or a hazard crashed the battle
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Pokemon Championship v1.2.0 & v1.2.1 & v1.2.2 (Graphics Update)
 
 Graphics Update (Highlights)
 - revamped text-based interface into graphic-based application with Claude and Leonardo.ai
@@ -22,14 +84,14 @@ Pokemon & Characters
 - added new Pokemon: Amoonguss, Slowbro, Glimmora, Baxcalibur, Kingambit, Tinkaton, Espathra, Ceruledge, Revavroom
 - added new abilities: Toxic Debris, Thermal Exchange, Supreme Overload, Filter
 - added new moves: Gigaton Hammer, Kowtow Cleave, Guillotine, Bitter Blade, Lumina Crash, Electric Terrain, Grassy Terrain, Misty Terrain, Psychic Terrain, Synthesis
-- added new characters: Jason, Evonne, Celeste, Auraia, Ophelia, Coco, Alton
+- added new characters: Jason, Evonne, Celeste, Auraia, Ophelia, Coco, Alton, AL
 - added new character abilities: Procrastination, Frighten, Celestial, Serene Grace, Lamplighter, Spark Cascade, Calibration
 - some Pokemon's moves changed to add Terrain moves
 - added splash art and gender for player to choose, and revised description of main character
 
 Rebalancing
-- NERF Divine Power 1.5x -> 1.25x
-- REVISED Dulunga's character ability Desert Wind: now brews up sandstorm when a Ground type pokemon on either side is on the field
+- NERF CHARACTER ABILITY Divine Power: 1.5x -> 1.25x
+- REVISED CHARACTER ABILITY Desert Wind (Dulunga): now brews up sandstorm when a Ground type pokemon on either side is on the field
 - revised ratings and tier of some characters: some characters have been moved up and down the ladder after rebalancing
 
 Coding & Organization

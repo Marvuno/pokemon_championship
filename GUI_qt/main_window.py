@@ -1754,6 +1754,10 @@ class MainWindow(QWidget):
         moveset = player.get("moveset") or []
         metas = player.get("moves") or {}
         disabled = player.get("disabled") or {}
+        # name -> why it cannot be used. `disabled` is the turn counter and
+        # only covers one of the four reasons; this covers all of them and
+        # carries the wording. See blocked_moves in GUI/bridge.py.
+        blocked = player.get("blocked") or {}
         effects = self._effects_from(prompt)
 
         grid = QGridLayout()
@@ -1762,15 +1766,18 @@ class MainWindow(QWidget):
             if name == "Switching":
                 continue
             meta = metas.get(name) or B.snap_move(name)
-            is_disabled = name in disabled
+            why = blocked.get(name)
+            is_disabled = bool(why) or name in disabled
             card = MoveCard(
                 meta, str(index), self.fonts,
                 effectiveness=effects.get(str(index), "") or None,
+                unusable=why or ("Disabled" if is_disabled else None),
                 on_click=(None if is_disabled
                          else (lambda v=str(index): self._answer(v))))
             if is_disabled:
                 card.setEnabled(False)
                 card.setCursor(Qt.ArrowCursor)
+                card.setToolTip(why or "This move cannot be used right now")
             grid.addWidget(card, placed // 2, placed % 2)
             if not is_disabled:
                 self.hotkeys[str(index)] = \

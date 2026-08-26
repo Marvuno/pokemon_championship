@@ -54,6 +54,9 @@ class Pokemon:
         self.disabled_moves = {}
         # other individual factors
         self.disguise, self.transform = False, False
+        #: the typing Roost took away for a turn, or None. Restored by
+        #: end_of_turn -- see check_move_roost.
+        self.roosting = None
         self.second_life = 0
 
 

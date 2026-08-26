@@ -118,7 +118,15 @@ def estimated_damage_calculation(user_side, target_side, user, target, battlegro
         extra_type_effectiveness = [typeChart[move.multiType[y]][target.type[x]] for x in range(len(target.type)) for y in range(len(move.multiType))]
 
         # special condition to override type chart (e.g. mold breaker, lock-on, grounded etc)
-        if move.type == "Ground":
+        # A move that names a type in `ignoreType` is saying it reaches
+        # that type anyway, and the line above already gave it 2x for
+        # doing so. This blanket rule then appended a 0 for anything
+        # ungrounded, and prod([2, 0]) is 0 -- so Bodhisattva, a Ground
+        # move written specifically to hit Flying types hard, did nothing
+        # to them at all. The override is for ordinary Ground moves.
+        _reaches_anyway = any(t in move.ignoreType
+                              for t in target.type)
+        if move.type == "Ground" and not _reaches_anyway:
             # grounded
             if target.volatile_status['Grounded'] >= 1:
                 initial_type_effectiveness = [1 if effective == 0 else effective for effective in initial_type_effectiveness]
@@ -463,12 +471,23 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
         elif move_score[index][1] > target.battle_stats[0] and move.priority > 0:
             move_score[index][0] += 1
 
-        # failing move
+        # Moves that cannot be used at all. These are not bad ideas to be
+        # weighed against good ones -- the engine will refuse them outright,
+        # so choosing one spends the turn on nothing. They go to the back of
+        # the ranking, the same treatment `ineffective_moves` gets below.
+        #
+        # Both were docked a single point, which was not enough: the sort in
+        # `smart_ai_select_move` reads this score *first* and damage only as
+        # a tie-break, so a locked move that led by two points was still
+        # picked. Measured against a Torment holder at 5.6 wasted turns a
+        # battle -- and Torment locks whatever the AI most wants to use, so
+        # it was losing its best move and its turn together.
         with suppress(KeyError):
             if user.disabled_moves[move.name] > 0:
-                move_score[index][0] -= 1
+                move_score[index][0] -= UNUSABLE_MOVE_PENALTY
+                move_score[index][1] = 0
         if 'j' in move.flags and user.volatile_status["Turn"] > 2:
-            move_score[index][0] -= 1
+            move_score[index][0] -= UNUSABLE_MOVE_PENALTY
             move_score[index][1] = 0
         # prolly no-effect move
         if move.attack_type != 'Status' and move.damage == 0:
@@ -752,7 +771,18 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
               for name in protagonist.team[0].moveset]
     facing_types = [move.type for move in facing]
     incoming = None
-    if incoming_move > 0:
+    # `incoming_move` is an index, and it was worked out against the moveset
+    # of whoever was *on the field* when smart_ai_select_move ran -- while
+    # this reads `team[0]`. Those are not always the same Pokemon: mid-switch
+    # the engine passes the one that was out while the team list already
+    # holds its replacement (see the note on Side.active in CLAUDE.md). A
+    # five-move Pokemon's index 4 into a two-move replacement is an
+    # IndexError, which is what it was: 120 AI-vs-AI battles found it once a
+    # damage change moved which index came out on top.
+    #
+    # An index that does not apply to the Pokemon standing there tells us
+    # nothing about what is incoming, so there is nothing to read.
+    if 0 < incoming_move < len(protagonist.team[0].moveset):
         incoming = fast_copy(
             list_of_moves[protagonist.team[0].moveset[incoming_move]])
         incoming_type = incoming.type

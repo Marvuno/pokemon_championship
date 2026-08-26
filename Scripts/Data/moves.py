@@ -76,6 +76,11 @@ class Move:
         self.evasion = 1
         self.super_effective = False
         self.critical_hit = False
+        #: the type-chart multiplier the last damage calculation applied.
+        #: Per-use scratch like the two flags above, and set from the same
+        #: place -- see check_type_effectiveness. Declared here so a copy
+        #: carries it and nothing has to guess whether the attribute exists.
+        self.type_effectiveness = 1
         self.attack_type = attack_type
         self.type = type
         self.accuracy = accuracy

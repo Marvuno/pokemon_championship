@@ -91,6 +91,21 @@ check("team selection reads a printed tuple list",
       values("Which pokemon do you not want to bring?\n--> ",
              "\n[(0, 'Pikachu'), (1, 'Onix'), (2, 'Snorlax')]\n"),
       ["0", "1", "2"])
+# Python's repr quotes a name containing an apostrophe with double quotes,
+# so a team list mixes both kinds in one line. The tuple pattern used to end
+# the name at either quote, which meant Farfetch'd and Sirfetch'd simply were
+# not on the switch-order or keep-team screens -- and the rest of the list
+# parsed fine, so nothing looked wrong.
+_AWKWARD = ["Pikachu", "Farfetch'd", "Onix", "Sirfetch'd", "Mr. Mime",
+            "Type: Null"]
+_PRINTED = str([(i, n) for i, n in enumerate(_AWKWARD)])
+check("every Pokemon survives a printed tuple list, apostrophes included",
+      labels("Which pokemon would you like to swap to be the first?",
+             _PRINTED), _AWKWARD)
+check("...and a sentinel beside it still lands",
+      values("Which pokemon would you like to swap to be the first?",
+             _PRINTED + chr(10) + "9: No Swapping")[-1], "9")
+
 check("the boxed start menu still parses",
       labels("Please select an option.\n--> ",
              "| 0 NEW GAME |\n| 1 CONTINUE |\n| 2 HISTORY |\n"),

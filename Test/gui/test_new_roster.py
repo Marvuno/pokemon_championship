@@ -75,13 +75,19 @@ def mon(types, full=160, now=None):
     return thing
 
 
-def fire(who, phase, move_name, mine, theirs):
-    """Run one competitor's character ability at one phase."""
+def fire(who, phase, move_name, mine, theirs, rate=None):
+    """Run one competitor's character ability at one phase.
+
+    `rate` overrides the move's secondary-effect chance, so a case can be
+    stated at a rate no move in the table happens to carry.
+    """
     ground = Battleground()
     turn = Turn(ground, Side(deepcopy(list_of_competitors[who]), [mine], mine),
                 Side(deepcopy(list_of_competitors["Goblin"]), [theirs],
                      theirs))
     move = deepcopy(list_of_moves[move_name])
+    if rate is not None:
+        move.effect_accuracy = rate
     spoken = io.StringIO()
     with redirect_stdout(spoken):
         CA.UseCharacterAbility(turn, move, abilityphase=phase)
@@ -180,9 +186,11 @@ check("...with Alolan Ninetales",
       [getattr(a, "name", a) for a in list_of_competitors["Auraia"].team],
       ["Alolan Ninetales"])
 
-# It sharpens the long shots only. Anything that already lands its effect
-# half the time or better is left exactly as it was -- 50% is *not* doubled.
-check("the ceiling is a coin flip", CA.SERENE_GRACE_CEILING, 0.5)
+# It doubles a secondary effect but never past the cap, and never touches a
+# move already at or above it. The point of the cap is that nothing Serene
+# Grace sharpens can become a certainty: doubling used to clamp to 1.0, so a
+# 50% effect landed every single time.
+check("the cap is 80%", CA.SERENE_GRACE_CEILING, 0.8)
 for want in (0.1, 0.2, 0.3, 0.5, 0.7, 1.0):
     pick = next((n for n, m in list_of_moves.items()
                  if abs(m.effect_accuracy - want) < 0.001
@@ -190,11 +198,26 @@ for want in (0.1, 0.2, 0.3, 0.5, 0.7, 1.0):
     if pick is None:
         continue
     _, _, move = fire("Auraia", 2, pick, mon(["Fire"]), mon(["Grass"]))
-    expected = min(1, want * 2) if want < 0.5 else want
+    expected = (min(CA.SERENE_GRACE_CEILING, want * 2)
+                if want < CA.SERENE_GRACE_CEILING else want)
     check("%-16s %.2f -> %.2f" % (pick, want, expected),
           round(move.effect_accuracy, 4), round(expected, 4))
+    check("...and never becomes a certainty", move.effect_accuracy < 1.0
+          or want >= 1.0, True)
+
     check("...the move table itself is untouched",
           round(list_of_moves[pick].effect_accuracy, 4), round(want, 4))
+
+# The same spec as explicit cases. `rate` lets a case be stated at a chance
+# no move in the table happens to carry -- 80%, the cap itself, has none.
+# Distinct loop variables: reusing `want` here would rebind the one the loop
+# above closes over, and its last check would then compare against this.
+for start, ends_at in ((1.00, 1.00), (0.80, 0.80), (0.70, 0.80),
+                       (0.50, 0.80), (0.30, 0.60)):
+    _, _, probe = fire("Auraia", 2, "Body Slam", mon(["Fire"]), mon(["Grass"]),
+                       rate=start)
+    check("  %3.0f%% -> %3.0f%%" % (start * 100, ends_at * 100),
+          round(probe.effect_accuracy, 4), round(ends_at, 4))
 
 print()
 print("-- Toxic Debris --")

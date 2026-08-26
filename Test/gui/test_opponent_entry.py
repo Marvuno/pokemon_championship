@@ -40,8 +40,9 @@ data = codex.build(list_of_pokemon, list_of_moves, list_of_competitors)
 entries = {entry["name"]: entry for entry in data["opponents"]}
 
 print("-- the ace, with its typing --")
-check("every competitor names one", sum(1 for e in entries.values()
-                                        if e.get("aces")), len(entries))
+_aceless = sorted(n for n, e in entries.items() if not e.get("aces"))
+check("every competitor names one (%d competitors)" % len(entries),
+      _aceless, [])
 for name, expected in (("Jason", ["Durant"]),
                        ("Expert Cynthia", ["Garchomp"]),
                        ("Goblin", ["Grimmsnarl"])):

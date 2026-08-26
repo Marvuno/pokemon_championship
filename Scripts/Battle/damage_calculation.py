@@ -123,7 +123,15 @@ def check_type_effectiveness(turn, move):
     extra_type_effectiveness = [typeChart[move.multiType[y]][turn.foe.active.type[x]] for x in range(len(turn.foe.active.type)) for y in range(len(move.multiType))]
 
     # special condition to override type chart (e.g. mold breaker, lock-on, grounded etc)
-    if move.type == "Ground":
+    # A move that names a type in `ignoreType` is saying it reaches
+    # that type anyway, and the line above already gave it 2x for
+    # doing so. This blanket rule then appended a 0 for anything
+    # ungrounded, and prod([2, 0]) is 0 -- so Bodhisattva, a Ground
+    # move written specifically to hit Flying types hard, did nothing
+    # to them at all. The override is for ordinary Ground moves.
+    _reaches_anyway = any(t in move.ignoreType
+                          for t in turn.foe.active.type)
+    if move.type == "Ground" and not _reaches_anyway:
         # grounded
         if turn.foe.active.volatile_status['Grounded'] >= 1:
             initial_type_effectiveness = [1 if effective == 0 else effective for effective in initial_type_effectiveness]
@@ -164,6 +172,12 @@ def check_type_effectiveness(turn, move):
     move.super_effective = True if type_effectiveness >= 2 else False
     # tinted lens
     move.not_effective = True if type_effectiveness <= 0.5 else False
+    # The multiplier itself, not just "was it super effective". Anything that
+    # wants to *undo* the type chart needs the number -- Blunders flattens a
+    # hit to 1x, and it cannot divide by a boolean. Kept on the move beside
+    # the two flags that were already derived from it, so there is one answer
+    # rather than a second calculation somewhere else.
+    move.type_effectiveness = type_effectiveness
     narrator.say(effectiveness_description.get(type_effectiveness))
     return type_effectiveness
 

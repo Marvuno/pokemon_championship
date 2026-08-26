@@ -11,21 +11,95 @@ from Scripts.Battle.type_immunity import *
 from Scripts.Battle.context import Side, Turn
 from Scripts.Battle.weather import weather_desc
 from Scripts.Battle import terrain
-from Scripts.Battle.constants import GUARANTEE_ACCURACY
+from Scripts.Battle.constants import (GUARANTEE_ACCURACY,
+                                      ORDER_PHASE)
+from Scripts.Battle.fastcopy import fast_copy
 from Scripts.Data.competitors import ability_text
 from Scripts.Art import narrator
 
 
-#: Serene Grace only sharpens a secondary effect that was *worse* than a
-#: coin flip. At or above this, the move is already reliable and is left
-#: alone.
-SERENE_GRACE_CEILING = 0.5
+#: Serene Grace doubles a secondary effect but never past this. A move
+#: already at or above the cap is left alone, so nothing it touches can
+#: become a certainty -- doubling used to clamp to 1.0, which made a 50%
+#: effect land every time.
+SERENE_GRACE_CEILING = 0.8
 
 #: Sparking Cascade's per-turn paralysis roll, and the types the current
 #: does not reach: Flying is not standing in it, Ground earths it, Electric
 #: is made of it.
 SPARKING_CASCADE_CHANCE = 0.1
 SPARKING_CASCADE_IMMUNE = frozenset(("Flying", "Ground", "Electric"))
+
+#: Killer Instinct's chance of doubling a hit.
+KILLER_INSTINCT_CHANCE = 0.1
+
+#: Blunders' chance of flattening a hit to a straight 1x.
+BLUNDERS_CHANCE = 0.1
+
+#: Overloaded's chance of a move going off twice in the one turn.
+OVERLOADED_CHANCE = 0.2
+
+#: How often Primordial checks that it is still raining, in turns.
+PRIMORDIAL_REFRESH_TURNS = 10
+
+#: What Primordial multiplies its holders' Speed by while it is raining.
+#: It used to hand out Swift Swim, which doubles; x1.5 still usually wins
+#: the turn but a genuinely fast Pokemon can get above it.
+PRIMORDIAL_RAIN_SPEED = 1.5
+
+#: Gargantuan's chance of halving an incoming hit.
+GARGANTUAN_CHANCE = 0.15
+
+#: Moody's swing, and the two chances: a tenth of the time it heals the
+#: opponent, a fifth of the time it hurts them.
+MOODY_FRACTION = 0.10
+MOODY_HEAL_CHANCE = 0.10
+MOODY_HURT_CHANCE = 0.20
+
+#: What fraction of the damage dealt Blood Magic drains back as HP.
+BLOOD_MAGIC_DRAIN = 0.33
+
+#: Brain Wave's multipliers for Psychic moves: damage, then effect chance.
+BRAIN_WAVE_DAMAGE = 1.5
+BRAIN_WAVE_EFFECT = 1.3
+
+#: The types Tenebrous sharpens.
+TENEBROUS_TYPES = ("Dark", "Ghost")
+
+#: How far Tension Release pushes its user down the order. Deeply negative
+#: rather than -1: forcing the other side to switch is worth a turn of
+#: initiative, and the move should land after whatever they were going to do.
+TENSION_RELEASE_PRIORITY = -10
+
+#: Anger Point's reward, in stages, to Attack and Special Attack each.
+ANGER_POINT_STAGES = 2
+
+#: How long Torment locks a move away, in turns of lockout.
+#:
+#: The counter is read when the move is *chosen* and ticked down
+#: afterwards, in `user_turn_in_battle_stats`, so the number is
+#: simply how many turns the move is unavailable for: 1 means
+#: used this turn, gone next turn, back the turn after. It was 2,
+#: which held the move away for two turns rather than one.
+TORMENT_TURNS = 1
+
+#: The stat slots a "random stat" may touch. `modifier` is
+#: [HP, Atk, Def, SpA, SpDef, Speed, Evasion, Accuracy, Crit] -- HP is not a
+#: stage at all and the crit slot is a different kind of thing, so a roll
+#: that included either produced a stat change that did nothing visible.
+RANDOM_STAT_SLOTS = (1, 2, 3, 4, 5, 6, 7)
+
+#: Moves Overloaded and Wizardry must not set off a second time. A two-turn
+#: move would start a fresh charge on top of the one it just committed to; a
+#: protective move that is already up cannot be re-raised and in the real
+#: games fails outright on consecutive use; switching out twice is
+#: meaningless; and a move that is itself a random move would recurse.
+NO_SECOND_HELPING = frozenset((
+    "Switching", "Metronome", "Fly", "Dig", "Dive", "Bounce", "Phantom Force",
+    "Shadow Force", "Solar Beam", "Sky Attack", "Razor Wind", "Skull Bash",
+    "Protect", "Detect", "King's Shield", "Baneful Bunker", "Spiky Shield",
+    "Endure", "Wide Guard", "Quick Guard",
+))
 
 
 def notice(battleground, side=None):
@@ -166,7 +240,8 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # than making the reliable ones certain. Strictly below a half: at
         # exactly 50% it does nothing.
         if move.effect_accuracy < SERENE_GRACE_CEILING:
-            move.effect_accuracy = min(1, move.effect_accuracy * 2)
+            move.effect_accuracy = min(SERENE_GRACE_CEILING,
+                                       move.effect_accuracy * 2)
             notice(battleground, user_side)
 
     def sparking_cascade(*args):
@@ -227,6 +302,266 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         if 0 < move.accuracy < GUARANTEE_ACCURACY:
             move.accuracy = GUARANTEE_ACCURACY
             notice(battleground, user_side)
+
+    def anger_point(*args):
+        """Being crit, or being poisoned, is answered with force.
+
+        Attack and Special Attack both up by ANGER_POINT_STAGES. Fires on
+        the hit that *lands* the status rather than on merely having one, or
+        it would go off again every turn the status lasted -- which is why it
+        asks the move what it was carrying instead of only asking the Pokemon
+        how it feels.
+        """
+        crit = bool(getattr(move, "critical_hit", False))
+        statusing = "target_non_volatile" in str(getattr(move, "effect_type",
+                                                         ""))
+        newly_statused = statusing and user.status not in ("Normal", "Fainted")
+        if not (crit or newly_statused):
+            return
+        user.applied_modifier = [0, ANGER_POINT_STAGES, 0,
+                                 ANGER_POINT_STAGES, 0, 0, 0, 0, 0]
+        _stages_before = list(user.modifier)
+        user.modifier = list(map(operator.add, user.applied_modifier,
+                                 user.modifier))
+        narrator.stat_change(user, _stages_before, user.modifier,
+                             user.applied_modifier, battleground)
+        notice(battleground, user_side)
+
+    def tension_release(*args):
+        """A plain hit shoves the other side off the field.
+
+        Three phases, and the third one is the whole reason this is not
+        simpler.
+
+        Phase 2 drops the move's priority to TENSION_RELEASE_PRIORITY, so it
+        always resolves last -- forcing a switch is worth a turn of
+        initiative. Phase 6 notes that a *non*-super-effective hit landed.
+        Phase 8, the end of the turn, is where the switch actually happens.
+
+        **The switch cannot happen mid-turn**, and this is not caution. The
+        first cut swapped `team[0]` the moment the move landed, at phase 6.
+        Both sides choose their moves at the top of a turn, so the Pokemon
+        being dragged out still had one pending -- and the replacement
+        executed it. Measured: 25 moves in 60 battles were carried out by a
+        Pokemon that did not know them, and none at all with this ability
+        taken out of the field. End of turn is after both sides have acted,
+        so there is nothing left to misattribute.
+
+        It also goes through `switching_mechanism` rather than swapping the
+        list by hand, so the Pokemon leaving gets the cleanup every other
+        switch gives it -- stat stages, charge, volatile status, typing.
+        """
+        if abilityphase == ORDER_PHASE:
+            move.priority = TENSION_RELEASE_PRIORITY
+            notice(battleground, user_side)
+            return
+
+        if abilityphase == 6:
+            # Remember, act later. `super_effective` is set by the damage
+            # calculation for the hit that just happened.
+            if not getattr(move, "super_effective", False):
+                battleground._tension_release_owed = True
+            return
+
+        # phase 8 -- the end of the turn
+        if not getattr(battleground, "_tension_release_owed", False):
+            return
+        battleground._tension_release_owed = False
+        team = target_side.team
+        bench = [index for index, mon in enumerate(team)
+                 if index > 0 and mon.status != "Fainted"]
+        if not bench or team[0].status == "Fainted":
+            return                      # nobody to bring in, or already gone
+        # Imported here, not at the top: switching reaches back into the
+        # battle modules that import this one, so a module-level import
+        # closes the circle.
+        from Scripts.Battle.switching import switching_mechanism
+        chosen = random.choice(bench)
+        going = team[0].name
+        team[0] = switching_mechanism(target_side, user_side, battleground,
+                                      team, user_side.team, chosen, False)
+        if battleground.reality:
+            narrator.say(f"{going} is dragged out! "
+                         f"{team[0].name} is forced in.", "switch",
+                         pokemon=team[0].name)
+        notice(battleground, user_side)
+
+    def _repeatable(candidate):
+        """Is this a move an ability may make happen more than once?
+
+        NO_SECOND_HELPING is the list and the reasoning is written on it.
+        Three more conditions on top, all of them the same idea -- a move
+        only counts once it has actually *happened*:
+
+        * **Not a switch.** Swapping out is not a move to double.
+        * **Not a charge turn.** A Pokemon half-way through Fly or Dig has
+          committed to something, not landed it; `user.charging` still being
+          set is how the engine says so. It is eligible on the turn it comes
+          down, which is the turn the charge clears.
+        * **Nothing while a repeat is already running**, or the repeat would
+          queue another and the turn would never end.
+
+        Whether the move *succeeded* is not knowable here -- these fire as
+        the move goes off, not after -- so the engine makes that check
+        itself, at the point where it knows. See the note beside
+        `encore_move` in battle_checklist.
+        """
+        if candidate is None or candidate.name == "Switching":
+            return False
+        if getattr(battleground, "encore_running", False):
+            return False
+        if candidate.name in NO_SECOND_HELPING:
+            return False
+        if getattr(candidate, "charging", "") in ("Charging",
+                                                  "Semi-invulnerable",
+                                                  "Frenzy"):
+            return False
+        if user.charging[0] != "":
+            return False
+        return user.status != "Fainted" and target.status != "Fainted"
+
+    def wizardry(*args):
+        """Every move is followed by another one, drawn at random.
+
+        Metronome's own list, minus Metronome, so the second move can be
+        anything in the game -- and a fresh copy of it, because everything
+        downstream writes its working state onto the move it is handed and
+        the entries of list_of_moves are shared by every Pokemon alive.
+        """
+        if not _repeatable(move):
+            return
+        pool = sorted(set(list_of_moves.keys()) - NO_SECOND_HELPING)
+        if not pool:
+            return
+        # A fresh copy: everything downstream writes its per-use working
+        # state onto the move it is handed, and the entries of list_of_moves
+        # are shared by every Pokemon in the game.
+        battleground.encore_move = fast_copy(
+            list_of_moves[random.choice(pool)])
+        notice(battleground, user_side)
+
+    def overloaded(*args):
+        """Now and then a move lands an extra time -- like Double Hit.
+
+        One more *strike* inside the move's own execution, not a second move.
+        The first cut ran the whole move again through
+        `move_order_and_execution`, which is a different thing entirely: it
+        took another slot in the turn, so the holder appeared to move twice
+        and the order of the turn came out wrong.
+
+        `multi[1]` is the strike count the loop in
+        `battle_checklist.move_order_and_execution` runs on, and
+        `compare_speed` has already rolled it by the time this fires -- so
+        adding one is exactly "one more hit". An ordinary move goes from one
+        strike to two, which is the ability as described; a move that already
+        strikes several times gets one more rather than being cut down to
+        two.
+        """
+        if random.random() >= OVERLOADED_CHANCE:
+            return
+        if not _repeatable(move):
+            return
+        move.multi[1] = int(move.multi[1] or 1) + 1
+        if battleground.reality:
+            narrator.say(f"{move.name} strikes an extra time!", "ability")
+        notice(battleground, user_side)
+
+    def torment(*args):
+        """The other side cannot repeat itself. The holder is unaffected.
+
+        A move the opponent has just used is locked for the following turn,
+        which is how the engine already says "you cannot pick that": the
+        counter in `disabled_moves` is read when a move is chosen and ticked
+        down afterwards, so TORMENT_TURNS of 1 means used this turn, gone
+        next turn, back the turn after.
+
+        Phase 7 -- "after taking damage", with the turn flipped, so `user`
+        is the holder and `target` is whoever attacked them; the move being
+        locked away is the attacker's.
+
+        **Not phase 3.** Phase 3 fires at battle_checklist.py:164, five
+        lines before `move_fail_checklist_before_execution` refuses a move
+        that is in `disabled_moves` -- so the lock landed on the move that
+        was *still being used*, and the engine then threw it out. Every
+        attack the other side made failed on the turn it was made. Measured:
+        the opponent dealt **zero** damage across 332 turns of ten battles,
+        and a Torment holder rated 20 beat the entire roster. Phase 7 runs
+        after the move has resolved, which is what "cannot use it twice in
+        a row" actually means.
+
+        It fired on phase 2 as well at first, which tormented the holder's
+        own Pokemon too and made battles roughly four times longer, both
+        sides forever reaching for a move they had just spent.
+        """
+        if move is None or getattr(move, "name", "Switching") == "Switching":
+            return
+        if target is None or target.status == "Fainted":
+            return
+        if target.disabled_moves.get(move.name, 0) >= TORMENT_TURNS:
+            return                      # already locked; do not re-announce
+        target.disabled_moves[move.name] = TORMENT_TURNS
+        if battleground.reality:
+            narrator.say(f"{target.name} cannot use {move.name} twice in a "
+                         f"row!", "fail")
+        notice(battleground, user_side)
+
+    def synchronize_drops(*args):
+        """The holder's losses are shared out; the other side's gains are taken.
+
+        Two halves, both one-way:
+
+            what fell on the holder      is also made to fall on the target
+            what rose on the target      also rises on the holder
+
+        so the holder never spreads a blessing and never keeps a curse to
+        itself. A stat that rose on the holder is its own, and a stat that
+        fell on the target is the target's problem.
+
+        Worked out by comparing each side's stages against a snapshot taken
+        at the top of the turn rather than by catching each change as it
+        happens. Stat changes come from a dozen places -- moves, abilities,
+        items, the holder's own other ability -- and hooking them all would
+        mean finding them all; the difference across a turn catches every one
+        of them by construction.
+        """
+        if abilityphase == ORDER_PHASE:
+            battleground.sync_before = list(user.modifier)
+            battleground.sync_foe_before = (list(target.modifier)
+                                            if target is not None else None)
+            return
+        # end of turn: what went down here, and what went up over there?
+        before = getattr(battleground, "sync_before", None)
+        foe_before = getattr(battleground, "sync_foe_before", None)
+        battleground.sync_before = battleground.sync_foe_before = None
+        if target is None or target.status == "Fainted":
+            return
+
+        # the curse, spread outwards
+        if before:
+            drops = [min(0, now - was)
+                     for was, now in zip(before, user.modifier)]
+            if any(drops):
+                target.applied_modifier = drops
+                _theirs = list(target.modifier)
+                target.modifier = list(map(operator.add, drops,
+                                           target.modifier))
+                narrator.stat_change(target, _theirs, target.modifier,
+                                     target.applied_modifier, battleground)
+                notice(battleground, user_side)
+
+        # the blessing, taken. Read against `target.modifier` as it stands
+        # *now* -- which already includes any drop just written above, so a
+        # stat cannot be counted twice.
+        if foe_before and user.status != "Fainted":
+            gains = [max(0, now - was)
+                     for was, now in zip(foe_before, target.modifier)]
+            if any(gains):
+                user.applied_modifier = gains
+                _mine = list(user.modifier)
+                user.modifier = list(map(operator.add, gains, user.modifier))
+                narrator.stat_change(user, _mine, user.modifier,
+                                     user.applied_modifier, battleground)
+                notice(battleground, user_side)
 
     def violence(*args):
         # boost move power for move with direct contact
@@ -306,12 +641,6 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
     # with one button that did nothing, in the middle of a turn. The flavour is
     # gone with it -- notice() still names the ability when it fires, and Charm
     # still costs the opponent their move, so nothing mechanical was lost.
-    def monkey(*args):
-        # monkey just being monkey
-        if random.random() <= 0.05:
-            if target_side.main and not battleground.auto_battle:
-                notice(battleground, user_side)
-
     def charm(*args):
         # charm causes opponent and its pokemon to get distracted and misses its move
         if random.random() <= 0.1:
@@ -338,13 +667,15 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             notice(battleground, user_side)
 
     def moody(*args):
-        # random chance to increase and decrease user pokemon health
+        # A random swing to the *opponent's* health -- `target` is the other
+        # side, which is what makes this an attack rather than a liability:
+        # it hurts them twice as often as it helps them.
         random_factor = random.random()
-        if random_factor <= 0.15:
-            target.battle_stats[0] += math.floor(min(target.hp - target.battle_stats[0], target.hp * 0.15))
+        if random_factor <= MOODY_HEAL_CHANCE:
+            target.battle_stats[0] += math.floor(min(target.hp - target.battle_stats[0], target.hp * MOODY_FRACTION))
             notice(battleground, user_side)
-        elif random_factor >= 0.75:
-            target.battle_stats[0] -= math.floor(target.hp * 0.15)
+        elif random_factor >= 1 - MOODY_HURT_CHANCE:
+            target.battle_stats[0] -= math.floor(target.hp * MOODY_FRACTION)
             notice(battleground, user_side)
 
     def string_manipulation(*args):
@@ -397,10 +728,33 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             notice(battleground, user_side)
 
     def brain_wave(*args):
-        # boost additional effect chance and damage for psychic type moves
+        """Psychic moves hit harder, on ground that suits them.
+
+        Phase 1 lays Psychic Terrain at the start of the battle -- the
+        battle, not every switch-in, so it still lapses the way any terrain
+        does. The turn check is the one Sparking Cascade and Light Speed
+        use, and for the same reason.
+
+        The terrain is not decoration: it is another x1.3 on Psychic moves
+        for anything standing on it, and it stops priority moves reaching
+        the ground, which is what a Psychic specialist most needs. Raising
+        the damage multiplier alone was measured and did not reach -- the
+        holder simply does not throw enough Psychic moves for the number to
+        matter, so the ground does the work instead.
+        """
+        if abilityphase == 1:
+            if (battleground.turn <= 1
+                    and terrain.current(battleground) != "Psychic"):
+                battleground.terrain = "Psychic"
+                battleground.terrain_turn = terrain.NATURAL_TURNS
+                if battleground.reality:
+                    narrator.say(terrain.TERRAIN_ARRIVES["Psychic"],
+                                 "weather", terrain="Psychic")
+                notice(battleground, user_side)
+            return
         if 'Psychic' in move.type:
-            move.damage *= 1.3
-            move.effect_accuracy *= 1.3
+            move.damage *= BRAIN_WAVE_DAMAGE
+            move.effect_accuracy *= BRAIN_WAVE_EFFECT
             notice(battleground, user_side)
 
     def champion(*args):
@@ -444,13 +798,13 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             target.modifier = [0 if modifier > 0 else modifier for modifier in target.modifier]
 
     def tenebrous(*args):
-        # boost additional effect chance and damage for dark type moves
-        if 'Dark' in move.type:
+        # boost additional effect chance and damage for dark and ghost moves
+        if any(kind in move.type for kind in TENEBROUS_TYPES):
             move.damage *= 1.3
             move.effect_accuracy *= 1.3
             notice(battleground, user_side)
 
-    def sucking(*args):
+    def barbaric(*args):
         # pokemon drains 30% HP for every attacking move at 50% HP or below
         if move.damage > 0 and user.battle_stats[0] <= user.hp // 2:
             user.battle_stats[0] += min(user.hp - user.battle_stats[0], math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.3))
@@ -467,7 +821,8 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         notice(battleground, user_side)
 
     def plot_armor(*args):
-        # last pokemon has 3 lives, when dead, it will recover all its HP twice
+        # last pokemon has 3 lives: twice on fainting it comes back on
+        # half its maximum HP rather than a full bar
         if abilityphase == 1:
             if sum(1 for pokemon in user_side.team if pokemon.status != 'Fainted') == 1:  # last pokemon
                 user.second_life = 2
@@ -475,17 +830,12 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             if move.damage > user.battle_stats[0] and user.second_life > 0:
                 user.second_life -= 1
                 move.damage = 0
-                user.battle_stats[0] = user.hp
+                user.battle_stats[0] = math.floor(user.hp / 2)
                 notice(battleground, user_side)
-        elif abilityphase == 7:
+        elif abilityphase in (7, 8):
             if user.battle_stats[0] <= 0 and user.second_life > 0:
                 user.second_life -= 1
-                user.battle_stats[0] = user.hp
-                notice(battleground, user_side)
-        elif abilityphase == 8:
-            if user.battle_stats[0] <= 0 and user.second_life > 0:
-                user.second_life -= 1
-                user.battle_stats[0] = user.hp
+                user.battle_stats[0] = math.floor(user.hp / 2)
                 notice(battleground, user_side)
 
     def calm(*args):
@@ -498,7 +848,13 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # deal additional damage depending on target health and user health, the more the target health, the more it hit
         # however, also suffer additional damage from target
         if abilityphase == 4:
-            move.damage = math.floor(move.damage * min(1.7, max(1, target.battle_stats[0] / user.battle_stats[0])))  # at most 1.7x
+            # The divisor is the holder's *current* HP, which is 0 the moment
+            # it faints -- and phase 4 still runs on a Pokemon that has just
+            # been knocked out by recoil or a hazard, so this divided by zero.
+            # Both simulation harnesses suppress exceptions, so it showed up
+            # as a truncated battle rather than as a crash.
+            own = max(1, user.battle_stats[0])
+            move.damage = math.floor(move.damage * min(1.7, max(1, target.battle_stats[0] / own)))  # at most 1.7x
             notice(battleground, user_side)
         elif abilityphase == 5:
             move.damage = math.floor(move.damage * 1.3)  # suffer 30% more damage
@@ -524,7 +880,7 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
 
     def gargantuan(*args):
         # random chance to half damage from any incoming attack
-        if random.random() <= 0.25:
+        if random.random() <= GARGANTUAN_CHANCE:
             move.damage *= 0.5
             notice(battleground, user_side)
 
@@ -539,19 +895,37 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         notice(battleground, user_side)
 
     def light_speed(*args):
-        # add electric type to user pokemon
-        if 'Electric' not in user.type:
-            user.type += ['Electric']
-            user.applied_modifier = [0, 0, 0, 0, 0, 1, 0, 0, 0]
-            _stages_before = list(user.modifier)
-            user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
-            narrator.stat_change(user, _stages_before, user.modifier,
-                                 user.applied_modifier, battleground)
-            notice(battleground, user_side)
+        """The battle is fought on a live floor, and nothing earths it.
+
+        Two halves. Phase 1 lays Electric Terrain at the start of the
+        battle -- the battle, not every switch-in, so it can still lapse the
+        way any other terrain does; the turn check is the same one Sparking
+        Cascade uses and for the same reason.
+
+        Phase 3 makes the holder's Pokemon immune to Ground. It is done with
+        `abilitymodifier`, the way Flash Fire and Bulletproof refuse a type,
+        and *not* by handing out Levitate -- Levitate clears
+        `volatile_status['Grounded']`, and `terrain.is_grounded` reads that,
+        so a Levitate holder gets none of the Electric Terrain standing
+        under it. The two halves would have cancelled each other out.
+        """
+        if abilityphase == 1:
+            if (battleground.turn <= 1
+                    and terrain.current(battleground) != "Electric"):
+                battleground.terrain = "Electric"
+                battleground.terrain_turn = terrain.NATURAL_TURNS
+                if battleground.reality:
+                    narrator.say(terrain.TERRAIN_ARRIVES["Electric"],
+                                 "weather", terrain="Electric")
+                notice(battleground, user_side)
+        elif abilityphase == 3:
+            if move.type == 'Ground':
+                move.abilitymodifier = 0
+                notice(battleground, user_side)
 
     def killer_instinct(*args):
         # random chance to deal double damage
-        if random.random() <= 0.2:
+        if random.random() <= KILLER_INSTINCT_CHANCE:
             move.damage *= 2
             notice(battleground, user_side)
 
@@ -583,11 +957,27 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
                 notice(battleground, user_side)
 
     def blunders(*args):
-        # random chance for target to damage himself instead (its move damage applies to itself)
-        if random.random() <= 0.1:
-            target.battle_stats[0] -= move.damage
-            move.damage = 0
-            notice(battleground, user_side)
+        """A fumbled hit lands flat: 1x, whatever the type chart said.
+
+        Stat stages, weather, items and the rest still apply -- only the
+        type multiplier is undone, by dividing out the number
+        `check_type_effectiveness` recorded on the move. So a super
+        effective hit is halved and a doubly-super one quartered, which is
+        the point of it.
+
+        It used to redirect the whole hit onto the target instead, which
+        was far stronger than a fumble should be.
+        """
+        if random.random() > BLUNDERS_CHANCE:
+            return
+        effectiveness = getattr(move, "type_effectiveness", 1) or 1
+        if effectiveness == 1 or move.damage <= 0:
+            return                       # nothing to flatten
+        # Clamped so it can only ever take damage away. Flattening to 1x cuts
+        # both ways on its own -- a resisted hit would come out *stronger* --
+        # and a fumble that sometimes helps the attacker is not a fumble.
+        move.damage = min(move.damage, int(move.damage / effectiveness))
+        notice(battleground, user_side)
 
     def musical(*args):
         # random chance for special moves to paralyze, freeze and hypnotize target
@@ -611,6 +1001,13 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             # battle from the same seed could apply them either way round.
             user.ability = list(dict.fromkeys(user.ability + ability_list))
             notice(battleground, user_side)
+        # and nothing laid on the floor sticks. Phase 1 runs from
+        # `switched_in_initialization`, which `switching_mechanism` calls
+        # *before* `entry_hazard_effect` -- so clearing here is immunity
+        # rather than a late tidy-up.
+        if sum(user_side.entry_hazard.values()) > 0:
+            user_side.entry_hazard = dict.fromkeys(user_side.entry_hazard.keys(), 0)
+            notice(battleground, user_side)
 
     def silhouette(*args):
         # apply illusion to every pokemon and shuffle second pokemon
@@ -629,15 +1026,29 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
                 notice(battleground, user_side)
 
     def old_legends(*args):
-        # pokemon immune to fairy type attacking moves and with ultra boost
+        """Immune to Fairy, and the old order asserts itself on arrival.
+
+        One random stat up for its own Pokemon and one random stat down for
+        whoever it is facing -- HP and the crit slot excluded from both,
+        since neither is a stage that a stat change can move.
+        """
         if abilityphase == 1:
-            # increase random stats for each pokemon at start except crit-ratio
-            user.applied_modifier = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-            user.applied_modifier[random.randint(1, 7)] += 1
+            user.applied_modifier = [0] * 9
+            user.applied_modifier[random.choice(RANDOM_STAT_SLOTS)] += 1
             _stages_before = list(user.modifier)
-            user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
+            user.modifier = list(map(operator.add, user.applied_modifier,
+                                     user.modifier))
             narrator.stat_change(user, _stages_before, user.modifier,
                                  user.applied_modifier, battleground)
+            if target is not None and target.status != "Fainted":
+                target.applied_modifier = [0] * 9
+                target.applied_modifier[random.choice(RANDOM_STAT_SLOTS)] -= 1
+                _theirs_before = list(target.modifier)
+                target.modifier = list(map(operator.add,
+                                           target.applied_modifier,
+                                           target.modifier))
+                narrator.stat_change(target, _theirs_before, target.modifier,
+                                     target.applied_modifier, battleground)
             notice(battleground, user_side)
         elif abilityphase == 5:
             if 'Fairy' in move.type and move.damage > 0:
@@ -645,19 +1056,56 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
                 notice(battleground, user_side)
 
     def blood_magic(*args):
-        # pokemon drains 20% HP for every attacking move
+        # Drains a third of the damage *actually dealt*, capped at the
+        # holder's own missing HP.
+        #
+        # The two caps do different jobs and both are needed. `min(target
+        # HP, 0)` is the overkill: this fires on phase 6, after the hit has
+        # been taken off, so a 300-damage blow on a target with 10 HP leaves
+        # it at -290 and the sum comes back to the 10 that were really
+        # there. Without it, hitting a nearly-dead Pokemon would heal as
+        # much as felling a healthy one. The outer `min` stops the drain
+        # overflowing the holder's own maximum.
         if move.damage > 0:
-            user.battle_stats[0] += min(user.hp - user.battle_stats[0], math.floor((move.damage + min(target.battle_stats[0], 0)) * 0.2))
+            dealt = move.damage + min(target.battle_stats[0], 0)
+            user.battle_stats[0] += min(user.hp - user.battle_stats[0],
+                                        math.floor(dealt * BLOOD_MAGIC_DRAIN))
             notice(battleground, user_side)
 
     def primordial(*args):
-        # always rain and apply swift swim to every pokemon
+        """Rain, quicker in it, and rain again if anybody clears it.
+
+        The opening downpour was a one-off: anything that changed the
+        weather afterwards -- another competitor's ability, a weather move --
+        left the holder with a rain bonus that did nothing for the rest of
+        the battle. It checks back every PRIMORDIAL_REFRESH_TURNS now.
+
+        The speed half used to be a granted Swift Swim, which doubles. It is
+        PRIMORDIAL_RAIN_SPEED applied here instead, for two reasons: x2
+        guaranteed the holder the turn outright, and handing out a *Pokemon*
+        ability meant the size of the bonus lived in another file. It fires
+        on ORDER_PHASE because that is the only phase that runs before the
+        turn order is worked out -- on any of 1..9 the multiplication lands
+        after `compare_speed` has already read the stat, which is exactly
+        how Swift Swim came to be silently inert.
+        """
         if abilityphase == 0:
             battleground.starting_weather_effect = 'Rain'
             battleground.weather_effect = battleground.starting_weather_effect
-        elif abilityphase == 1:
-            user.ability += ['Swift Swim']
-            notice(battleground, user_side)
+        elif abilityphase == ORDER_PHASE:
+            if battleground.weather_effect == 'Rain':
+                user.battle_stats[5] = math.floor(
+                    user.battle_stats[5] * PRIMORDIAL_RAIN_SPEED)
+        elif abilityphase == 8:
+            if (battleground.turn % PRIMORDIAL_REFRESH_TURNS == 0
+                    and battleground.weather_effect != 'Rain'):
+                battleground.starting_weather_effect = 'Rain'
+                battleground.weather_effect = 'Rain'
+                battleground.artificial_weather = False
+                if battleground.reality:
+                    narrator.say(weather_desc['Rain'], "weather",
+                                 weather="Rain")
+                notice(battleground, user_side)
 
     def last_stand(*args):
         # at the last pokemon, massive buff and renegerate all HP
@@ -673,7 +1121,6 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
     list_of_character_abilities = {
         "Trashy": (2, trashy),
         "Dim": (1, dim),
-        "Monkey": (3, monkey),
         # Phase 1 is "switching in", which is when a Ground type can newly
         # be on the field -- either side's.
         "Desert Wind": (1, desert_wind, "Custom"),
@@ -683,6 +1130,30 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Celestial": ((2, 8), celestial, "Custom"),
         # Phase 2 is "using a move", before the effect roll is read.
         "Serene Grace": (2, serene_grace, "Custom"),
+        # Phase 7 is "after taking damage", which is where a crit or a
+        # freshly applied status can be seen.
+        "Anger Point": (7, anger_point, "Custom"),
+        # Two phases: using a move, to drop its priority, and after the hit
+        # has resolved, to shove the other side out.
+        # Three phases: using a move (priority), after it lands (note it),
+        # and the end of the turn (the switch itself -- see the docstring
+        # for why it cannot be done any earlier).
+        "Tension Release": ((ORDER_PHASE, 6, 8),
+                            tension_release, "Custom"),
+        # Phase 6 is "after a successful hit and its effect" -- the move has
+        # finished, which is when a second one can be queued. The turn loop
+        # reads `encore_move` at the end of the move it belongs to; see the
+        # note in battle_checklist.move_order_and_execution.
+        "Wizardry": (6, wizardry, "Custom"),
+        # Phase 2 -- "using a move" -- because it fires at the top of
+        # move_order_and_execution, before the strike loop reads multi[1].
+        # Phase 6 would be after every strike had already run.
+        "Overloaded": (2, overloaded, "Custom"),
+        # Phase 3 only -- "being targeted". The holder's own Pokemon is not
+        # tormented; see the docstring.
+        "Torment": (7, torment, "Custom"),
+        # A snapshot before anything moves, the comparison at the end.
+        "Synchronize": ((ORDER_PHASE, 8), synchronize_drops, "Custom"),
         # Two phases: the opening, when the floor goes live, and the end of
         # every turn, when the current has its chance.
         "Sparking Cascade": ((1, 8), sparking_cascade, "Custom"),
@@ -696,7 +1167,9 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Frighten": (1, frighten),
         # Phase 2 is "using a move", the only point where a priority is
         # about to be read, so flipping it there catches both sides.
-        "Procrastination": (2, procrastination),
+        # ORDER_PHASE, not 2: the priority has to be flipped
+        # before compare_speed reads it. See constants.py.
+        "Procrastination": (ORDER_PHASE, procrastination),
         "Death Realm": (6, death_realm),
         "Charm": (3, charm),
         "Mad Scientist": (2, mad_scientist),
@@ -709,13 +1182,13 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Fireworks": (2, fireworks),
         "Gluttony": (8, gluttony),
         "Buggy": (1, buggy),
-        "Brain Wave": (4, brain_wave),
+        "Brain Wave": ((1, 4), brain_wave),
         "Champion": (1, champion),
         "Impatient": (8, impatient),
         "Outlier": (1, outlier),
         "Thief": (4, thief),
         "Tenebrous": (4, tenebrous),
-        "Sucking": (6, sucking),
+        "Barbaric": (6, barbaric),
         "Ultra Boost": (1, ultra_boost),
         "Plot Armor": ((1, 5, 7, 8), plot_armor),
         "Calm": ((7, 8), calm),
@@ -725,7 +1198,7 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Time Travel": (3, time_travel),
         "Gargantuan": (5, gargantuan),
         "Irrational": (1, irrational),
-        "Light Speed": (1, light_speed),
+        "Light Speed": ((1, 3), light_speed),
         "Killer Instinct": (4, killer_instinct),
         "Helper": (0, helper),
         "Wanderer": (0, wanderer),
@@ -737,7 +1210,9 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Silhouette": ((1, 5), silhouette),
         "Old Legends": ((1, 5), old_legends),
         "Blood Magic": (6, blood_magic),
-        "Primordial": ((0, 1), primordial),
+        # Phase 8 as well now: it checks every few turns that it is
+        # still raining, so a weather change does not leave it stranded.
+        "Primordial": ((0, ORDER_PHASE, 8), primordial),
         "Last Stand": (1, last_stand),
     }
 

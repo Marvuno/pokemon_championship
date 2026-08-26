@@ -47,6 +47,7 @@ def move_special_effect(turn, move):
         "self_modifier": check_move_user_modifier,
         "self_heal": check_move_user_heal,
         "weather_heal": check_move_user_heal_by_weather,
+        "roost": check_move_roost,
         "team_status_heal": check_move_heal_team_status,
         "hp_draining": check_move_hp_draining,
         "user_protection": check_move_user_protection,
@@ -181,6 +182,52 @@ def check_move_user_heal(turn, move, special_effect):
 #: how far a decimal in the move table may sit below the fraction it means
 #: before a floor() reads one short. See check_move_user_heal_by_weather.
 FRACTION_SLACK = 1e-6
+
+
+def check_move_roost(turn, move, special_effect):
+    """Heal a third, rounded up, and land for the rest of the turn.
+
+    `special_effect` is the fraction, so the table still says how much.
+    Rounded **up**, unlike every other heal here, because that is what the
+    move does in the series -- `math.ceil`, not `math.floor`.
+
+    The typing half is the interesting part. A Flying type using Roost is on
+    the ground until the end of the turn, which means:
+
+      * a dual type loses Flying and keeps the other half
+      * a pure Flying type is left with no type at all -- typeless, not
+        Normal, so nothing is super effective or resisted against it
+      * anything that was not Flying is untouched
+
+    and something ungrounded *only* by being Flying is grounded meanwhile, so
+    terrain and Ground moves reach it.
+
+    The typing is put back by `end_of_turn`, from the copy taken here rather
+    than from `default_type`: a move like Forest's Curse may have added a
+    type this battle, and restoring the default would throw that away. Same
+    reasoning as the switching code, which takes copies for the same reason.
+    """
+    user = turn.user.active
+    healed = min(user.hp - user.battle_stats[0],
+                 math.ceil(user.hp * special_effect))
+    if healed > 0:
+        user.battle_stats[0] += healed
+        narrator.say(f"{user.name} settles and recovers {healed} HP.",
+                     "heal", pokemon=user.name, amount=healed)
+    else:
+        narrator.say(f"{user.name} is already at full health.", "fail")
+
+    if "Flying" not in (user.type or []):
+        return                      # nothing to come down from
+    user.roosting = list(user.type)
+    user.type = [kind for kind in user.type if kind != "Flying"]
+    if user.type:
+        narrator.say(f"{user.name} touches down -- it is no longer Flying "
+                     f"this turn.")
+    else:
+        narrator.say(f"{user.name} touches down -- it has no type this turn.")
+    # ungrounded only by its wings, so it is standing on the field now
+    user.volatile_status['Grounded'] = 1
 
 
 def check_move_user_heal_by_weather(turn, move, special_effect):

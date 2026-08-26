@@ -623,6 +623,60 @@ def base_typing(mon):
     return list(_g(mon, "type", []) or [])
 
 
+def blocked_moves(mon, foe):
+    """{move name: why it cannot be used} for the Pokemon about to choose.
+
+    The engine already refuses these -- `move_fail_checklist_before_execution`
+    is the list -- but it refuses them *after* the player has spent their
+    turn on one, and the only sign beforehand was a card greyed out with no
+    explanation. Same four reasons, read ahead of time so the card can say
+    them.
+
+    Deliberately a snapshot of plain strings: the interface never calls back
+    into game code (see the threading contract in CLAUDE.md), so the
+    reasoning happens here, on the worker's side of the fence.
+    """
+    reasons = {}
+    if mon is None:
+        return reasons
+    foe_types = [str(t) for t in (_g(foe, "type", []) or [])]
+    turn = (_g(mon, "volatile_status", {}) or {}).get("Turn", 0)
+    for name in (_g(mon, "moveset", []) or []):
+        if name == "Switching":
+            continue
+        # 1. Disable, Cursed Body and friends
+        left = (_g(mon, "disabled_moves", {}) or {}).get(name, 0)
+        if left and left > 0:
+            reasons[name] = ("Disabled for %d more turn%s"
+                             % (left, "" if left == 1 else "s"))
+            continue
+        try:
+            from Scripts.Data.moves import list_of_moves
+            move = list_of_moves[name]
+        except Exception:
+            continue
+        flags = str(_g(move, "flags", "") or "")
+        # 2. first-turn-only moves, once the first turn has gone
+        if "j" in flags and turn > 2:
+            reasons[name] = "Only works on the turn this Pokemon came in"
+            continue
+        # 3. powder moves do nothing to a Grass type
+        if "g" in flags and "Grass" in foe_types:
+            reasons[name] = "Powder does not affect a Grass type"
+            continue
+        # 4. the move's own condition, from the fails_unless column
+        rule = str(_g(move, "fails_unless", "") or "").strip()
+        if rule:
+            try:
+                from Scripts.Battle import move_rules
+                refused, why = move_rules.refuses(mon, foe, move, None)
+            except Exception:
+                refused, why = False, ""
+            if refused:
+                reasons[name] = why or "Its condition is not met"
+    return reasons
+
+
 def snap_pokemon(mon, active=False):
     if mon is None:
         return None
@@ -903,8 +957,13 @@ def install_hooks(bridge, game_main):
         }
         if player is not None:
             fields["player"] = snap_pokemon(player, active=True)
+            # Worked out here rather than inside snap_pokemon because it
+            # takes *both* sides: a powder move is refused by the target's
+            # typing, not by anything about the Pokemon using it.
+            fields["player"]["blocked"] = blocked_moves(player, opponent)
         if opponent is not None:
             fields["opponent"] = snap_pokemon(opponent, active=True)
+            fields["opponent"]["blocked"] = blocked_moves(opponent, player)
         protagonist = ctx["protagonist"]
         competitor = ctx["competitor"]
         player_roster = _g(protagonist, "team", ctx["player_team"])
@@ -1043,13 +1102,28 @@ def install_hooks(bridge, game_main):
     # fragments of the log after the fact.
     original_move_exec = checklist.move_order_and_execution
 
+    #: how deep we are inside a move. A move can run another one inside
+    #: itself -- Wizardry and Overloaded -- and the engine's own recursive
+    #: call comes back through this wrapper, so without a depth count the
+    #: *inner* move finished first and emitted its banner first. The feed
+    #: showed the follow-up before the move that caused it, and then a second
+    #: banner holding both. One banner per move the player chose, please.
+    move_depth = [0]
+
     def move_order_and_execution(turn, move, target_move, *a, **kw):
         # Takes a battle context now -- see Scripts/Battle/context.py. The
         # banner needs the acting side and the Pokemon acting, both of which
         # are on it.
-        result, text = bridge.capture(
-            original_move_exec, turn, move, target_move, *a, **kw)
-        if text.strip():
+        outermost = move_depth[0] == 0
+        move_depth[0] += 1
+        try:
+            result, text = bridge.capture(
+                original_move_exec, turn, move, target_move, *a, **kw)
+        finally:
+            move_depth[0] -= 1
+        # The outer capture already holds the nested move's text, in the
+        # order it happened, so only the outermost call announces.
+        if outermost and text.strip():
             bridge.emit_banner("move", text,
                                side=side_of(turn.user.trainer),
                                actor=_g(turn.user.active, "name", ""))

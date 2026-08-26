@@ -521,10 +521,20 @@ curse = list_of_moves["Forest's Curse"].special_effect
 check("a one-entry effect list stays a list", isinstance(curse, list))
 check("...with the right thing in it", curse, ["Grass"])
 
-# paired effects keep their pairing
-terror = list_of_moves["Reign of Terror"]
-check("a multi-effect move pairs its two columns by position",
-      len(terror.effect_type), len(terror.special_effect))
+# paired effects keep their pairing.
+#
+# Every move that has more than one, rather than one named example: this used
+# to point at Reign of Terror, and when that row was edited down to a single
+# effect the check died on `len()` of a function instead of reporting
+# anything useful. The rule is about the columns, not about one move.
+_paired = {name: move for name, move in list_of_moves.items()
+           if isinstance(move.effect_type, list) and len(move.effect_type) > 1}
+_mismatched = sorted(
+    name for name, move in _paired.items()
+    if not isinstance(move.special_effect, list)
+    or len(move.special_effect) != len(move.effect_type))
+check("every multi-effect move pairs its two columns by position (%d moves)"
+      % len(_paired), _mismatched, [])
 
 # and the rules themselves
 for text, want in ((move_table.NONE_MARK, None),

@@ -428,7 +428,13 @@ def main():
 
     if args.cache:
         with open(args.cache, "w", encoding="utf-8") as out:
-            json.dump({"original": original, "results": results},
+            # `matches` and the roster in `original` are what let a reader
+            # tell whether this cache still describes the current game --
+            # see ai_winrate_table.py. Without them a cache recorded before
+            # six competitors were added was replayed as though it were a
+            # fresh run of the whole field.
+            json.dump({"original": original, "results": results,
+                       "matches": args.matches},
                       out)
         print("cached raw results in %s" % args.cache)
     ladders, record, kills, peak, trough = tally(names, results, original)

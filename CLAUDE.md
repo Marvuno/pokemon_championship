@@ -650,6 +650,111 @@ so every debuff landed in silence, and `("Poison" or "Steel") not in
 user.type` is just `"Poison"` -- Python takes the first truthy operand -- so
 Baneful Bunker poisoned Steel types.
 
+## A turn's state, and what goes stale in it
+
+Four bugs of one shape, found together. Each is something that was true when
+a turn started and not by the time it was read.
+
+**The next turn's active Pokemon.** `end_of_turn` built the following turn
+from its own `player`/`opponent` locals, and only the *fainted*-switch loop
+reassigned them. So anything else that replaced `team[0]` during the turn --
+a forced switch from a character ability -- left the next turn running with
+the Pokemon that had gone as its `active` while the team already held the
+replacement, and **the replacement executed the move chosen for the one that
+had left**: 14 moves in 60 battles. It derives both from `team[0]` now.
+`Side.active` is still stored rather than derived on purpose; a turn
+*boundary* is simply not the mid-switch moment that rule is about.
+
+**A charge nobody could finish.** `check_volatile_status` blocked a move but
+left `charging` standing, so a Pokemon that fell asleep half-way through Fly
+stayed *semi-invulnerable* for the rest of the battle -- untouchable, and
+doing nothing. Yawn into Fly was the reliable way to see it. An interrupted
+two-turn move is cancelled now, as in the real games.
+
+**An ability that fired per strike.** `UseAbility(phase=5)` sits inside the
+multi-strike loop, which is right for Rough Skin and wrong for the absorbing
+abilities: Water Absorb heals a quarter of maximum HP *each time*. Water
+Shuriken hits up to five times, so it reported 0 damage -- correctly -- and
+refilled a nearly-fainted Pokemon to full. A move the target is immune to now
+stops striking.
+
+**"Did no damage" is not "never connected".** The two were the same flag, and
+the effect handlers sit behind it, so a U-turn whose damage was reduced to
+nothing by an ability did not switch out and the player was left standing
+there. The type chart is what decides whether a move connected at all: a real
+immunity is 0x.
+
+## The phase that runs before the order is decided
+
+`ORDER_PHASE` (10), fired from `compare_speed` after `speed_adjustment` and
+before the comparison.
+
+Phases 1..9 all happen once a Pokemon is already taking its turn, which is
+too late for an ability whose entire job is to decide *when* the turn is
+taken. Measured: `compare_speed` read Barraskewda at **339** every single
+turn while Swift Swim doubled it to 678 immediately afterwards, and the next
+turn's stat rebuild threw that away. Swift Swim did nothing. Neither did
+Prankster, Chlorophyll, Slush Rush, Gale Wings, or Jason's Procrastination --
+five Pokemon abilities and a character ability, all silently inert.
+
+They were on phase 2, which used to fire in `pre_move_adjustment` -- before
+the comparison, so they worked. Phase 2 moved into `on_move_used` so Protean
+and Libero would change type as their Pokemon actually moved rather than
+before the turn. That was right for those two and wrong for these six, which
+is why this is a phase of its own rather than phase 2 moved back.
+
+Nothing compounds: `move_selection` rebuilds `battle_stats` from
+`nominal_base_stats` at the top of every turn, so the doubling applies to one
+comparison and is gone.
+
+After the fix, the same battle: Barraskewda at **678** in the comparison, and
+Marvuno's side moving first on 11 turns out of 11.
+
+## Running a move twice
+
+`battleground.encore_move`, read once at the end of
+`move_order_and_execution` -- the only place that knows a move has finished.
+**Wizardry** sets it, to a move drawn at random.
+
+**Overloaded does not.** It is an extra *strike* (`multi[1] += 1`), inside the
+move's own execution, like Double Hit. Running the whole move again was a
+different thing entirely: it took a second slot in the turn, so the holder
+appeared to move twice and the order came out wrong.
+
+The engine only honours an encore once the move has actually worked, which
+the ability cannot know when it fires:
+
+    fail            missed, refused, or hit an immunity
+    name Switching  swapping out is not a move to follow up
+    charging set    committed to Fly or Dig rather than landing anything;
+                    eligible on the turn it comes down instead
+
+Without those it fired on misses and on switches, and the log filled with
+moves nobody had chosen.
+
+`encore_running` is not belt and braces. The repeat goes through the same
+code path, so the ability fires again on the way and would queue another; a
+Wizardry holder would take its turn until the recursion limit stopped it.
+
+`NO_SECOND_HELPING` in character_abilities.py is what may not be repeated:
+switching, Metronome (it would recurse), the two-turn moves (a repeat starts
+a fresh charge on top of the one just committed to), and the protective moves
+(already up, and in the series they fail on consecutive use).
+
+## Saying why a move cannot be used
+
+`blocked_moves()` in GUI/bridge.py. The engine has always refused these four
+-- `move_fail_checklist_before_execution` is the list -- but only *after* the
+player spent a turn on one, and the card just went grey with no explanation.
+The same four are worked out ahead of the turn so the card can name the
+reason: disabled and for how long, a powder move against a Grass type, a
+first-turn-only move after the first turn, and the move's own `fails_unless`
+condition.
+
+The wording lives in `FAILURE_LINES` beside the conditions, so the log and
+the card read from one source -- phrased as a *reason* rather than an event,
+since it now has to make sense both after a wasted turn and before one.
+
 ## Traps that fail silently
 
 Things that have already cost time here. Each one looked fine and wasn't.

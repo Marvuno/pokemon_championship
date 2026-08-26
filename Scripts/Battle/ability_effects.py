@@ -28,7 +28,8 @@ import random
 from contextlib import suppress
 
 from Scripts.Art.text_color import *
-from Scripts.Battle.constants import GUARANTEE_ACCURACY, has_ability
+from Scripts.Battle.constants import (GUARANTEE_ACCURACY, ORDER_PHASE,
+                                      has_ability)
 from Scripts.Battle.moves_status_condition_apply import (Burn, Paralysis,
                                                          Poison, Sleep)
 from Scripts.Battle.type_chart import modifierChart, typeChart
@@ -139,29 +140,41 @@ def stancechange(call):
                     call.user.battle_stats[x] = math.floor(0.01 * 2 * call.user.nominal_base_stats[x] * modifierChart[x][call.user.modifier[x]] * 100 + 5)
 
 def illusion(call):
+    """Wear another team-mate's face until something lands a hit.
+
+    Every typing here is assigned as a **copy**. Handing the live `type` the
+    same list object as `default_type` -- or as the team-mate being imitated
+    -- makes the two one list, so a move like Forest's Curse that extends the
+    live typing edits the default it will later be restored from, and the
+    imitated Pokemon's typing along with it. That is the aliasing trap in
+    CLAUDE.md; switching and end_battle both take copies for the same reason.
+    """
     # switching in
     if call.phase == 1:
         if sum(1 for pokemon in call.user_side.team if pokemon.status != "Fainted") != 1:
             call.user.disguise = True
             for pokemon in call.user_side.team[1:]:
                 if pokemon.status != "Fainted":  # use id when finalizing pokemon list
-                    call.user.name, call.user.type = pokemon.name, pokemon.type
+                    call.user.name = pokemon.name
+                    call.user.type = list(pokemon.type)
                     break
     elif call.phase == 2 and call.ground.reality:
-        call.user.type = call.user.default_type
+        call.user.type = list(call.user.default_type)
     elif call.phase == 3 and call.ground.reality:
-        call.user.type = call.user.default_type
+        call.user.type = list(call.user.default_type)
     elif call.phase == 5 and call.ground.reality:
         if call.move.damage > 0 and call.user.disguise:
-            call.user.name, call.user.type = call.user.default_name, call.user.default_type
+            call.user.name = call.user.default_name
+            call.user.type = list(call.user.default_type)
             narrator.say(f"{call.user.name} is in disguise!")
             call.user.disguise = False
     elif call.phase == 8:
         if call.user.disguise:
-            call.user.type = list_of_pokemon[call.user.name].type
+            call.user.type = list(list_of_pokemon[call.user.name].type)
     # switched out
     elif call.phase == 9:
-        call.user.name, call.user.type = call.user.default_name, call.user.default_type
+        call.user.name = call.user.default_name
+        call.user.type = list(call.user.default_type)
 
 def prankster(call):
     if call.move.attack_type == "Status" and "Dark" not in call.target.type:
@@ -377,6 +390,36 @@ def sandspit(call):
 def poisonpoint(call):
     if 'a' in call.move.flags and call.target.status == "Normal":
         call.target.status = "Poison" if random.random() < 0.3 else "Normal"
+
+#: Toxic Chain's chance to badly poison whatever it hits, as in the series.
+TOXIC_CHAIN_CHANCE = 0.3
+
+
+def toxicchain(call):
+    """A move that connects may badly poison the target. 30%, as in Gen 9.
+
+    Two things this has to do that the first cut did not.
+
+    **Respect the immunity.** Poison and Steel types cannot be poisoned, and
+    writing the status straight onto `target.status` walked past that -- a
+    Steel type could be left badly poisoned by an ability that in the real
+    games does nothing to it. `status_effect_immunity_check` is the engine's
+    own answer to that question and is what every move uses.
+
+    **Set the counter.** Bad poison escalates by a counter kept in
+    `volatile_status['NonVolatile']`, and every other site that inflicts it
+    initialises that alongside the status. Without it the damage escalated
+    from whatever number happened to be left there by something else.
+    """
+    if call.move.damage > 0 and call.target.status == "Normal":
+        if random.random() >= TOXIC_CHAIN_CHANCE:
+            return
+        inflicted = status_effect_immunity_check(
+            call.user, call.target, call.move, "BadPoison")
+        if inflicted != "BadPoison":
+            return                      # immune; the check said so out loud
+        call.target.status = "BadPoison"
+        call.target.volatile_status['NonVolatile'] = 1
 
 def justified(call):
     if call.move.attack_type != "Status" and call.move.type == "Dark":
@@ -993,7 +1036,7 @@ REGISTRY = {
     'Natural Cure': (1, naturalcure),
     'Stance Change': ((1, 2), stancechange),
     'Illusion': ((1, 2, 3, 5, 8, 9), illusion),
-    'Prankster': (2, prankster),
+    'Prankster': (ORDER_PHASE, prankster),
     'Rock Head': (2, rockhead),
     'Marvel Scale': (3, marvelscale),
     'Adaptability': (2, adaptability),
@@ -1034,6 +1077,7 @@ REGISTRY = {
     'Stamina': (7, stamina),
     'Sand Spit': (7, sandspit),
     'Poison Point': (7, poisonpoint),
+    'Toxic Chain': (4, toxicchain),
     'Justified': (7, justified),
     'Cursed Body': (7, cursedbody),
     'Speed Boost': (8, speedboost),
@@ -1043,9 +1087,9 @@ REGISTRY = {
     'Arena Trap': (1, arenatrap),
     'Battle Armor': (3, _cannot_be_crit),
     'Shell Armor': (3, _cannot_be_crit),
-    'Chlorophyll': (2, chlorophyll),
-    'Swift Swim': (2, swiftswim),
-    'Slush Rush': (2, slushrush),
+    'Chlorophyll': (ORDER_PHASE, chlorophyll),
+    'Swift Swim': (ORDER_PHASE, swiftswim),
+    'Slush Rush': (ORDER_PHASE, slushrush),
     'Rain Dish': (8, raindish),
     'Ice Body': (8, icebody),
     'Early Bird': (8, earlybird),
@@ -1102,7 +1146,7 @@ REGISTRY = {
     'Multiscale': (5, multiscale),
     'Regenerator': (9, regenerator),
     'Competitive': (7, competitive),
-    'Gale Wings': (2, galewings),
+    'Gale Wings': (ORDER_PHASE, galewings),
     'Sniper': (4, sniper),
     'Simple': ((1, 6, 7), simple),
     'Unaware': (2, unaware),

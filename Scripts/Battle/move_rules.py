@@ -153,9 +153,21 @@ FAILS_UNLESS = {
                  and user.move_order[-2] == move.name),
 }
 
-#: the few that say something other than "The move failed."
+#: What to say when a condition is not met -- one line per condition, so the
+#: player is told the reason rather than just "it failed".
+#:
+#: The interface reads these too, ahead of the turn, to label a move card the
+#: player cannot use (see blocked_moves in GUI/bridge.py). That is why they
+#: are phrased as a *reason* and not as an event: they have to read correctly
+#: both after a wasted turn and before one.
 FAILURE_LINES = {
     "not_used_last_turn": "%(user)s cannot swing the hammer twice in a row!",
+    "target_asleep": "Only works on a sleeping target",
+    "user_asleep": "%(user)s has to be asleep to use it",
+    "target_attacks": "Only lands on a target winding up to attack",
+    "hit_by_contact": "Springs only when struck by a contact move",
+    "can_pay_hp_and_still_boost":
+        "Not enough HP to pay, or Attack is already maxed",
 }
 
 

@@ -36,7 +36,7 @@ has to exclude it or it revives the dead.
 
 ## Battle stats
 
-`0 Attack | 1 Defense | 2 SpA | 3 SpDef | 4 Speed`
+`0 HP | 1 Attack | 2 Defense | 3 SpA | 4 SpDef | 5 Speed`
 
 ## Entry hazard
 
@@ -84,9 +84,12 @@ position with `special_effect`.
 | hp_split | before_hand | after_hand |
 | modifier_dependent | target_disable | swap_barrier |
 | add_target_type | cursing | ohko |
+| roost | | |
 
-`terrain` and `weather_heal` are the newest: the four terrain-laying moves,
-and Synthesis, whose heal depends on the sky.
+`terrain`, `weather_heal` and `roost` are the newest: the four
+terrain-laying moves, Synthesis (whose heal depends on the sky), and
+Roost -- which heals a third *rounded up*, unlike every other heal
+here, and takes the user's Flying type away until the end of the turn.
 
 ## The three rule columns
 
@@ -123,6 +126,15 @@ worked. They live in `Scripts/Battle/move_rules.py`.
 | 7 | After a successful hit and its effect (target side) |
 | 8 | End of turn |
 | 9 | Switched out |
+| 10 | Before the turn order is decided (`ORDER_PHASE`) |
+
+Phase 10 is the odd one out and is there for a reason: 1..9 all happen once a
+Pokemon is already taking its turn, which is too late for an ability that
+decides *when* the turn is taken. Swift Swim, Chlorophyll, Slush Rush,
+Prankster and Gale Wings live there, along with the character abilities that
+change a move's priority or its holder's Speed -- Tension Release and
+Primordial. It fires from `compare_speed`, after the speed adjustment and
+before the comparison.
 
 `REGISTRY` at the bottom of `Scripts/Battle/ability_effects.py` is the single
 source; the phase map is derived from it.

@@ -103,21 +103,63 @@ def write_report(path, names, original, record, margin, head, matches,
     add("")
     add("MARGIN is the net Pokemon knocked out across every match -- theirs")
     add("minus yours. PER is that per match, so +3.0 means winning by three")
-    add("Pokemon on average. WORST is the heaviest single defeat. SHIP is the")
-    add("rating the competitor ships with, for comparison only -- it took no")
-    add("part in this table.")
+    add("Pokemon on average. RATING is what the competitor ships with; it")
+    add("took no part in these battles and is here to be compared against.")
     add("")
-    add("%-4s %-22s %6s %5s %5s %5s %8s %6s %6s %7s"
-        % ("#", "COMPETITOR", "WIN%", "W", "L", "D", "MARGIN", "PER",
-           "WORST", "SHIP"))
-    add("-" * 84)
+    # Where each competitor sits if you rank the field by shipped rating.
+    # Ties share a place, so two competitors on the same rating are not
+    # arbitrarily separated by whichever the sort happened to see first.
+    by_rating = sorted(names, key=lambda n: -original.get(n, 0))
+    rating_place, seen = {}, {}
+    for index, name in enumerate(by_rating):
+        value = original.get(name, 0)
+        seen.setdefault(value, index + 1)
+        rating_place[name] = seen[value]
+
+    add("RANK is by win rate. RATING RANK is where the shipped rating puts")
+    add("them. MOVE is the difference: positive means they out-performed the")
+    add("rating, negative means the rating flatters them.")
+    add("")
+    add("%-4s %-22s %7s %5s %5s %7s %6s %7s %8s %6s"
+        % ("RANK", "COMPETITOR", "WIN%", "W", "L", "RATING", "RANK",
+           "MOVE", "MARGIN", "PER"))
+    add("-" * 88)
     for name in order:
         won, lost, drew = record[name]
         played = won + lost + drew
-        add("%-4d %-22s %5.1f%% %5d %5d %5d %+8d %+6.2f %6d %7d"
-            % (place[name], name[:22], rate(name), won, lost, drew,
-               margin[name][0], margin[name][0] / played if played else 0,
-               margin[name][1], original.get(name, 0)))
+        shift = rating_place[name] - place[name]
+        add("%-4d %-22s %6.1f%% %5d %5d %7d %6d %+7d %+8d %+6.2f"
+            % (place[name], name[:22], rate(name), won, lost,
+               original.get(name, 0), rating_place[name], shift,
+               margin[name][0], margin[name][0] / played if played else 0))
+
+    # -- who has beaten the two at the top ---------------------------------
+    add("")
+    add("")
+    add("Who has beaten the top two")
+    add("-" * 78)
+    add("Every competitor who has taken a match off them, and how often.")
+    add("A short list here is what a runaway looks like.")
+    for name in order[:2]:
+        won, lost, drew = record[name]
+        add("")
+        add("    %s -- %d win%s, %d loss%s, %d draw%s"
+            % (name, won, "" if won == 1 else "s",
+               lost, "" if lost == 1 else "es",
+               drew, "" if drew == 1 else "s"))
+        # head[foe][name] is how many times `foe` beat `name`
+        beaters = sorted(
+            ((foe, head.get(foe, {}).get(name, 0)) for foe in names
+             if foe != name and head.get(foe, {}).get(name, 0)),
+            key=lambda pair: -pair[1])
+        if not beaters:
+            add("        nobody. Unbeaten across the whole field.")
+            continue
+        for foe, times in beaters:
+            back = head.get(name, {}).get(foe, 0)
+            add("        %-24s won %d of their %d meeting%s"
+                % (foe[:24], times, times + back,
+                   "" if times + back == 1 else "s"))
 
     add("")
     add("")
@@ -180,9 +222,37 @@ def main():
         ROOT, "Documentation", "ai_win_rate_table.md"))
     args = parser.parse_args()
 
+    cached = None
     if args.cache and os.path.exists(args.cache):
         with open(args.cache, encoding="utf-8") as source:
             cached = json.load(source)
+        # A cache is only a shortcut if it is a cache of *this* game. It was
+        # replayed on nothing but "the file exists", so a run recorded before
+        # six competitors were added came back as a complete-looking table of
+        # the old roster -- with no hint that it was not fresh beyond one
+        # line saying "replaying". That is the worst kind of stale: it looks
+        # exactly like a real answer.
+        from Test.ai_rating_simulation import _cached_engine as _engine
+        current = set(list(_engine()[0].keys())[1:])
+        stale = []
+        if set(cached["original"]) != current:
+            missing = sorted(current - set(cached["original"]))
+            extra = sorted(set(cached["original"]) - current)
+            stale.append("the roster has changed"
+                         + (" (new: %s)" % ", ".join(missing) if missing
+                            else "")
+                         + (" (gone: %s)" % ", ".join(extra) if extra
+                            else ""))
+        if cached.get("matches") not in (None, args.matches):
+            stale.append("it holds %s matches per pair, not %d"
+                         % (cached.get("matches"), args.matches))
+        if stale:
+            print("ignoring %s: %s" % (args.cache, "; ".join(stale)))
+            print("fighting them again. Re-record it with "
+                  "ai_rating_simulation.py --cache to make this quick.")
+            cached = None
+
+    if cached is not None:
         original = cached["original"]
         results = cached["results"]
         names = list(original)

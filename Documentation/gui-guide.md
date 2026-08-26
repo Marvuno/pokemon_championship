@@ -59,7 +59,14 @@ player can read either at any time.
 Each move is a card showing its type, category, power, accuracy, and the
 effectiveness the game itself calculated — SUPER, RESISTED, IMMUNE — with a
 type-coloured spine. Hover a card for recoil/multi-hit detail that doesn't
-fit on the card face. The bracketed number is its keyboard shortcut, though
+fit on the card face.
+
+A move you cannot use says why, on its own row under the stats: how many
+turns it is disabled for, that a powder move does nothing to a Grass
+type, that a first-turn move has missed its turn, or that the move's
+own condition is not met. The name and stats stay readable, so you can
+judge whether it is worth waiting for. The engine always refused these
+-- but only after you had spent the turn on one. The bracketed number is its keyboard shortcut, though
 clicking is the primary way to play throughout.
 
 ### Live battle state
@@ -156,6 +163,11 @@ One window, five tabs, all of it there when it opens:
 | Career | the one you picked: portrait, titles, W/L, win rate |
 | Tournaments | every championship they entered and where they came |
 | Head to Head | their record against everybody, hardest opponent first |
+
+The window opens as wide as the display allows, up to 1560, because the
+tables inside are wide: a Head to Head row is a name, a rating and a
+full record. It is a resize rather than a fixed size, so it can still
+be dragged smaller.
 
 Click a name and the last three tabs fill in. Everything scrolls vertically —
 nothing is ever laid out wide enough to need a sideways drag. You are never

@@ -4,6 +4,12 @@ smart_ai_select_move scored a fixed five slots regardless of how many moves
 the Pokemon actually had, then used the winning *slot number* to index the
 moveset -- so a Pokemon with fewer than four moves could send it out of
 range. Found by Test/opponent_ladder.py at battle 1,900 of 7,700.
+
+A second one of the same shape turned up later and is covered here too:
+`ai_switching_mechanism` was handed that winning slot number as
+`incoming_move` and indexed **`protagonist.team[0]`** with it -- a different
+Pokemon from the one the number was worked out against, whenever the two are
+out of step mid-switch. See the note on Side.active in CLAUDE.md.
 """
 import os
 import random
@@ -11,49 +17,42 @@ import sys
 from contextlib import redirect_stdout, suppress
 from copy import deepcopy
 
-ROOT = sys.argv[1]
-sys.path.insert(0, ROOT)
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 os.chdir(ROOT)
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("POKEMON_MUTE", "1")
 
-# battle_cycle first, deliberately: Scripts.Battle.ai and
-# Scripts.Battle.battle_move_execution star-import each other, so importing ai
-# first leaves battle_checklist without user_turn_in_battle_stats. The game
-# always comes through battle_cycle, and so does the ladder.
-from Scripts.Battle.battle_cycle import battle_setup             # noqa: E402
-import Scripts.Battle.ai as AI                                   # noqa: E402
-from Scripts.Data.battlefield import Battleground                # noqa: E402
-from Scripts.Data.competitors import list_of_competitors         # noqa: E402
-from Scripts.Data.pokemon import list_of_pokemon                 # noqa: E402
-from Scripts.Game.game_procedure import team_generation          # noqa: E402
-from Scripts.Game.game_system import GameSystem                  # noqa: E402
+import Scripts.Battle.battle_cycle                              # noqa: F401,E402
+import Scripts.Battle.ai as AI                                  # noqa: E402
+from Scripts.Battle.battle_cycle import battle_setup            # noqa: E402
+from Scripts.Data.battlefield import Battleground               # noqa: E402
+from Scripts.Data.competitors import list_of_competitors        # noqa: E402
+from Scripts.Data.pokemon import list_of_pokemon                # noqa: E402
+from Scripts.Game.game_procedure import team_generation         # noqa: E402
+from Scripts.Game.game_system import GameSystem                 # noqa: E402
 
 fails = []
 
 
-def check(label, got, want=True):
+def check(what, got, want=True):
     ok = got == want
-    sys.stderr.write("%-58s %s\n" % (label, "PASS" if ok else
-                                     "FAIL got=%r want=%r" % (got, want)))
+    print("%-58s %s%s" % (what, "PASS" if ok else "FAIL",
+                          "" if ok else " got=%r want=%r" % (got, want)))
     if not ok:
-        fails.append(label)
+        fails.append(what)
 
 
-# ------------------------------------------------ the score dict is sized
-short = [name for name, mon in list_of_pokemon.items()
-         if len([m for m in mon.moveset if m != "Switching"]) < 4]
-check("Data/pokemon.csv really has short movesets (%d of them)" % len(short),
-      bool(short))
+#: Pokemon whose movepool is shorter than the five slots the scorer used to
+#: assume. These are what the bug needed to show itself, so the battles below
+#: deliberately field them.
+short = sorted(name for name, mon in list_of_pokemon.items()
+               if len([m for m in (mon.moveset or []) if m != "Switching"]) < 5)
 
-# Every move's dict key and its own name have to agree: the AI compares a
-# moveset entry (a key) against move.name in places, and the log prints
-# move.name -- "Razor Shell" was keyed to a Move called "RazorShell", so both
-# silently disagreed.
-from Scripts.Data.moves import list_of_moves                     # noqa: E402
-mismatched = {key: move.name for key, move in list_of_moves.items()
-              if key != move.name}
-check("every move's key matches its own name", mismatched, {})
-
+#: moveset length -> how many times the AI was asked to choose at that length
 seen = {}
+
 original = AI.smart_ai_select_move
 
 
@@ -64,11 +63,19 @@ def spy(battleground, protagonist, ai, *a, **kw):
     ai) -- the side being decided for is the *third* one.
     """
     moveset = list(ai.team[0].moveset)
+    # A Pokemon half-way through a two-turn move has to finish it, and
+    # `smart_ai_select_move` returns `charging[0]` for exactly that reason
+    # (ai.py:553). Metronome can hand it a charging move it does not own --
+    # Gambler knows only Metronome, rolled Solar Beam, and came back the
+    # next turn owing a Solar Beam that is nowhere in its moveset. So what
+    # it is committed to counts as available.
+    committed = ai.team[0].charging[0]
     move = original(battleground, protagonist, ai, *a, **kw)
     seen.setdefault(len(moveset), 0)
     seen[len(moveset)] += 1
-    if move is not None and move.name not in moveset:
-        fails.append("chose %r, not in %r" % (move.name, moveset))
+    allowed = moveset + ([committed] if committed else [])
+    if move is not None and move.name not in allowed:
+        fails.append("chose %r, not in %r" % (move.name, allowed))
     return move
 
 

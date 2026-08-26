@@ -275,7 +275,7 @@ class MoveCard(RoundedPanel):
     """One selectable move: type spine, name, metadata, effectiveness badge."""
 
     def __init__(self, move, hotkey, fonts, effectiveness=None, parent=None,
-                on_click=None):
+                on_click=None, unusable=None):
         super().__init__(parent, bg=T.PANEL_RAISED, border=T.LINE_SOFT,
                          radius=T.RADIUS_MD)
         self.move = move
@@ -284,7 +284,12 @@ class MoveCard(RoundedPanel):
         self._hover = False
         self.setCursor(Qt.PointingHandCursor if on_click else Qt.ArrowCursor)
         self.setMinimumHeight(44)
-        self.setToolTip(self._tooltip_text(move))
+        #: why this move cannot be chosen, or None. A greyed-out card with no
+        #: explanation is the thing this replaces: the engine refused the
+        #: move *after* the turn was spent on it, and nothing said why.
+        self.unusable = unusable
+        self.setToolTip(("%s -- %s" % (move["name"], unusable)) if unusable
+                        else self._tooltip_text(move))
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 4, 10, 4)
@@ -294,7 +299,8 @@ class MoveCard(RoundedPanel):
         text_col.setSpacing(2)
         name = QLabel(move["name"])
         name.setFont(fonts.body_bold)
-        name.setStyleSheet("color: %s; background: transparent;" % T.TEXT)
+        name.setStyleSheet("color: %s; background: transparent;"
+                           % (T.TEXT_FAINT if unusable else T.TEXT))
         text_col.addWidget(name)
 
         bits = [move["type"], T.CATEGORY_GLYPH.get(move.get("category"), "STA")]
