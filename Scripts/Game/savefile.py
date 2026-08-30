@@ -165,6 +165,40 @@ def remember_pristine(list_of_competitors, list_of_pokemon):
     return _pristine is not None
 
 
+def restore_designed_teams(list_of_competitors):
+    """Put every competitor's team back to the specs the CSV describes.
+
+    `team_generation` writes the Pokemon it builds *back into*
+    `participant.team`, and `round_begin` trims that list when a round wants
+    fewer than six -- so a competitor who has been fought once carries built
+    Pokemon from then on, in whatever order and number that round left them,
+    instead of the `Ace` specs their designed team is written as. Their IVs,
+    abilities and movesets are frozen from that first build too.
+
+    Nothing noticed while one career meant one process: `restart()` is
+    os.execl, so the roster came back from the CSV every time. An Auto Run
+    plays several careers in one process and cannot, so this is what a fresh
+    interpreter used to do for free.
+
+    The player is left alone. Their team *is* the career -- it is the one
+    thing the save carries forward -- and the competitors' teams are not
+    saved at all, being rebuilt from the CSV on every load.
+    """
+    if _pristine is None:
+        return False
+    clean, _ = _pristine
+    for name, who in list_of_competitors.items():
+        if getattr(who, "main", False):
+            continue
+        source = clean.get(name)
+        if source is None:
+            continue
+        who.team = deepcopy(getattr(source, "team", []) or [])
+        if hasattr(who, "unused_team"):
+            who.unused_team = []
+    return True
+
+
 def start_fresh(list_of_competitors, list_of_pokemon):
     """Put every competitor and Pokemon back to their CSV state.
 
@@ -268,6 +302,12 @@ def save(list_of_competitors, path=None, slot=None):
             "participation": competitor.participation,
             "championship": competitor.championship,
         }
+        # Only when it has actually drifted. A competitor still on their
+        # shipped rating writes nothing, so re-tuning Data/competitors.csv
+        # still reaches every save that never moved them.
+        if competitor.strength != getattr(competitor, "base_strength",
+                                          competitor.strength):
+            entry["rating"] = competitor.strength
         history = {str(k): list(v)
                    for k, v in (competitor.history or {}).items()}
         if history:
@@ -429,6 +469,10 @@ def _load_json(data, list_of_competitors, list_of_pokemon):
         if competitor.main:
             continue
         entry = saved_competitors.get(name) or {}
+        # No "rating" key means a save from before ratings drifted, or a
+        # competitor who has never moved: either way the CSV value stands.
+        competitor.strength = int(entry.get("rating", competitor.base_strength)) \
+            if hasattr(competitor, "base_strength") else competitor.strength
         competitor.participation = int(entry.get("participation", 0))
         competitor.championship = int(entry.get("championship", 0))
         _apply_history(competitor, entry.get("history"))

@@ -115,28 +115,35 @@ check("Primordial grants no abilities now",
       sorted(mon3.ability or []), sorted(was))
 
 OUT.write(chr(10) + "-- Light Speed: terrain, and Ground does not reach --" + chr(10))
-g = Battleground(); g.turn = 1
+# 0, not 1: `battleground.turn` is now the turn *being played*, and
+# switching in at the start of a battle happens before the first one
+g = Battleground(); g.turn = 0
 fire("Albert Einstein", 1, "", built(owner="Albert Einstein"), built(owner="Jason"), g)
 check("battle opens on Electric Terrain", terrain.current(g), "Electric")
 
 target = built(owner="Albert Einstein")
+# What the species already is, before the ability touches it. Einstein's team
+# is rolled, so it can turn up a Rotom (Frost) -- naturally Electric, and
+# naturally holding Levitate. Asserting "no Levitate" or "not Electric" then
+# fails on the Pokemon rather than on the ability, so the test is what Light
+# Speed *changes*, not what the species happened to be.
+was_ability = sorted(target.ability or [])
+was_type = sorted(target.type or [])
+was_grounded = terrain.is_grounded(target)
+
 _, mv, _ = fire("Albert Einstein", 3, "Earthquake", target, built(owner="Jason"), g)
 check("a Ground move is refused", mv.abilitymodifier, 0)
 _, mv2, _ = fire("Albert Einstein", 3, "Quick Attack", target, built(owner="Jason"), g)
 check("...and a Normal move is not", mv2.abilitymodifier != 0, True)
 
-# the trap: Levitate would have made them immune AND taken the terrain away
-grounded_reason = ("Flying" if "Flying" in (target.type or [])
-                   else "Levitate" if "Levitate" in (target.ability or [])
-                   else "volatile" if (target.volatile_status or {}).get("Grounded", 1) <= 0
-                   else "grounded")
-check("they are still standing on their own terrain (%s, %s)"
-      % (target.name, grounded_reason),
-      terrain.is_grounded(target) or grounded_reason == "Flying", True)
-check("...because they were never given Levitate",
-      "Levitate" in (target.ability or []), False)
-check("...and no Electric type was added",
-      "Electric" in target.type, False)
+# the trap this avoids: granting Levitate would make them immune to Ground
+# *and* lift them off the Electric Terrain the other half just laid, so the
+# two halves would cancel. It refuses the type directly instead.
+check("no ability was handed out (%s)" % target.name,
+      sorted(target.ability or []), was_ability)
+check("...and no type was added", sorted(target.type or []), was_type)
+check("...so whether it stands on the terrain is unchanged",
+      terrain.is_grounded(target), was_grounded)
 
 OUT.write(chr(10) + "-- Infiltration: hazards do not stick --" + chr(10))
 one, two = deepcopy(C["Velvet"]), deepcopy(C["Jason"])
@@ -226,6 +233,62 @@ for label, mine_delta, foe_delta, want_mine, want_foe in (
         theirs.modifier = [a + b for a, b in zip(theirs.modifier, foe_delta)]
         UseCharacterAbility(turn, "", abilityphase=8)
     check(label, (mine.modifier[1], theirs.modifier[1]), (want_mine, want_foe))
+
+OUT.write(chr(10) + "-- Synchronize works from the moment a Pokemon arrives --" + chr(10))
+# Switching resets the stat stages, so a Pokemon that came in this turn began
+# it on zeroes. Reading it from there is what makes the ability work on the
+# switch-in turn rather than the turn after -- an Intimidate on the way in is
+# shared, where before the whole turn was thrown away.
+for label, swap_mine, swap_theirs, mine_after, theirs_after, want_mine, want_theirs in (
+        ("a drop taken on the turn the holder arrived",
+         True, False, -2, 0, -2, -2),
+        ("a rise taken on the turn the target arrived",
+         False, True, 0, 3, 3, 3),
+        ("nothing done to either newcomer stays nothing",
+         True, True, 0, 0, 0, 0)):
+    holder = deepcopy(C["Serena"])
+    mine, theirs = built(owner="Serena"), built(owner="Jason")
+    other_mine, other_theirs = built(owner="Serena"), built(owner="Jason")
+    for mon in (mine, theirs, other_mine, other_theirs):
+        mon.modifier = [0] * 9
+        mon.status = "Normal"
+    # Only the side that leaves carries a boost. That is what makes its
+    # snapshot stale: read against it, the newcomer's zero would look like a
+    # two-stage drop that nobody suffered.
+    if swap_mine:
+        mine.modifier[1] = 2
+    if swap_theirs:
+        theirs.modifier[1] = 2
+    ground = Battleground()
+    ground.reality = True
+    with redirect_stdout(io.StringIO()):
+        UseCharacterAbility(Turn(ground, Side(holder, [mine], mine),
+                                 Side(deepcopy(C["Jason"]), [theirs], theirs)),
+                            "", abilityphase=ORDER_PHASE)
+        now_mine = other_mine if swap_mine else mine
+        now_theirs = other_theirs if swap_theirs else theirs
+        now_mine.modifier[1] += mine_after
+        now_theirs.modifier[1] += theirs_after
+        UseCharacterAbility(Turn(ground, Side(holder, [now_mine], now_mine),
+                                 Side(deepcopy(C["Jason"]), [now_theirs], now_theirs)),
+                            "", abilityphase=8)
+    check(label, (now_mine.modifier[1], now_theirs.modifier[1]),
+          (want_mine, want_theirs))
+
+# ...and an ordinary turn, nobody switching, still works
+holder = deepcopy(C["Serena"])
+mine, theirs = built(owner="Serena"), built(owner="Jason")
+mine.modifier, theirs.modifier = [0] * 9, [0] * 9
+mine.status = theirs.status = "Normal"
+ground = Battleground()
+ground.reality = True
+turn = Turn(ground, Side(holder, [mine], mine),
+            Side(deepcopy(C["Jason"]), [theirs], theirs))
+with redirect_stdout(io.StringIO()):
+    UseCharacterAbility(turn, "", abilityphase=ORDER_PHASE)
+    mine.modifier[1] -= 2                       # the holder really did lose Attack
+    UseCharacterAbility(turn, "", abilityphase=8)
+check("...and a drop on a settled turn still spreads", theirs.modifier[1], -2)
 
 OUT.write(chr(10) + "-- a real battle still runs for each of them --" + chr(10))
 for who in ("Emperor Marvuno", "Albert Einstein", "Velvet", "Monkey King",

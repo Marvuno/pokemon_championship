@@ -1,4 +1,6 @@
 import os
+import random
+import re
 
 # Before `import pygame`, not after: pygame reads this while it is being
 # imported, so setting it on the next line left the banner already printed --
@@ -53,8 +55,89 @@ if not MUTED:
     pygame.mixer.music.set_volume(0.5)
 
 
+#: Silence decided *after* import, which `MUTED` cannot be: it is read from
+#: the environment before pygame loads, and Auto Run is chosen from the start
+#: menu long after that. Kept separate rather than reassigning MUTED so the
+#: two reasons for silence stay distinguishable -- one is how the process was
+#: started, the other is what the player asked for.
+_SILENCED = False
+
+
+def silence(on=True):
+    """Turn all sound off (or back on) for the rest of this session.
+
+    Stopping matters as much as the flag. `_SILENCED` only makes *future*
+    calls return early -- whatever was already streaming when it was set
+    keeps going, and the title theme loops, so an Auto Run started from the
+    menu would have played over the whole run. Both the music stream and the
+    effect channels are stopped, and not only when `MUTED` is off: stopping
+    a stream that is already silent costs nothing and removes a case to
+    reason about.
+    """
+    global _SILENCED
+    _SILENCED = bool(on)
+    if not _SILENCED:
+        return
+    for stop in (lambda: pygame.mixer.music.stop(), lambda: pygame.mixer.stop()):
+        try:
+            stop()
+        except Exception:
+            pass
+
+
+#: Where the music lives, relative to the project root.
+MUSIC_DIR = os.path.join("Assets", "music")
+
+#: What a career track is called: start1.mp3, start2.mp3, and so on.
+#: Numbered strictly, so an unrelated "startup_chime.mp3" is not picked up.
+START_PATTERN = re.compile(r"^start(\d+)\.mp3$", re.IGNORECASE)
+
+#: Played when there is no numbered track to play.
+START_FALLBACK = "intro.mp3"
+
+#: Its own generator, like GUI/wallpaper.py and GUI_qt/arena.py. Choosing the
+#: menu track must not draw from the game's stream: a seed is what replays a
+#: battle, and a draw here would shift everything after it.
+_start_random = random.Random()
+
+
+def start_tracks(directory=None):
+    """Every numbered career track, in numeric order.
+
+    Read off the disk rather than listed in code, so adding start7.mp3 to
+    Assets/music is the whole job -- no edit here and no entry anywhere else.
+    Sorted by the number rather than by name, or start10 would sort between
+    start1 and start2.
+    """
+    directory = MUSIC_DIR if directory is None else directory
+    found = []
+    try:
+        names = os.listdir(directory)
+    except OSError:
+        return []
+    for name in names:
+        match = START_PATTERN.match(name)
+        if match:
+            found.append((int(match.group(1)), os.path.join(directory, name)))
+    return [path for _, path in sorted(found)]
+
+
+def start_track(directory=None):
+    """One career track at random, or the fallback when there are none.
+
+    main.py picked with `random.randint(1, 6)`, so the range was written down
+    in code and a seventh file would simply never have been played. Reading
+    the folder means adding start7.mp3 to Assets/music is the whole job.
+    """
+    tracks = start_tracks(directory)
+    if not tracks:
+        return os.path.join(MUSIC_DIR if directory is None else directory,
+                            START_FALLBACK)
+    return _start_random.choice(tracks)
+
+
 def music(*, audio, loop):
-    if MUTED:
+    if MUTED or _SILENCED:
         return
     pygame.mixer.music.load(audio)
     pygame.mixer.music.play(-1) if loop else pygame.mixer.music.play()
@@ -75,7 +158,7 @@ def sound(*, audio):
     that will not load is remembered as unplayable rather than retried on every
     press.
     """
-    if MUTED:
+    if MUTED or _SILENCED:
         return
     effect = _sounds.get(audio, False)
     if effect is False:

@@ -74,7 +74,7 @@ references* -- so it has four rules:
 
     Flamethrower     target_non_volatile                 @Burn
     Acid Spray       opponent_modifier                   0,0,0,0,-2,0,0,0,0
-    Reign of Terror  opponent_modifier|target_volatile   0,0,0,0,0,-1,0,-1,0|@Frighten
+    Eerie Rhythm     opponent_modifier|target_volatile   0,0,0,0,-1,0,0,0,0|@Confused
     Defog            opponent_modifier|clear_entry_hazard   0,0,0,0,0,0,-1,0,0|~
     Haze             reset_target_modifier|reset_user_modifier   |
 
@@ -776,6 +776,23 @@ Things that have already cost time here. Each one looked fine and wasn't.
   `_drive_career` empty the action bar and hand the whole question to a
   window. If that window closes silently the engine waits forever. Every
   other screen that calls `_clear_actions()` immediately puts buttons back.
+- **`music()` is one stream; anything put on it is cut off by whatever plays
+  next.** `pygame.mixer.music.load()` replaces what is on the stream, and the
+  gap can be a millisecond -- `main()` returns from a career straight to
+  `start_game()`, whose second line loads the menu theme. Anything that has to
+  be heard *over* something else has to be `sound()`, which plays on a mixer
+  channel alongside the stream rather than on it.
+- **A wrapper that names its parameters silently drops the ones added later.**
+  `GUI/bridge.py` wraps `music` and `sound` in `try/except Exception` so a
+  missing file cannot kill the run -- which also means a `TypeError` from a
+  keyword the wrapper does not accept is swallowed whole: no sound, no error,
+  in the only build anybody plays. Both wrappers take `**kw`.
+- **An Auto Run deliberately has no end-of-run sound.** One was built and
+  removed. It was generated as a WAV, played through `sound()` on its own
+  channel, gated on the run actually completing, and verified twice by driving
+  the real window -- and it still never reached the player on the machine this
+  is developed for. `Documentation/changelog.md` records the removal. Do not
+  re-add one without a way to hear it on the target machine first.
 - **One implementation, one place.** `sprite_key` once existed twice and the
   two copies disagreed about 16 names (Alolan/Galarian forms, `Farfetch'd`,
   `(Blade Forme)`). It now lives only in `GUI/codex.py`.
@@ -802,6 +819,30 @@ Things that have already cost time here. Each one looked fine and wasn't.
   top-level widgets that are not one of the real dialogs and fails on any,
   which is what a stray pop-up looks like from the inside on any platform --
   offscreen included, where nothing reaches a real desktop to be seen.
+- **`bridge.stop()` does not stop the window.** The window drains the bridge
+  on a 20ms timer and calls `_apply_state` with whatever it finds, so a
+  stopped bridge still delivers one last empty state -- which wipes a
+  hand-fed `game_state` and leaves anything reading it with nothing. A suite
+  that feeds states by hand has to `w._timer.stop()` as well. This was
+  `test_hover_history`'s intermittent failure for a long time: it came down
+  to whether the timer fired between two hovers, and it reproduced 4 times in
+  10 with the timer left running and 0 in 10 with it stopped.
+- **A harness that rotates its answers on a tick counter can lock.**
+  `playthrough.py` used to pick `pool[state["n"] % len(pool)]`, and the ticks
+  between two appearances of the same screen are roughly constant -- a screen
+  takes what it takes. When that spacing is a multiple of the pool size the
+  same option comes up every time: the run wedged on the pre-battle menu,
+  opening Career History and coming back, for ever. Rotate on how many times
+  *that question* has been asked instead. It fails about one run in three,
+  which reads as flakiness rather than as a livelock.
+- **A career screen is filled by two publishes, not one.** `competitor_report`
+  publishes `career_report` and `individual_records` publishes
+  `career_records`, on separate hooks. A harness that snapshots the Records
+  tab when the report arrives catches the "Loading ..." placeholder -- about
+  one run in five, reported as an empty head-to-head table for a competitor
+  whose win rate proved it had one. Wait for the placeholder to clear, not
+  for the second publish: a competitor with no history never gets one,
+  because the engine skips that section entirely.
 - **Recursive screen loops exhaust the C stack.** `main_screen()` used to
   recurse and produced access violations with no traceback. It is a loop now.
 - **`battleground.verbose`** is on for AI-vs-AI simulation only. It enables
@@ -989,8 +1030,12 @@ slots existed still loads, and `adopt_single_save()` **copies** it into slot 1
 on first run rather than moving it. The original stays put as a backup — the
 worst case of that migration is a duplicate, never a lost career.
 
-**Any harness that plays a real game writes into the project folder.** The
-engine saves with no way to redirect it. `Test/` harnesses must snapshot and
+**Any harness that plays a real game writes into the project folder** -- and
+"plays a real game" includes merely *constructing a MainWindow*, which starts
+the engine on a worker thread. A suite that only meant to look at a widget
+truncated a real career to zero bytes because it built a window without the
+guard. If a test touches `MainWindow`, it needs `saveguard`, whatever else it
+is about. The engine saves with no way to redirect it. `Test/` harnesses must snapshot and
 restore both save files, and a native Qt crash skips `atexit` — so the guard
 has to be out-of-process. A test run's career has shadowed the real one
 before.
@@ -1256,16 +1301,23 @@ Results in `Documentation/ai_rating_simulation.md`.
 ### What the rating simulation cannot tell you
 
 **Both sides of an AI-vs-AI battle use the smart AI**, whatever they are
-rated. `move_selection` reads `SMART_AI_RATING` only in its `else` branch --
-the one where a human is playing:
+rated -- and so, now, does every opponent a human faces. So no amount of
+that simulation says anything about the dumb AI, and comparing its low-rated
+competitors against its high-rated ones compares *teams*, not AIs. That
+inference was drawn from this data once, and it was wrong;
+`Test/ai_head_to_head.py` exists because of it.
 
-    if battleground.verbose:                    # AI vs AI: both smart
-    else:                                       # a human: rating decides
-
-So no amount of that simulation says anything about the dumb AI, and
-comparing its low-rated competitors against its high-rated ones compares
-*teams*, not AIs. That inference was drawn from this data once, and it was
-wrong; `Test/ai_head_to_head.py` exists because of it.
+`move_selection` used to read `SMART_AI_RATING` in its `else` branch -- the
+one where a human is playing -- so 16 of the 69 competitors played simply
+because they were rated low. That is gone. Which AI an opponent uses is the
+**difficulty setting** and nothing else: Beginner replaces the scoring
+routine with the simple one everywhere (`GUI/bridge.py`), Normal is the
+absence of that. Two reasons it went. Rating meant two unrelated things at
+once -- the calibre of team a competitor brings *and* how well they think --
+so the early rounds were easy twice over. And once ratings drifted with form
+it became the only step function in the engine: five competitors sat close
+enough to the boundary that one career could switch their brain on and the
+next switch it off. Everything else a rating feeds is a continuous curve.
 
     python Test/ai_head_to_head.py
 
@@ -1277,33 +1329,41 @@ control band proves the harness itself is symmetric before any result is
 read. Teams are drawn at five ratings, because the answer turns out to depend
 on the team.
 
-The answer: **overall exactly 50%**, but 42.6% with rating-20 teams and 53%
-with rating-300-and-up ones. The smart AI is a liability with a weak team and
-worth about three points with a good one.
+**Its results were deleted, on purpose.** They were measured against the
+move-ranking rule below, which no longer exists, so every number in them was
+about an AI the game no longer has. `Documentation/ai_head_to_head.md` is
+regenerated by running the harness; until somebody does, there is no answer
+on file rather than a wrong one.
 
-Three arms, because the obvious explanation was wrong. The smart AI spends
-12-15% of its turns switching against the dumb AI's 2%, so switching looked
-like the cause. Removing it entirely moves the weakest band from 42.6% to
-43.6% (+/- 2.3) -- **nothing**. Restricting it to the dumb AI's rule does not
-help there either. Its switching is roughly break-even everywhere: the wasted
-turns and the better matchups cancel.
+What that study concluded, and why it is worth re-running rather than
+believing: overall exactly 50%, but 42.6% with rating-20 teams and 53% with
+rating-300-and-up ones -- the smart AI a liability with a weak team and worth
+about three points with a good one. It also ruled out the obvious
+explanation. The smart AI spends 12-15% of its turns switching against the
+dumb AI's 2%, so switching looked like the cause; removing it entirely moved
+the weakest band by nothing at all, and restricting it to the dumb AI's rule
+did not help either.
 
-What is left is move *ranking*, and there is a specific suspect in
-`smart_ai_select_move`:
+What was left was move *ranking*, and the suspect was named here as "not yet
+tested":
 
     ranked = sorted(ai_move_score,
                     key=lambda x: (-ai_move_score[x][0], -ai_move_score[x][3]))
 
-Factor `[0]` is a small integer "priority" nudged up and down by a dozen
-conditions, and it is the **primary** key -- the composite score `[3]`, which
-is where damage lives, only breaks ties. So any move with a priority score
-one higher wins regardless of how much more damage the alternative does. The
-dumb AI sorts on damage alone. With weak Pokemon "hit it hardest" is very
-nearly the optimal policy, which would explain both halves of the result: the
-smart AI's extra information is worth something only once priority and
-effects start to matter. Not yet tested.
+Factor `[0]` is a small integer "priority" nudged by a dozen conditions and it
+was the **primary** key, so the composite score `[3]` -- where damage lives --
+only broke ties. Any move one priority point higher won regardless of how much
+more damage the alternative did.
 
-Results in `Documentation/ai_head_to_head.md`.
+**It was tested, and it was the cause.** See `Test/ai_ranking_experiment.py`
+and the `DEFAULT_RANKING` note in `Scripts/Battle/ai.py`. Over 1,291 real
+decisions priority overrode the better-scoring move on 13.6% of them and gave
+up a likely knockout on 4.8%. Ranking score above priority instead reproduced
+the old study's curve almost exactly -- 45.6% with the weakest teams, 54.1%
+with the best -- which is the strongest evidence that this sort key *was* the
+finding. Priority was never the mistake; being lexicographic was. It is priced
+into the score now (`BLENDED`), which is worth about +3 to +6 points and is
+ahead in every band.
 
 ## Open
 

@@ -145,6 +145,12 @@ class Competitor:
         self.nickname = nickname
         self.name = name
         self.strength = strength
+        #: The rating this competitor shipped with, straight from
+        #: Data/competitors.csv. `strength` drifts with form and is
+        #: restored from the save; this never moves, so it stays the
+        #: anchor the drift band is measured from. Set here rather than
+        #: read back from the CSV so it cannot go out of step with it.
+        self.base_strength = strength
         self.ability = ability
         self.main = False
         self.stage = 1

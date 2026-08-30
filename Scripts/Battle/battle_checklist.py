@@ -93,8 +93,11 @@ def select_move(pokemon, target, battleground):
             narrator.say(f"{index}: {move}")
         else:
             try:
+                # `>= 2`, matching damage_calculation.py -- "super effective"
+                # means the type chart really doubled it, not merely that it
+                # came out above 1x.
                 narrator.say(f"{index}: {move} ({list_of_moves[move].type}) "
-                      f"[{'No Effect' if move_effectiveness[index] == 0 else '' if move_effectiveness[index] == 1 else 'Super Effective' if move_effectiveness[index] > 1 else 'Not Effective'}]", "fail")
+                      f"[{'No Effect' if move_effectiveness[index] == 0 else 'Super Effective' if move_effectiveness[index] >= 2 else 'Not Effective' if move_effectiveness[index] < 1 else ''}]", "fail")
             except TypeError:
                 narrator.say(f"{index}: {move} ({list_of_moves[move].type}) [Status]")
     narrator.say("100: Turn on/off Auto Battle")
@@ -287,19 +290,36 @@ def move_order_and_execution(turn, move, target_move):
     # keep picking the same dud every turn. Keyed on the target so switching in
     # something else does not inherit the verdict.
     if move.name != "Switching" and move.attack_type != "Status":
-        if getattr(move, "damage", 0) <= 0:
-            user.ineffective_moves.setdefault(target.name, set()).add(move.name)
-        else:
+        if getattr(move, "damage", 0) > 0:
             user.ineffective_moves.get(target.name, set()).discard(move.name)
+        elif connected:
+            # `connected`, not merely "dealt no damage" -- and this is the
+            # whole of the fix. A move that *missed*, or that was thrown at
+            # something half-way through Phantom Force or Fly, also reports
+            # zero, and blacklisting on that taught the AI its attacks were
+            # useless against a Pokemon it had simply failed to reach.
+            #
+            # Against a Phantom Force user that blacklisted every attacking
+            # move in turn, leaving a status move as the only thing left to
+            # pick: Armadragdon stood there casting Empyrean Glory with its
+            # Defence already at +6, 148 times out of 170 in a measured
+            # sample. `connected` is the type chart's own answer to "did this
+            # reach at all", which is exactly the question being asked.
+            user.ineffective_moves.setdefault(target.name, set()).add(move.name)
     user.modifier, target.modifier = check_modifier_limit(user), check_modifier_limit(target)
     narrator.say("")
 
     # -- a move that goes off twice --------------------------------------
-    # Two character abilities ask for a second move inside the one turn:
-    # Overloaded repeats what was just used, Wizardry rolls a fresh one. They
-    # set `encore_move` on the battleground as their move resolves; this is
-    # the only place that reads it, because this is the only place that knows
-    # a move has finished.
+    # Wizardry asks for a second move inside the one turn, drawn at random.
+    # It sets `encore_move` on the Pokemon as its move resolves; this is the
+    # only place that reads it, because this is the only place that knows a
+    # move has finished.
+    #
+    # On the *Pokemon*, deliberately. It sat on the battleground, which both
+    # sides share, so the extra move went to whoever finished a move next
+    # rather than to whoever earned it -- and the AI's scoring, which runs
+    # the real ability code, queued one without any move being played at
+    # all. Neither is possible with the slot where it belongs.
     #
     # `encore_running` is not belt and braces. The repeat runs the same code
     # path, so the ability fires again on the way through and would queue
@@ -319,8 +339,8 @@ def move_order_and_execution(turn, move, target_move):
     #
     # Without these the extra move fired on misses and on switches, and the
     # log read as a mess of moves nobody had chosen.
-    encore = getattr(turn.ground, "encore_move", None)
-    turn.ground.encore_move = None
+    encore = getattr(user, "encore_move", None)
+    user.encore_move = None
     worked = (not fail and move.name != "Switching"
               and user.charging[0] == ""
               and user.status != "Fainted" and target.status != "Fainted")

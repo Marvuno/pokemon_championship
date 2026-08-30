@@ -20,10 +20,14 @@ import sys
 from PySide6.QtCore import QEvent, QProcess, QRect, Qt, QTimer
 from PySide6.QtGui import QCursor, QGuiApplication
 from PySide6.QtWidgets import (QGridLayout, QHBoxLayout, QLabel, QLineEdit,
-                               QMessageBox, QScrollArea, QStackedWidget,
-                               QTabWidget, QTextEdit, QVBoxLayout, QWidget)
+                               QMessageBox, QScrollArea, QSizePolicy,
+                               QStackedWidget, QTabWidget, QTextEdit,
+                               QVBoxLayout, QWidget)
 
 from GUI import ansi, bridge as B, prompt_parser as P, theme as T
+# Read-only: a bool the window checks so it can clear its own gates
+# during an unattended run. See Scripts/Game/auto_run.py.
+from Scripts.Game import auto_run
 from GUI_qt import settings
 from GUI_qt.arena import ArenaBackdrop
 from GUI_qt.fonts import Fonts
@@ -37,11 +41,17 @@ from GUI_qt.sprites import (DIR_OPPONENT, DIR_PLAYER, animate_switch,
 from GUI_qt.title import TitleView
 from GUI_qt import widgets as W
 from GUI_qt.widgets import (AbilityFlare, ActionButton, CombatantCard,
-                            FeedEntry, MoveCard, ResultOverlay, RoundedPanel,
-                            ScoutCard, TurnDivider, clear_layout, shadow)
+                            ElidedLabel, FeedEntry, MoveCard,
+                            ResultOverlay, RoundedPanel, ScoutCard,
+                            TurnDivider, clear_layout, shadow)
 from GUI_qt.widgets import label as _label
 
 #: the only phases where the arena (HP bars, sprites) means anything --
+#: How long a knockout result is held on screen during an Auto Run.
+#: Long enough to read who won, short enough that twenty careers
+#: are not spent waiting on it.
+AUTO_RUN_PAUSE_MS = 600
+
 #: every other phase gets the title/lobby backdrop instead of a stale
 #: battle board
 BATTLE_PHASES = ("battle", "result")
@@ -109,6 +119,10 @@ class MainWindow(QWidget):
         self._keep_state = {"signature": None}
         self.roster_dialog = RosterDialog(self.fonts, project_root, self)
         self.standings_dialog = StandingsDialog(self.fonts, self)
+        # An Auto Run counts itself down in its own small window. Two
+        # attempts at putting it in a bar failed for the same reason -- the
+        # action bar and the top bar are both crowded enough that a caption
+        # among them is not seen at all.
         self.history_dialog = HistoryDialog(self.fonts, self)
         self.career_dialog = CareerDialog(self.fonts, project_root, self)
         self.career_dialog.picked.connect(self._career_pick)
@@ -190,8 +204,8 @@ class MainWindow(QWidget):
                            radius=T.RADIUS_LG)
         bar.setMinimumHeight(60)
         layout = QHBoxLayout(bar)
-        layout.setContentsMargins(18, 8, 18, 8)
-        layout.setSpacing(14)
+        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setSpacing(9)
 
         def two_line(top_text, top_font, top_color, bottom_text, bottom_font,
                     bottom_color):
@@ -206,18 +220,58 @@ class MainWindow(QWidget):
         # says "Pokemon Champion"; repeating it as a full-size label cost
         # ~380px of width for something already visible above the window.
 
+        def two_line_named(caption, color):
+            """A column whose value is a name and a rating, in two labels.
+
+            One label holding "Violet Evergarden [1000]" is a plain QLabel,
+            which reports its whole text as its minimum width. With every
+            button in the bar showing, that made the row demand 1387px inside
+            1152: the name was cut off mid-word at 104px and the rating with
+            it. Two labels, and an eliding one for the name, let the bar
+            compress -- the name loses its tail to an ellipsis (the full text
+            is on hover) and the rating, the shorter and more useful half, is
+            never the part that goes.
+            """
+            col = QVBoxLayout()
+            col.setSpacing(3)
+            col.addWidget(_label(caption, self.fonts.eyebrow, T.TEXT_FAINT))
+            row = QHBoxLayout()
+            row.setSpacing(4)
+            name = ElidedLabel("\u2014", self.fonts.small_bold, color)
+            # Preferred, not ElidedLabel's own Ignored: the bar should still
+            # ask for the whole name and give it up only when there is no
+            # room. Ignored reports 0 to the layout, so the name would be
+            # squeezed to an ellipsis even on a wide screen.
+            name.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+            rating = _label("", self.fonts.small, T.TEXT_DIM)
+            row.addWidget(name, 1)
+            row.addWidget(rating)
+            col.addLayout(row)
+            return col, name, rating
+
         self.score_values = {}
+        #: the rating half of the YOU and OPPONENT columns, kept in its own
+        #: label so it cannot be elided away with the name
+        self.score_ratings = {}
         # No WEATHER here: the field strip over the arena shows it, with an
         # emblem and a countdown, so a second copy in the header was saying
         # the same thing worse and taking width from the buttons.
-        for key, caption, color in (
-                ("round", "ROUND", T.TEXT), ("turn", "TURN", T.TEXT),
-                ("you", "YOU", T.PLAYER),
-                ("opponent", "OPPONENT", T.OPPONENT)):
+        for key, caption, color in (("round", "ROUND", T.TEXT),
+                                    ("turn", "TURN", T.TEXT)):
             col, value = two_line(caption, self.fonts.eyebrow, T.TEXT_FAINT,
                                   "\u2014", self.fonts.body_bold, color)
             self.score_values[key] = value
             layout.addLayout(col)
+        # These two hold a competitor's name, which runs to "Violet
+        # Evergarden", so they get the two-label column above instead.
+        for key, caption, color in (("you", "YOU", T.PLAYER),
+                                    ("opponent", "OPPONENT", T.OPPONENT)):
+            col, value, rating = two_line_named(caption, color)
+            self.score_values[key] = value
+            self.score_ratings[key] = rating
+            # a heavier stretch than the spacer that follows the
+            # columns, so spare width goes to the names first
+            layout.addLayout(col, 2)
 
         layout.addStretch(1)
 
@@ -235,7 +289,7 @@ class MainWindow(QWidget):
                 ("Tutorial", T.ACCENT, self._open_tutorial),
                 ("Settings", T.TEXT_DIM, self._open_settings)):
             layout.addWidget(ActionButton(caption, self.fonts, accent=accent,
-                                          on_click=handler),
+                                          on_click=handler, compact=True),
                              alignment=Qt.AlignVCenter)
         # In the top bar rather than on a menu, so it is reachable from the
         # title screen, from the pre-battle menu and mid-battle alike. It is
@@ -243,16 +297,18 @@ class MainWindow(QWidget):
         # state -- so there is no reason to gate it behind a prompt.
         layout.addWidget(ActionButton(
             "Pokedex", self.fonts, accent=T.CYAN,
-            on_click=self._open_pokedex), alignment=Qt.AlignVCenter)
+            on_click=self._open_pokedex, compact=True),
+            alignment=Qt.AlignVCenter)
         # These two have nothing to show before a run starts -- no matchups,
         # no team -- so they are hidden at the title screen and appear once
         # there is a game to look at. See _apply_state.
         self.standings_button = ActionButton(
             "Standings", self.fonts, accent=T.VIOLET,
-            on_click=self._open_standings)
+            on_click=self._open_standings, compact=True)
         self.team_button = ActionButton(
             "Your Team", self.fonts, accent=T.CYAN,
-            on_click=lambda: self.roster_dialog.show_side("player"))
+            on_click=lambda: self.roster_dialog.show_side("player"),
+            compact=True)
         for button in (self.standings_button, self.team_button):
             button.setVisible(False)
             layout.addWidget(button, alignment=Qt.AlignVCenter)
@@ -261,10 +317,10 @@ class MainWindow(QWidget):
         # put them. Escape also closes (see keyPressEvent).
         layout.addWidget(ActionButton(
             "–", self.fonts, accent=T.TEXT_DIM,
-            on_click=self.showMinimized), alignment=Qt.AlignVCenter)
+            on_click=self.showMinimized, compact=True), alignment=Qt.AlignVCenter)
         layout.addWidget(ActionButton(
             "✕", self.fonts, accent=T.OPPONENT,
-            on_click=self.close), alignment=Qt.AlignVCenter)
+            on_click=self.close, compact=True), alignment=Qt.AlignVCenter)
         return bar
 
     def _set_volume(self, value):
@@ -408,6 +464,12 @@ class MainWindow(QWidget):
         # a battle, which is most of what a successful scout buys you.
         self.scout_card = ScoutCard(self.fonts, self)
         self.scout_card.hide()
+        # What a weather / terrain / room box means, shown the instant it is
+        # hovered rather than after Qt's tooltip delay -- the same behaviour
+        # the Pokemon hover card has, which is what a player expects of
+        # anything in this arena that explains itself.
+        self.field_note = W.FieldNote(self.fonts, self)
+        self.field_note.hide()
         self.opponent_card.pips.hovered.connect(
             lambda index: self._hover_pip("opponent", index))
         self.player_card.pips.hovered.connect(
@@ -420,6 +482,11 @@ class MainWindow(QWidget):
         # detail; this is only the three field-wide layers, which the real
         # games keep in separate slots and which can all be up at once.
         self.field_strip = W.FieldStrip(self.fonts, self.arena)
+        for _chip in self.field_strip.chips.values():
+            _chip.installEventFilter(self)
+            for _piece in _chip.findChildren(QWidget):
+                _piece.setAttribute(Qt.WA_Hover, True)
+                _piece.installEventFilter(self)
         grid.addWidget(self.field_strip, 0, 0, 1, 2,
                        Qt.AlignTop | Qt.AlignHCenter)
 
@@ -520,6 +587,18 @@ class MainWindow(QWidget):
         # under the result plate, over the backdrop and the cards' shadows
         self.player_sprite.raise_()
         self.opponent_sprite.raise_()
+        # ...and the field strip over both, because this runs on every state
+        # publish and `raise_()` puts a widget above *all* its siblings. The
+        # strip is a child of the arena in the same grid cell the sprites are
+        # drawn into, so raising the sprites buried it -- and a buried widget
+        # gets no hover, which is why the Terrain box's description never
+        # appeared however carefully the tooltip was set on it. The sprites
+        # are 320px squares over a strip 39px tall at the top of the arena,
+        # so whether it was actually covered came down to the sprite's size
+        # and where it stood: exactly the sort of thing that looks
+        # intermittent and never reproduces in a harness with no artwork
+        # loaded.
+        self.field_strip.raise_()
         if self.result_overlay.isVisible():
             self.result_overlay.raise_()
 
@@ -529,6 +608,15 @@ class MainWindow(QWidget):
         for two events would mean two more classes; WA_Hover plus this is the
         whole mechanism."""
         kind = event.type()
+        if kind in (QEvent.HoverEnter, QEvent.HoverMove, QEvent.HoverLeave):
+            chip = self._field_chip_for(watched)
+            if chip is not None:
+                if kind == QEvent.HoverLeave:
+                    self.field_note.hide()
+                elif chip.note_heading:
+                    self.field_note.set_note(chip.note_heading, chip.note_body)
+                    self.field_note.show_at(QCursor.pos(), self._scout_bounds())
+                return False
         if kind == QEvent.HoverEnter or kind == QEvent.HoverMove:
             side = ("player" if watched is self.player_sprite
                     else "opponent" if watched is self.opponent_sprite
@@ -618,6 +706,17 @@ class MainWindow(QWidget):
             self._scout_token = token
             self.scout_card.set_mon(entry, known=known, side=side)
         self.scout_card.show_at(QCursor.pos(), self._scout_bounds())
+
+    def _field_chip_for(self, watched):
+        """The weather/terrain/room box `watched` belongs to, or None.
+
+        The pointer lands on a label inside the box rather than on the box
+        itself, so this walks up rather than comparing identity.
+        """
+        for chip in self.field_strip.chips.values():
+            if watched is chip or chip.isAncestorOf(watched):
+                return chip
+        return None
 
     def _scout_bounds(self):
         top_left = self.mapToGlobal(self.rect().topLeft())
@@ -823,7 +922,11 @@ class MainWindow(QWidget):
     # ------------------------------------------------------------- the pump
     def _pump(self):
         handled = 0
-        while handled < 300:
+        # An unattended run produces events far faster than a person plays,
+        # and anything left in the queue is the window falling behind the
+        # engine rather than a backlog worth pacing.
+        cap = 5000 if auto_run.unattended() else 300
+        while handled < cap:
             if self._gated:
                 # Holding on a battle result: leave everything still queued
                 # where it is, so the next prompt can't overwrite the screen
@@ -866,10 +969,10 @@ class MainWindow(QWidget):
         score = self.score_values
         score["round"].setText(str(state.get("stage", "\u2014")))
         score["turn"].setText(str(field.get("turn", "\u2014")))
-        score["you"].setText("%s [%d]" % (you["nickname"], you["strength"])
-                             if you else "\u2014")
-        score["opponent"].setText("%s [%d]" % (opp["nickname"], opp["strength"])
-                                  if opp else "\u2014")
+        for key, side in (("you", you), ("opponent", opp)):
+            score[key].setText(side["nickname"] if side else "\u2014")
+            self.score_ratings[key].setText(
+                "[%d]" % side["strength"] if side else "")
 
         self.arena.set_weather(field.get("weather", "Clear"))
 
@@ -1002,10 +1105,17 @@ class MainWindow(QWidget):
         if leaderboard is not None and leaderboard is not self._last_leaderboard:
             self._last_leaderboard = leaderboard
             self.standings_dialog.select("Leaderboard")
-            self.standings_dialog.show()
-            self.standings_dialog.raise_()
+            # ...but never during an Auto Run. Nobody is watching one career
+            # by career, and a hundred runs would put this window up a
+            # hundred times over whatever the player was doing instead.
+            if not auto_run.unattended():
+                self.standings_dialog.show()
+                self.standings_dialog.raise_()
 
         self._sync_stage_view(state.get("phase"))
+        # Last, deliberately. _sync_stage_view decides whether Standings
+        # and Your Team belong on screen at all, so hiding them for an
+        # Auto Run before it runs is undone a line later.
 
         # Who changed has to be worked out before the sprites are replaced --
         # the animation needs a picture of the Pokemon that left, and
@@ -1076,6 +1186,19 @@ class MainWindow(QWidget):
         order the player sees is: last Pokemon shown FAINTED, victory
         declared, click, then the reward pick.
         """
+        # An unattended run is never gated. The gate exists to hold the
+        # knockout on screen until a person acknowledges it, and it does that
+        # by stopping the event pump -- for 600ms a battle, five battles a
+        # career. Over a hundred careers the window spends minutes not
+        # draining, the queue grows into the thousands, and it ends up
+        # replaying career one while the engine is on career three. By the
+        # time it catches up the run has finished, which is why the countdown
+        # vanished and the top bar came back partway through.
+        #
+        # Nobody is watching an unattended battle end, so there is nothing to
+        # hold for.
+        if auto_run.unattended():
+            return
         won = bool(result.get("won"))
         self._gated = True
         self._timer.stop()
@@ -1095,6 +1218,14 @@ class MainWindow(QWidget):
             on_click=self._end_result_gate))
         self.hotkeys["\r"] = self._end_result_gate
         self._fit_actions()
+
+        # An Auto Run has nobody to press Continue. This gate is the window's
+        # own and not an engine prompt, so auto_run's answering of `input()`
+        # cannot reach it -- the run simply stopped here after every battle.
+        # The result is still shown, long enough to be seen, then taken down
+        # from here.
+        if auto_run.unattended():
+            QTimer.singleShot(AUTO_RUN_PAUSE_MS, self._end_result_gate)
 
     def _end_result_gate(self):
         if not self._gated:
@@ -1281,6 +1412,11 @@ class MainWindow(QWidget):
         clear_layout(self.actions)
 
     def _show_request(self, request):
+        # A question has reached the player, so whatever Auto Run was doing
+        # is over and the window stops clearing its own gates. This is the
+        # only reliable end: result gates trail behind the engine and more
+        # than one can still be queued when the run stops.
+        auto_run.settled()
         self.request = request
         if self._pending_answers:
             # Only feed queued picks back to the screen that queued them. If
@@ -1701,7 +1837,13 @@ class MainWindow(QWidget):
     def _render_choices(self, prompt):
         self.prompt_tag.setText("CHOOSE")
         grid = QGridLayout()
-        columns = 4 if len(prompt.choices) > 6 else 3
+        # Exactly four gets a 2x2 block rather than a row of three with one
+        # stranded underneath. The title menu is the screen this is for --
+        # New Game and Continue on the first row, History and Auto Run on
+        # the second -- and four buttons in a 3+1 read as a mistake wherever
+        # else it happens.
+        columns = 4 if len(prompt.choices) > 6 else \
+            2 if len(prompt.choices) == 4 else 3
         for index, choice in enumerate(prompt.choices):
             accent = T.ACCENT if choice.kind == "sentinel" else T.CYAN
             answer = (lambda value=choice.value:
@@ -2057,6 +2199,8 @@ class MainWindow(QWidget):
         # want them, and it knows whether you won.
         self._credits_state = {"champion": champion, "titles": titles}
 
+        # The run is over and the screen is the player's again.
+        auto_run.settled()
         self.prompt_tag.setText("RUN COMPLETE")
         self.question.setText("Tournament complete. Your progress is saved.")
         self._clear_actions()

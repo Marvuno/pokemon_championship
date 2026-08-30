@@ -95,7 +95,7 @@ def fire(who, phase, move_name, mine, theirs, rate=None):
 
 
 print("-- the three new Pokemon --")
-for name, types, tier, total in (("Glimmora", ["Rock", "Poison"], "High", 525),
+for name, types, tier, total in (("Glimmora", ["Rock", "Poison"], "Medium", 525),
                                  ("Amoonguss", ["Grass", "Poison"], "Medium",
                                   464),
                                  ("Slowbro", ["Water", "Psychic"], "Medium",

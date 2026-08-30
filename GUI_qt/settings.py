@@ -8,6 +8,12 @@ manual JSON read/write/migration code to maintain. One value:
                   it mid-run would change the opponent's brain halfway
                   through a match.
 
+                  It is the *only* thing that decides now. Opponents used to
+                  play simply or cleverly according to their own rating, so
+                  the early rounds were easy twice over -- weak teams and a
+                  weak pilot -- and the setting only reached the ones already
+                  playing cleverly.
+
 Three settings used to live here and are gone:
 
   window size     the game is borderless full screen now, always. A fixed
@@ -27,7 +33,7 @@ _settings = QSettings("PokemonChampion", "GUI")
 NORMAL, BEGINNER = "normal", "beginner"
 #: (value, label, blurb) per option, default first
 DIFFICULTIES = (
-    (NORMAL, "Normal", "opponents play to their rating"),
+    (NORMAL, "Normal", "every opponent plays the full AI"),
     (BEGINNER, "Beginner", "every opponent plays simply"),
 )
 

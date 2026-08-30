@@ -1,21 +1,23 @@
 """Is the smart AI actually better than the dumb one? A controlled test.
 
-The rating simulation cannot answer this, and it is worth being clear about
-why: `move_selection` picks the AI like this --
+The rating simulation cannot answer this: **every competitor in an AI-vs-AI
+simulation plays with the smart AI**, whatever their rating. Comparing
+low-rated to high-rated competitors in `ai_rating_simulation.py` therefore
+says nothing at all about the two AIs -- it compares their *teams*. That
+mistake was made, on this data, before this file existed.
 
-    if battleground.verbose:                       # AI vs AI
-        player_move   = smart_ai_select_move(...)
-        opponent_move = smart_ai_select_move(...)
-    else:                                          # a human is playing
-        opponent_move = smart_ai_select_move(...) if strength >= SMART_AI_RATING
-                        else dumb_ai_select_move(...)
+Since this was written the dumb AI has stopped appearing in normal play at
+all: which AI an opponent uses is the difficulty setting rather than their
+rating, so the simple one is what Beginner is. The comparison below is
+therefore about what the two difficulties are worth, not about who meets
+which AI.
 
-so **every competitor in an AI-vs-AI simulation plays with the smart AI**,
-whatever their rating. `SMART_AI_RATING` is only consulted when a human is
-on the other side. Comparing low-rated to high-rated competitors in
-`ai_rating_simulation.py` therefore says nothing at all about the two AIs --
-it compares their *teams*. That mistake was made, on this data, before this
-file existed.
+**This study is stale in one other way.** It was measured against the AI's
+old move-ranking rule, which sorted on priority first; that rule is gone (see
+`DEFAULT_RANKING` in Scripts/Battle/ai.py). Its central finding -- that the
+smart AI is a liability with weak teams -- may not survive a re-run, because
+`Test/ai_ranking_experiment.py` reproduced almost exactly that curve from the
+sort key alone.
 
 What this does instead. Everything that is not the AI is held equal:
 

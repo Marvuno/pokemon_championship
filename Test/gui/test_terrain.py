@@ -201,11 +201,16 @@ for _ in range(20000):
     elif said:
         FAILURES.append("no terrain but something was said")
 
-check("each terrain is close to %d%%" % TR.NATURAL_CHANCE,
-      all(abs(100.0 * tally[name] / 20000 - TR.NATURAL_CHANCE) < 1
+# NATURAL_CHANCE is how often there is *any* terrain, as a fraction -- it
+# used to be the percentage for each one separately. One roll decides
+# whether, then the four are drawn evenly, so each is a quarter of it.
+_any = 100.0 * TR.NATURAL_CHANCE
+_each = _any / (len(TR.TERRAINS) - 1)
+check("each terrain is close to %.0f%%" % _each,
+      all(abs(100.0 * tally[name] / 20000 - _each) < 1
           for name in TR.TERRAINS[1:]))
-check("...so about four battles in five open on none",
-      abs(100.0 * tally["None"] / 20000 - 80) < 2)
+check("...so about %.0f%% of battles open on none" % (100 - _any),
+      abs(100.0 * tally["None"] / 20000 - (100 - _any)) < 2)
 check("every terrain does turn up", sorted(tally) == sorted(TR.TERRAINS))
 check("one that turns up lasts ten turns, not a move's five",
       turns, {TR.NATURAL_TURNS})

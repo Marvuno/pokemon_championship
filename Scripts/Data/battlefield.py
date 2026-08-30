@@ -1,6 +1,9 @@
 class Battleground:
     def __init__(self):
-        self.turn = 1
+        # 0 before a turn has been played. `move_selection` counts up to 1
+        # as it starts the first turn, so this reads as the turn *being*
+        # played all the way through it rather than the next one.
+        self.turn = 0
         self.verbose = False
         self.auto_battle = False
         # weather
@@ -23,7 +26,9 @@ class Battleground:
         #: character abilities, read once by move_order_and_execution.
         #: On the battleground because it is rebuilt per battle, so it
         #: cannot leak from one to the next.
-        self.encore_move = None
+        # `encore_move` used to live here and now lives on the Pokemon that
+        # earned it -- a slot shared by both sides handed the extra move to
+        # whoever moved next. See wizardry() in character_abilities.py.
         self.encore_running = False
         self.reality = True
         self.sudden_death = False

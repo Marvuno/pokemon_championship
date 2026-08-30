@@ -1,3 +1,42 @@
+Pokemon Championship v1.2.4
+
+Auto Run
+- added Auto Run to the start menu, where game plays on its own; Auto Run can be run up to 100 runs each time - it does not freeze the screen while the careers are played behind the title screen
+
+Interface
+- moves that really deal 2x or 4x are now highlighted as Super Effective on the move cards
+- description added to weather, terrain and room when hovered
+- the Field tab now lists the terrain and its countdown
+- career history has added a new Records section
+- now uses Fredoka or Nunito as fonts
+
+Ratings
+- the champion's crown and medal are now decided by the rating of the opponents they beat, not by opponent score: 👑 for beating over 36% of the field's rating, 🥇 at 15% or under. Everybody in the field counts, the player included
+- competitors' ratings now move a little with their form per run, within 30% of their original rating
+- an Upset now requires to be a higher class *and* a lower rating
+
+AI
+- smart AI and dumb AI no longer applies by rating, but by difficulty; normal difficulty uses smart AI, and beginner difficulty uses dumb AI
+- now using blended model in calculating move choice for smart AI
+
+Bugfixes
+- Revavroom is now Steel/Poison
+- CHARACTER ABILITY Synchronize: now works from the moment a Pokemon switches in, rather than from the turn after
+- CHARACTER ABILITY Wizardry: the extra move could go to the opponent instead of Mivy, and could fire without a move being played
+- AI would stop attacking and repeat a buff move at maxed stats against a Pokemon it could not reach (e.g. mid Phantom Force)
+- the first turn of a battle did nothing and the action started on turn 2
+- Pokemon previously could be shown as fainted on turn 1 of a new battle
+- Sparking Cascade, Light Speed and Brain Wave could re-lay their opening terrain on a mid-battle switch
+
+Coding & Organization
+- documentation.md is now the one reference
+- a crash now writes crash_report.txt beside the game, with the last 40 lines of battle log
+- added Test/crash_hunt.py and Test/duel_hunt.py to hunt crashes across many battles
+- the career music is read from Assets/music, so adding start7.mp3 is all it takes to add a track
+- removed unused files and documentation
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.2.3
 
 Interface
@@ -60,7 +99,7 @@ Bugfixes
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Pokemon Championship v1.2.0 & v1.2.1 & v1.2.2 (Graphics Update)
+Pokemon Championship v1.2.0 - v1.2.2 (Graphics Update)
 
 Graphics Update (Highlights)
 - revamped text-based interface into graphic-based application with Claude and Leonardo.ai

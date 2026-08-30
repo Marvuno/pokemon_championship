@@ -24,7 +24,7 @@ def main():
         from PySide6.QtWidgets import QApplication
     except ImportError:
         sys.stderr.write(
-            "Pokemon Champion's interface needs PySide6, which is missing\n"
+            "Pokemon Championship's interface needs PySide6, which is missing\n"
             "from this Python install.\n\n"
             "  pip install PySide6\n\n"
             "PLAY.bat installs this automatically; if you're running\n"

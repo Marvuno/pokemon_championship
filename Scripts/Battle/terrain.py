@@ -49,7 +49,11 @@ NATURAL_TURNS = 10
 #: the chance, in percent, of each terrain being there when a battle starts.
 #: Four terrains at 5 means one in five battles opens on some terrain, and
 #: four in five on none.
-NATURAL_CHANCE = 5
+#: How often a battle opens on terrain at all. One roll decides whether,
+#: then the four are drawn evenly -- the same shape as the opening weather in
+#: battle_cycle, and for the same reason: how often terrain happens and which
+#: terrains exist are two separate numbers.
+NATURAL_CHANCE = 0.20
 
 #: Terrain-laying moves that no Pokemon in this roster learns, and are
 #: therefore reachable only by the arena's own opening roll.
@@ -202,16 +206,16 @@ def set_terrain(battleground, terrain):
 def roll_natural(battleground):
     """The ground this battle happens to open on. Returns what to say.
 
-    Each terrain at NATURAL_CHANCE percent, so most battles open on none.
-    Rolled the same way `battle_setup` rolls the weather -- one
-    `random.choices` with weights -- so the two read alike at the call site.
+    NATURAL_CHANCE of the time there is one, and then the four are equally
+    likely. Rolled the same way `battle_setup` rolls the weather, so the two
+    read alike at the call site.
 
     It lasts NATURAL_TURNS rather than a move's five, and unlike the arena's
     own *weather* it does lapse: `tick` counts it down like any other.
     """
-    weights = [100 - NATURAL_CHANCE * (len(TERRAINS) - 1)]
-    weights += [NATURAL_CHANCE] * (len(TERRAINS) - 1)
-    chosen = random.choices(list(TERRAINS), weights=weights, k=1)[0]
+    laid = [name for name in TERRAINS if name != "None"]
+    chosen = (random.choice(laid) if random.random() < NATURAL_CHANCE
+              else "None")
     battleground.terrain = chosen
     battleground.terrain_turn = 0 if chosen == "None" else NATURAL_TURNS
     return "" if chosen == "None" else TERRAIN_ARRIVES.get(chosen, "")

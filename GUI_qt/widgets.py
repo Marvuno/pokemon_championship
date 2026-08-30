@@ -320,9 +320,23 @@ class MoveCard(RoundedPanel):
         right.setSpacing(2)
         right.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         if effectiveness:
-            color = {"SUPER": T.PLAYER, "RESISTED": T.TEXT_FAINT,
-                     "IMMUNE": T.OPPONENT}.get(effectiveness, T.TEXT_DIM)
-            badge = QLabel(effectiveness)
+            # The engine writes "Super Effective", "Not Effective" and
+            # "No Effect" (battle_checklist.select_move). This looked those
+            # up under "SUPER"/"RESISTED"/"IMMUNE", which it never says, so
+            # every badge missed and fell through to the dim default -- a
+            # move that doubles read in exactly the same grey as one that is
+            # resisted. Keyed on the real wording, and shortened for a card
+            # this narrow.
+            style = {"Super Effective": ("SUPER", T.PLAYER),
+                     "Not Effective": ("RESISTED", T.TEXT_FAINT),
+                     "No Effect": ("IMMUNE", T.OPPONENT),
+                     # the short forms too, so either spelling works
+                     "SUPER": ("SUPER", T.PLAYER),
+                     "RESISTED": ("RESISTED", T.TEXT_FAINT),
+                     "IMMUNE": ("IMMUNE", T.OPPONENT)}
+            text, color = style.get(str(effectiveness).strip(),
+                                    (str(effectiveness), T.TEXT_DIM))
+            badge = QLabel(text)
             badge.setFont(fonts.small_bold)
             badge.setStyleSheet("color: %s; background: transparent;" % color)
             right.addWidget(badge, alignment=Qt.AlignRight)
@@ -381,7 +395,8 @@ class ActionButton(RoundedPanel):
     MoveCard -- confirm/deny, menu choices, switch-in candidates."""
 
     def __init__(self, title, fonts, sub=None, accent=T.CYAN, emphasis=False,
-                parent=None, hotkey=None, disabled=False, on_click=None):
+                parent=None, hotkey=None, disabled=False, on_click=None,
+                compact=False):
         base_bg = T.mix(T.PANEL_RAISED, accent, 0.14) if emphasis else T.PANEL_RAISED
         base_border = accent if emphasis else T.LINE_SOFT
         super().__init__(parent, bg=base_bg, border=base_border,
@@ -403,7 +418,12 @@ class ActionButton(RoundedPanel):
         self.setMinimumHeight(44 if sub else 38)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(13, 5, 13, 5)
+        # `compact` is for the top bar, where eight buttons and two
+        # competitor names share one row: at the full padding the row
+        # wanted 1387px inside 1152 and the names were cut in half.
+        # Everywhere else a button sits in a column with room to spare.
+        layout.setContentsMargins(*((8, 5, 8, 5) if compact
+                                    else (13, 5, 13, 5)))
         layout.setSpacing(1)
 
         head = QHBoxLayout()
@@ -1072,6 +1092,19 @@ class FieldBoard(QWidget):
             if count:
                 out.append(("the battlefield", name, "in effect", int(count),
                             "turns left", EFFECT_NOTE.get(name, "")))
+        # Terrain is its own layer, beside weather rather than inside it --
+        # Rain and Grassy Terrain are both up at once and neither replaces
+        # the other. The strip over the arena has shown it for a while; this
+        # board did not, so the one screen devoted to "what is on the field"
+        # was the one place it could not be read.
+        terrain = field.get("terrain")
+        if terrain and str(terrain) != "None":
+            out.append(("the battlefield", "%s Terrain" % terrain,
+                        "underfoot", field.get("terrain_turns"),
+                        "turns left" if field.get("terrain_turns") is not None
+                        else "lasting",
+                        field.get("terrain_note")
+                        or "only reaches Pokemon standing on the ground"))
         weather = field.get("weather")
         if weather and weather != "Clear":
             turns = field.get("weather_turns")
@@ -1264,11 +1297,37 @@ class FieldChip(RoundedPanel):
 
     ICON = 22
 
+    def set_note(self, text, heading="", body=""):
+        """Put the hover text on this box *and on everything inside it*.
+
+        `heading` and `body` are the same words split in two, kept for the
+        FieldNote card that shows them straight away. The tooltip stays as
+        well: it is what a player gets if the card is ever not up, and it
+        costs nothing.
+
+        Setting it on the panel alone is not enough and that is why the
+        Terrain hover did nothing: the box is a panel with an emblem and two
+        labels laid inside it, so the widget actually under the cursor is
+        one of those children, and a child with no tooltip of its own is
+        what Qt asks. Every piece carries the same words now, so wherever
+        the pointer lands inside the box it says the same thing.
+        """
+        self.note_heading = heading or text.split(chr(10))[0]
+        self.note_body = body or (text.split(chr(10), 1)[1]
+                                  if chr(10) in text else "")
+        # Deliberately no setToolTip. FieldNote shows the same words the
+        # moment the box is hovered; leaving the tooltip on as well means the
+        # desktop's own black box arrives a second later, on top of a card
+        # that is already saying it. One reader, not two.
+
     def __init__(self, caption, colour, fonts, parent=None):
         super().__init__(parent, bg=T.mix(T.PANEL_SUNK, colour, 0.10),
                          border=T.LINE_SOFT, radius=T.RADIUS_SM)
         self.fonts = fonts
         self.accent = colour
+        self.note_heading = ""
+        self.note_body = ""
+        self.setAttribute(Qt.WA_Hover, True)
         row = QHBoxLayout(self)
         row.setContentsMargins(8, 5, 10, 5)
         row.setSpacing(8)
@@ -1309,7 +1368,12 @@ class FieldChip(RoundedPanel):
         self.value.setStyleSheet(
             "color: %s; background: transparent;"
             % (T.TEXT_FAINT if name == "None" else T.TEXT))
-        self.setToolTip(FIELD_TIP.get(name, name))
+        # FIELD_TIP is good wording and stays -- as the card's words, not as
+        # a tooltip. set_state calls set_note after this and overrides it
+        # where it has something better to say (a terrain's own rules, or
+        # whether weather is conjured or the arena's own).
+        self.note_heading = name
+        self.note_body = FIELD_TIP.get(name, "")
 
 
 #: what a condition does, for the tooltip. The strip itself stays terse.
@@ -1325,6 +1389,65 @@ FIELD_TIP = {
     "Trick Room": "The slower Pokemon moves first.",
     "None": "Nothing on this layer.",
 }
+
+
+class FieldNote(RoundedPanel):
+    """What a weather or terrain box means, shown the moment it is hovered.
+
+    A Qt tooltip was the obvious thing and is the wrong thing: it waits
+    about a second before appearing, it is styled by the desktop rather than
+    by the game, and it disappears on its own timer. The Pokemon hover card
+    does not behave that way, and a player who has learned that hovering
+    something in this arena explains it straight away is right to expect the
+    same here.
+
+    Same mechanism as ScoutCard: a frameless panel parented to the window,
+    positioned at the cursor and kept inside the window's own rectangle.
+    """
+
+    WIDTH = 320
+
+    def __init__(self, fonts, parent=None):
+        super().__init__(parent, bg=T.PANEL, border=T.LINE, radius=T.RADIUS_SM)
+        self.fonts = fonts
+        self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
+        column = QVBoxLayout(self)
+        column.setContentsMargins(12, 9, 12, 10)
+        column.setSpacing(3)
+        self.heading = QLabel("", self)
+        self.heading.setFont(fonts.body_bold)
+        self.heading.setStyleSheet("color: %s; background: transparent;" % T.TEXT)
+        column.addWidget(self.heading)
+        self.body = QLabel("", self)
+        self.body.setFont(fonts.small)
+        self.body.setWordWrap(True)
+        self.body.setStyleSheet("color: %s; background: transparent;"
+                                % T.TEXT_DIM)
+        self.body.setFixedWidth(self.WIDTH - 24)
+        column.addWidget(self.body)
+        self.hide()
+
+    def set_note(self, heading, body):
+        self.heading.setText(heading)
+        self.body.setText(body)
+        self.body.setVisible(bool(body))
+        self.setFixedWidth(self.WIDTH)
+        self.adjustSize()
+
+    def show_at(self, global_point, bounds=None):
+        """Place near the pointer, kept inside `bounds` (a global QRect)."""
+        self.adjustSize()
+        x, y = global_point.x() + 16, global_point.y() + 14
+        if bounds is not None:
+            x = min(x, bounds.right() - self.width() - 6)
+            x = max(x, bounds.left() + 6)
+            if y + self.height() > bounds.bottom() - 6:
+                y = global_point.y() - self.height() - 12
+            y = max(y, bounds.top() + 6)
+        self.move(x, y)
+        self.show()
+        self.raise_()
 
 
 class FieldStrip(QWidget):
@@ -1378,18 +1501,45 @@ class FieldStrip(QWidget):
 
         terrain = field.get("terrain")
         terrain_turns = field.get("terrain_turns")
+        # What the ground does, for the hover. Comes down in the published
+        # state (snap_field) rather than being looked up here -- the window
+        # reads plain dicts and never calls into the game.
+        terrain_note = field.get("terrain_note") or ""
 
-        signature = (weather, turns, room, room_turns, terrain, terrain_turns)
+        signature = (weather, turns, room, room_turns, terrain, terrain_turns,
+                     terrain_note)
         if signature == self._signature:
             return
         self._signature = signature
         self.chips["weather"].show_condition(weather, turns)
+        # the other two boxes get the same treatment rather than being the
+        # next thing reported
+        self.chips["weather"].set_note(
+            "No weather." if weather == "Clear" else
+            "%s\n%s" % (weather,
+                        "conjured by a move or an ability, so it will pass"
+                        if field.get("weather_artificial")
+                        else "this arena's own weather -- it never lifts"))
         self.chips["room"].setVisible(room != "None")
         if room != "None":
             self.chips["room"].show_condition(room, room_turns)
+            self.chips["room"].set_note(
+                "%s\n%s" % (room, EFFECT_NOTE.get(room, "")))
         self.chips["terrain"].setVisible(terrain is not None)
         if terrain is not None:
             self.chips["terrain"].show_condition(str(terrain), terrain_turns)
+            # A terrain box says "Grassy 4" and nothing about what that
+            # means. Four terrains, each with its own two or three rules, is
+            # more than a player can be expected to carry -- so hovering the
+            # box says it. The name is repeated in the tooltip because the
+            # box itself abbreviates when the strip is tight.
+            heading = "%s Terrain" % terrain
+            # set_note, not setToolTip: the box has children and the pointer
+            # lands on one of them, so a tooltip on the panel alone was never
+            # the one Qt asked for.
+            self.chips["terrain"].set_note(
+                "%s\n%s" % (heading, terrain_note) if terrain_note
+                else heading)
 
     def reset(self):
         self._signature = None

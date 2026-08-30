@@ -16,6 +16,7 @@ from Scripts.Data.pokemon import *
 from Scripts.Game.game_system import *
 from Scripts.Game.game_procedure import *
 from Scripts.Game import savefile
+from Scripts.Game import auto_run
 
 
 #: The main menu's HISTORY screen, pulled out of main_screen() so each piece
@@ -32,6 +33,7 @@ def history_screen(protagonist):
     the menu it returns to.
     """
     champion_roll(protagonist)
+    records_board(list_of_competitors)
     while True:
         first_confirmation = input("\nWanna read the stats of a selected character? (Very Long) Enter 'Y' to confirm: ").upper()
         if first_confirmation != 'Y':
@@ -65,6 +67,52 @@ def champion_roll(protagonist):
     for parti, hist in (protagonist.history or {}).items():
         print(f"#{parti + 1}: {hist[0]}")
     print(CEND)
+
+
+def title_holders(roster):
+    """Everybody who has ever won a championship, best first.
+
+    Ordered by titles, then by how reliably they were won -- somebody with
+    two titles from three runs is a better record than two from twenty --
+    and win rate settles the rest.
+    """
+    holders = []
+    for op in roster.values():
+        titles = getattr(op, "championship", 0) or 0
+        if not titles:
+            continue
+        runs = getattr(op, "participation", 0) or 0
+        won, lost = career_totals(op)
+        holders.append({
+            "who": op,
+            "titles": titles,
+            "runs": runs,
+            # a run they are still in has not been counted yet, so guard the
+            # division rather than assume `participation` is at least `titles`
+            "title_rate": titles / max(runs, titles, 1),
+            "win_rate": (won / (won + lost)) if won + lost else 0.0,
+            "won": won, "lost": lost})
+    holders.sort(key=lambda row: (-row["titles"], -row["title_rate"],
+                                  -row["win_rate"], row["who"].nickname))
+    return holders
+
+
+def records_board(roster):
+    """Print every title holder and their record. Opens the history screen."""
+    holders = title_holders(roster)
+    print("")
+    print(f"{CBOLD}World Champion titles:{CEND}")
+    if not holders:
+        print(f"{CGREY}Nobody has won a championship yet.{CEND}")
+        print("")
+        return
+    print(f"{CBOLD}{'NAME':<24}{'TITLES':>7}{'RUNS':>7}"
+          f"{'WIN RATE':>10}{'TITLE RATE':>12}{CEND}")
+    for row in holders:
+        print(f"{CBOLD}{row['who'].nickname[:22]:<24}{row['titles']:>7}"
+              f"{row['runs']:>7}{row['win_rate'] * 100:>9.1f}%"
+              f"{row['title_rate'] * 100:>11.1f}%{CEND}")
+    print("")
 
 
 def career_totals(op):
@@ -180,12 +228,45 @@ def main_screen():
               f"| 1 CONTINUE |\n"
               f"|------------|\n"
               f"| 2 HISTORY  |\n"
+              f"|------------|\n"
+              f"| 3 AUTO RUN |\n"
               f"┗------------┛")
 
         option = -1
-        while not 0 <= option <= 2:
+        while not 0 <= option <= 3:
             with suppress(ValueError):
                 option = int(input(f"Your Option: "))
+
+        # Play an existing career through, unattended, once. An existing one
+        # only: an Auto Run answers every prompt from a script, and the
+        # questions a *new* career asks -- your name, your starter, your
+        # appearance -- are the ones with no sensible default.
+        #
+        # Several careers in one process, which is why `draw_bracket` is a
+        # function: each repeat needs the tournament put back -- a fresh
+        # bracket, and every competitor's stage, score and record reset --
+        # and `restart()` cannot do it, because that is os.execl and would
+        # take the run's own counter with the process.
+        if option == 3:
+            slot = pick_slot("Auto-run which career?", need_used=True)
+            if slot is None:
+                print("No save file!") if not savefile.any_exists() else None
+                continue
+            times = 0
+            while not 1 <= times <= auto_run.MAX_RUNS:
+                with suppress(ValueError):
+                    times = int(input(f"How many runs to simulate? "
+                                      f"(1-{auto_run.MAX_RUNS}) "))
+            savefile.select(slot)
+            load_data()
+            auto_run.start(times)
+            # The log is the only sign an Auto Run gives, so it says what
+            # it registered: this line, then one "career N of M" per career,
+            # then the finish notice. A run that stops early is obvious from
+            # the three of them together.
+            print(f"Auto Run: {auto_run.state.total} "
+                  f"run{'' if auto_run.state.total == 1 else 's'} queued.")
+            break
 
         # the one that comes back to this menu rather than starting a game
         if option == 2:
@@ -277,30 +358,72 @@ def main_screen():
     elif option == 1:
         load_data()
 
-    if 0 <= option <= 1:
-        list_of_competitors['Protagonist'].team = team_generation(list_of_competitors['Protagonist'])
-        GameSystem.participants += random.sample(GameSystem.competitor_list,
-                                                 32 - len(GameSystem.participants))  # elite four, champion and protagonist are seeded
-        random.shuffle(GameSystem.participants)
+    # Auto Run continues an existing career, so it wants exactly what CONTINUE
+    # wants: the save read, and a bracket drawn.
+    if option in (0, 1, 3):
+        draw_bracket()
 
-        # # debug reseeding
-        # # activation: set that character to be Champion
-        # index = GameSystem.participants.index('Protagonist')
-        # opponent = index + 1 if index % 2 == 0 else index - 1
-        # for i in range(len(GameSystem.participants)):
-        #     if GameSystem.participants[i] == "Emperor Marvuno":
-        #         GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
-        #         break
 
-        for i, name in enumerate(GameSystem.participants):
-            name = list_of_competitors[name]
-            name.id = i + 1
-            # A fresh run means a fresh list of who you got through. Cleared
-            # here, at the point the bracket is drawn, rather than when a
-            # championship ends -- so a run abandoned partway still leaves its
-            # record behind for the standings to read.
-            name.run_defeated = []
-            name.run_lost_to = []
+def draw_bracket():
+    """Seed the 32-competitor field and roll the player's team.
+
+    A function rather than the tail of `main_screen` because Auto Run plays
+    several careers in one process and has to draw a fresh bracket for each
+    of them. A normal run gets a fresh one by `restart()` replacing the whole
+    process; an Auto Run cannot, so everything a new tournament needs is
+    reset here, in one place, rather than relying on a fresh interpreter.
+    """
+    # Back to the seeded few. `+=` further down grows this list, so a second
+    # career starting from the leftovers of the first would build a bracket
+    # of sixty-four. The seeding is GameSystem's own, repeated rather than
+    # called: the class is already instantiated by the time anyone gets here.
+    # Every competitor's designed team, back as the CSV writes it. Playing
+    # one replaces their Ace specs with built Pokemon and can trim the list
+    # for a short round, and that used to be undone by the process restarting
+    # between careers -- which an Auto Run does not do. Without this, the
+    # second career meets a Champion Marvin whose team is whatever the first
+    # one left behind.
+    savefile.restore_designed_teams(list_of_competitors)
+
+    GameSystem.stage = 1
+    GameSystem.participants = [
+        name for name in list_of_competitors
+        if list_of_competitors[name].level in ("Champion", "Protagonist")]
+    GameSystem.participants += random.sample(
+        [name for name in list_of_competitors
+         if list_of_competitors[name].level == "Elite"],
+        k=random.randint(4, 6))
+
+    list_of_competitors['Protagonist'].team = team_generation(list_of_competitors['Protagonist'])
+    GameSystem.participants += random.sample(GameSystem.competitor_list,
+                                             32 - len(GameSystem.participants))  # elite four, champion and protagonist are seeded
+    random.shuffle(GameSystem.participants)
+
+    # # debug reseeding
+    # # activation: set that character to be Champion
+    # index = GameSystem.participants.index('Protagonist')
+    # opponent = index + 1 if index % 2 == 0 else index - 1
+    # for i in range(len(GameSystem.participants)):
+    #     if GameSystem.participants[i] == "Emperor Marvuno":
+    #         GameSystem.participants[i], GameSystem.participants[opponent] = GameSystem.participants[opponent], GameSystem.participants[i]
+    #         break
+
+    for i, name in enumerate(GameSystem.participants):
+        name = list_of_competitors[name]
+        name.id = i + 1
+        # Everyone starts a tournament level. `stage` is how far through the
+        # bracket a competitor is, and `round_begin` sorts on it -- so a
+        # second career that inherited the first one's finishing positions
+        # would open with the last final already played.
+        name.stage = 1
+        name.score = name.opponent_score = 0
+        name.opponent, name.win_order = [], []
+        # A fresh run means a fresh list of who you got through. Cleared
+        # here, at the point the bracket is drawn, rather than when a
+        # championship ends -- so a run abandoned partway still leaves its
+        # record behind for the standings to read.
+        name.run_defeated = []
+        name.run_lost_to = []
 
 
 #: which tiers a starter is drawn from. Medium and High only -- above the

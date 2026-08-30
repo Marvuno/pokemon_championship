@@ -154,12 +154,13 @@ record against them plus the scoreline of every previous meeting.
 
 ### Career History (the title screen's HISTORY option)
 
-One window, five tabs, all of it there when it opens:
+One window, six tabs, all of it there when it opens:
 
 | tab | what it holds |
 |---|---|
 | Opponents | every competitor, clickable, with tier and rating |
 | Champions | who won each championship |
+| Records | everyone who has ever won a title: titles, runs entered, overall win rate, and how often a run ends in one |
 | Career | the one you picked: portrait, titles, W/L, win rate |
 | Tournaments | every championship they entered and where they came |
 | Head to Head | their record against everybody, hardest opponent first |
@@ -181,6 +182,36 @@ trainers.
 Head to Head is ordered by the opponent's rating rather than by how often they
 were played. A competitor who has never played says so on all three of the
 owned tabs, rather than leaving the last one's record on screen.
+
+### Auto Run (the title screen)
+
+Pick a save slot and a number of runs, up to 100, and the game plays them
+through on its own — every screen, every prompt, a real save — then hands the
+title screen back. It exists to exercise the game the way a player does, for
+as long as it takes to see something go wrong, and to fill out a career's
+history without sitting through it.
+
+What it does when it has to decide something:
+
+| screen | what it answers |
+|---|---|
+| pre-battle menu | Battle, never the information screens |
+| more Pokemon than the round allows | benches the weakest on base stats plus IVs, and only draws lots between Pokemon that genuinely tie |
+| the first move of a battle | switches auto battle on, then plays |
+| a forced switch | the first Pokemon still standing |
+| winning a round | trades only if the loser's best beats the worst on your books, and never for a Pokemon the team already has |
+| any "press any key" | a bare Enter |
+
+It never answers the title screen itself, so a finished run gives you the
+controls back rather than starting another one.
+
+Battle and menu music are silenced for the duration, so a run of fifty
+careers does not play twenty minutes of battle themes at you. There is no
+sound when it finishes — the log says so instead, and the title screen coming
+back is the visible sign.
+
+Runs are saved and rated exactly as if you had played them, so a career's
+history, ratings and titles all count.
 
 ### Pokedex (top bar, any time)
 
@@ -333,9 +364,14 @@ The window is borderless, so it supplies its own minimise (`–`) and close
 
 ### Settings
 
-Difficulty — Normal, or Beginner where every opponent plays the simple
-attacking AI — taking effect the next time you start the game. Music volume is
-on the same panel.
+Difficulty — Normal, where every opponent plays the full scoring AI, or
+Beginner, where every opponent plays the simple attacking one — taking effect
+the next time you start the game. Music volume is on the same panel.
+
+This is the only thing that decides which AI you face. Opponents used to play
+simply or cleverly according to their own rating, so the weakest sixteen
+always played simply whatever the setting said; the early rounds of a career
+put up a real fight now.
 
 The window is borderless fullscreen; there is no windowed mode and no size
 option, so the arena and the sprites are laid out once against the screen you

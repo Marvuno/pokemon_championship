@@ -1,7 +1,7 @@
 """
 Build battle sprites for the Pokemon that don't have one.
 
-image_builder.py pulls the real Pokemon's animations off projectpokemon.org,
+The downloaded set came off projectpokemon.org as animations,
 which by definition has nothing for this project's own creations -- hence the
 old "Missing: Spectrier, All Custom Mons" note and the name-in-place-of-a-
 sprite fallback in GUI_qt/sprites.py.
@@ -358,7 +358,7 @@ class Painter:
 
     # -- builds ----------------------------------------------------------
     # each returns an Anatomy; all draw facing right (mirrored for the
-    # opponent's side, exactly as image_builder did for the downloaded set)
+    # opponent's side, exactly as the downloaded set was built)
     def build_biped(self, d, bob):
         s, W, H = self.s, self.w, self.h
         tw = W * 0.30 * s.scale * (0.85 + 0.35 * s.stocky)

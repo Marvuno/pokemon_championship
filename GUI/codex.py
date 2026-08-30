@@ -281,7 +281,7 @@ def sprite_key(name):
     regional prefixes, the apostrophe in Farfetch'd or the "(Blade Forme)"
     brackets -- so sixteen Pokemon showed a name instead of a sprite in the
     Pokedex while looking fine in battle. Mirrors the project's own
-    image_builder.py, with a trailing-dash trim so "Aegislash (Shield Forme)"
+    the sprite pipeline, with a trailing-dash trim so "Aegislash (Shield Forme)"
     lands on "aegislash-shield" rather than "aegislash-shield-".
     """
     key = str(name).lower()

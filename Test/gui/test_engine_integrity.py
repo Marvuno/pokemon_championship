@@ -649,5 +649,27 @@ check("remarks is a note, not a field the engine reads",
       and "remarks" in move_table.COLUMNS)
 
 
+
+# -- a move that never reached is not a move that does nothing -------------
+# `ineffective_moves` is the AI's memory of "I tried this on that Pokemon and
+# it did nothing", and it used to be written on any zero-damage result. A
+# miss, or an attack thrown at something half-way through Phantom Force or
+# Fly, also reports zero -- so a Pokemon that could not be *reached* taught
+# the AI its attacks were useless, and it fell back on a status move for the
+# rest of the battle. Only a move that actually connected may be blacklisted.
+import ast as _ast                                                # noqa: E402
+_checklist = _ast.parse(io.open(
+    os.path.join(ROOT, "Scripts", "Battle", "battle_checklist.py"),
+    encoding="utf-8").read())
+_writes = [node for node in _ast.walk(_checklist)
+           if isinstance(node, _ast.Attribute) and node.attr == "setdefault"
+           and isinstance(node.value, _ast.Attribute)
+           and node.value.attr == "ineffective_moves"]
+check("the AI's dud list is still written in exactly one place",
+      len(_writes), 1)
+_guards = [node for node in _ast.walk(_checklist)
+           if isinstance(node, _ast.Name) and node.id == "connected"]
+check("...and 'connected' guards it", len(_guards) >= 3, True)
+
 print("ALL PASS" if not fails else "FAILURES: %d -- %s" % (len(fails), fails))
 sys.exit(1 if fails else 0)

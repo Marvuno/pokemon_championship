@@ -541,8 +541,20 @@ class _Section(QWidget):
             for ace in entry["aces"]:
                 row = QHBoxLayout()
                 row.setSpacing(4)
-                row.addWidget(_label(ace["name"], self.fonts.body_bold,
-                                     T.TEXT))
+                # Eliding, because this row cannot otherwise shrink and it
+                # sets the width of everything below it. "Armadragdon" beside
+                # DRAGON/FLYING/STEEL is 390px of unshrinkable row inside a
+                # 262px column, and a QVBoxLayout is as wide as its widest
+                # child -- so the *description* was laid out at 390 and lost
+                # its right-hand 128px, with horizontal scrolling switched
+                # off. The name is the part that can give: the type blocks
+                # are three words and the description is the reason the
+                # player opened the entry.
+                ace_name = ElidedLabel(ace["name"], self.fonts.body_bold,
+                                       T.TEXT)
+                ace_name.setSizePolicy(QSizePolicy.Preferred,
+                                       QSizePolicy.Preferred)
+                row.addWidget(ace_name)
                 for type_name in ace["types"]:
                     row.addWidget(Chip(type_name, T.type_color(type_name),
                                        self.fonts))

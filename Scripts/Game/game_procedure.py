@@ -156,6 +156,82 @@ def round_begin():
             print("\n")
 
 
+#: How far the people the champion beat went, as a trophy on the title.
+#: The champion's title, and how well proven it is.
+#:
+#:   PROVEN_TITLE   the opponents they beat are worth more than
+#:                  PROVEN_SHARE of the whole bracket's rating
+#:   MODEST_TITLE   less than MODEST_SHARE of it
+#:
+#: This used to be decided by `opponent_score` -- how far the people you
+#: beat went -- which says nothing about how good they were: a champion can
+#: get through weak opponents who happened to place well. Accumulated rating
+#: asks the question the badge is actually for, so it is the only test now.
+#:
+#: The thresholds are not 80% and 20%, and the reason is arithmetic rather
+#: than taste. A champion beats about five of the thirty-one others, so
+#: their share of the field's rating cannot approach 80% however strong
+#: those five are. Measured over 140 real careers it ran from 9.7% to 45.8%,
+#: centred on 25.3% -- read against 80/20 the crown is unreachable and the
+#: medal fires on a rounding error.
+#:
+#: Both are set from that measured distribution rather than by eye, so each
+#: mark stays roughly as rare as the other: the crown comes up on about 12%
+#: of runs and the medal on 10%. Retuning either means measuring again --
+#: they are percentiles of a distribution, not round numbers.
+PROVEN_TITLE, MODEST_TITLE = " 👑", " 🥇"
+PROVEN_SHARE = 0.36
+MODEST_SHARE = 0.15
+
+
+def beaten_rating(competitor):
+    """What the opponents this competitor beat are worth, added up.
+
+    The player is left out. Their rating climbs on a different scale from the
+    competitors' -- it is the only one with no ceiling -- so a road that
+    happened to include them would look hard whoever walked it. That holds
+    when the player is the champion too: the question is who they beat.
+
+    Read live rather than from `base_strength`, so a competitor on form
+    counts for what they are worth now.
+    """
+    total = 0
+    for name in (getattr(competitor, "run_defeated", None) or []):
+        other = list_of_competitors.get(name)
+        if other is not None and not other.main:
+            total += other.strength
+    return total
+
+
+def road_mark(champion, field):
+    """PROVEN_TITLE, MODEST_TITLE or "" for this champion's road.
+
+    The opponents they beat are added up and measured against the whole
+    bracket's rating added up. Everybody in the field counts, the player
+    included -- beating them is a real part of a road, and the same rating
+    sits on both sides of the fraction so it cannot tilt one without the
+    other. The champion's own rating is the only thing left out, since they
+    cannot draw themselves.
+    """
+    beaten = [list_of_competitors[name] for name
+              in (getattr(champion, "run_defeated", None) or [])
+              if name in list_of_competitors]
+    if not beaten:
+        return ""
+    theirs = sum(who.strength for who in beaten)
+    whole = sum(list_of_competitors[name].strength for name in field
+                if name in list_of_competitors
+                and list_of_competitors[name] is not champion)
+    if whole <= 0:
+        return ""
+    share = theirs / whole
+    if share > PROVEN_SHARE:
+        return PROVEN_TITLE
+    if share <= MODEST_SHARE:
+        return MODEST_TITLE
+    return ""
+
+
 def scoreboard():
 
     # calculating opponent stage as tiebreaks
@@ -178,8 +254,12 @@ def scoreboard():
               f"|| {competitor.nickname}[{competitor.strength}]{' ' * (20 - len(competitor.nickname) - len(str(competitor.strength)))} "
               f"||  {competitor.stage - 1}  || {competitor.opponent_score}{' ' * (2 - len(str(competitor.opponent_score)))} "
               f"|| {competitor.score}{' ' * (3 - len(str(competitor.score)))} ||{CEND}")
-        trophy = ' 👑' if list_of_competitors[GameSystem.participants[0]].opponent_score >= 36 else ' 🥇' \
-            if list_of_competitors[GameSystem.participants[0]].opponent_score <= 24 else ''
+        # The crown and the medal are the road the champion walked, in the
+        # rating of the opponents they actually beat. `opponent_score`
+        # decided this once and no longer does: it counts how far those
+        # people went, not how good they were.
+        trophy = road_mark(list_of_competitors[GameSystem.participants[0]],
+                           GameSystem.participants)
         # A fourth element: who the champion of this run got through. Stored
         # against every competitor's own history entry, because the champion
         # roll is read off the player's history and has to name them without
@@ -250,6 +330,69 @@ def save_game():
     # delete here just to make the objects picklable, and renaming a
     # competitor no longer makes older saves unloadable.
     savefile.save(list_of_competitors)
+
+
+#: How far a competitor's rating can move in one career, and how far it may
+#: ever get from the rating they shipped with -- both as a fraction of that
+#: shipped rating, so a 1000-rated competitor moves in tens and a 20-rated
+#: one in ones.
+#:
+#: This is deliberately **not** the Elo formula `elo_rating()` uses for the
+#: player. Elo is an exchange: what one competitor gains another loses, and
+#: with 80 matches a career and no anchor the field random-walks apart --
+#: measured at +467/-223 on individuals over 200 careers, with the pool
+#: spreading from 193 to 233. What a competitor's rating is *for* here is
+#: choosing their team (`PLAYER_IV(participant.strength)`) and ordering the
+#: bracket, so it wants to stay near where it was designed while still
+#: moving enough for the player to notice.
+FORM_SWING = 0.03
+FORM_BAND = 0.30
+
+
+def competitor_form():
+    """Move each competitor's rating on how their run actually went.
+
+    The comparison is with what their rating *predicted*, not with an even
+    50% -- and that is the whole design. Against a 50% baseline every
+    competitor above the median wins more than half by definition, so they
+    climb every career until the band stops them, and everyone below sinks:
+    measured over 200 careers, 43 of 69 pinned to an edge and the ladder
+    stretched from 193 to 226 while ranks barely moved. Against their own
+    predicted record the expected move is zero, so the band is a safety net
+    rather than the mechanism: 1.8 of 69 pinned after 50 careers, the spread
+    holds at 193, and 39 of 69 change rank.
+
+    A competitor-vs-competitor match is not battled -- it is a weighted coin
+    on rating (`battle_win_condition`) -- so the prediction here uses exactly
+    that rule against the opponents they actually drew. Swiss pairing means
+    a competitor who wins early meets stronger opponents later, and reading
+    the real draw is what accounts for it.
+
+    Every delta is worked out before any is applied. Ratings are read off
+    the opponents, so updating in the loop would score later competitors
+    against ratings the same career had already moved.
+    """
+    moves = {}
+    for competitor in list_of_competitors.values():
+        if competitor.main:
+            continue
+        faced = list(getattr(competitor, "opponent", []) or [])
+        results = list(getattr(competitor, "win_order", []) or [])
+        matches = min(len(faced), len(results))
+        if not matches:
+            continue                      # not in this career's field
+        mine = competitor.strength
+        record = sum(results[:matches]) / matches
+        predicted = sum(mine / max(1, mine + other.strength)
+                        for other in faced[:matches]) / matches
+        shipped = getattr(competitor, "base_strength", mine) or mine
+        step = FORM_SWING * shipped * (record - predicted) * 2
+        # the randomised part: the size of the move, never its direction
+        step *= random.uniform(0.5, 1.5)
+        low, high = shipped * (1 - FORM_BAND), shipped * (1 + FORM_BAND)
+        moves[competitor] = int(round(max(1, min(high, max(low, mine + step)))))
+    for competitor, rating in moves.items():
+        competitor.strength = rating
 
 
 def elo_rating():

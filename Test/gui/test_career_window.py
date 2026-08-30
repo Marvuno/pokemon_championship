@@ -187,8 +187,8 @@ def finish(why):
 
     check("the window opens by itself", opened.get("visible"))
     check("...on the Opponents tab", opened.get("tab"), "Opponents")
-    check("...with five tabs", opened.get("tabs"),
-          ["Opponents", "Champions", "Career", "Tournaments",
+    check("...with six tabs", opened.get("tabs"),
+          ["Opponents", "Champions", "Records", "Career", "Tournaments",
            "Head to Head"])
     check("...every competitor listed", (opened.get("opponents") or 0) > 50)
     check("...and the champion roll already filled",

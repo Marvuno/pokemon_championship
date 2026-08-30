@@ -34,13 +34,21 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
     # color for different side
     protagonist.side_color, competitor.side_color = CGREEN2 + CBOLD, CRED2 + CBOLD
 
-    # select weather
-    battleground.starting_weather_effect = random.choices(['Clear', 'Rain', 'Sunny', 'Sandstorm', 'Hail'], weights=[6, 1, 1, 1, 1], k=1)[0]
+    # The weather this arena happens to have: one roll for whether there is
+    # any, then an even pick of which. Two steps rather than one weighted
+    # draw across five outcomes, because the two numbers a designer wants to
+    # turn -- how often weather happens, and which weathers are possible --
+    # are then separate. Adding a sixth weather no longer changes how often
+    # weather happens at all.
+    if random.random() < OPENING_WEATHER_CHANCE:
+        battleground.starting_weather_effect = random.choice(OPENING_WEATHERS)
+    else:
+        battleground.starting_weather_effect = 'Clear'
     battleground.weather_effect = battleground.starting_weather_effect
 
-    # and the ground it happens to be fought on: each terrain at 5%, so one
-    # battle in five opens on some terrain. Ten turns rather than a move's
-    # five -- see Scripts/Battle/terrain.py.
+    # and the ground it happens to be fought on, rolled the same way and at
+    # the same odds. Ten turns rather than a move's five -- see
+    # Scripts/Battle/terrain.py.
     opened_on = terrain.roll_natural(battleground)
     if opened_on:
         narrator.say(opened_on, "field", terrain=battleground.terrain)
@@ -85,6 +93,14 @@ def move_selection(turn):
         opponent.battle_stats = [opponent.battle_stats[0]] + \
                                 [math.floor(0.01 * 2 * opponent.nominal_base_stats[x] * modifierChart[x][opponent.modifier[x]] * 100 + 5) for x in range(1, 6)]
 
+        # The turn starts here, so the count goes up here. It used to be
+        # further down -- after this header had already been printed and
+        # before a single move had been chosen -- so for the whole of the
+        # turn the player was watching, `battleground.turn` held the number
+        # of the *next* one. The log header said "Turn 1" while everything
+        # reading the counter said 2, which is why the battle appeared to do
+        # nothing on turn 1 and start on turn 2.
+        battleground.turn += 1
         narrator.say(f"\n\n{CBOLD}{weather_conversionChart.get(battleground.weather_effect)} [{battleground.weather_effect}]\n"
               f"{battleground.field_effect}\nTurn {battleground.turn}\n{CEND}")
 
@@ -147,8 +163,8 @@ def move_selection(turn):
               hp_bar_display(opponent),
               "\n" + CEND)
 
-        # add turn
-        battleground.turn += 1
+        # add turn -- the battleground's own count is done at the top with
+        # the header; these two are per-Pokemon and reset on a switch
         player.volatile_status['Turn'] += 1
         opponent.volatile_status['Turn'] += 1
 
@@ -163,9 +179,24 @@ def move_selection(turn):
         else:
             player_move = select_move(player, opponent, battleground) if not battleground.auto_battle else auto_ai_select_move(battleground, competitor,
                                                                                                                                protagonist)
-            opponent_move = smart_ai_select_move(battleground, protagonist, competitor) \
-                if competitor.strength >= SMART_AI_RATING \
-                else dumb_ai_select_move(battleground, protagonist, competitor)
+            # Every opponent, whatever their rating. Which AI is played
+            # against is the *difficulty setting*, not a property of the
+            # competitor: Beginner swaps this routine for the simple one
+            # everywhere (GUI/bridge.py), and Normal is what is left.
+            #
+            # It used to switch on `competitor.strength >= SMART_AI_RATING`,
+            # so 16 of the 69 played simply because they were rated low. Two
+            # things were wrong with that. It made rating mean two unrelated
+            # things at once -- how good a team you bring, and how well you
+            # think -- so the early rounds were easy twice over. And once
+            # ratings drifted with form it became a cliff: five competitors
+            # sat close enough to the boundary that a good career would have
+            # switched their brain on and a bad one switched it off, out of a
+            # two-point move. Everything else a rating feeds -- the tier
+            # ladder, PLAYER_IV -- is a continuous curve and takes drift
+            # happily; this was the one step in the whole engine.
+            opponent_move = smart_ai_select_move(battleground, protagonist,
+                                                 competitor)
             # player_move, opponent_move = select_move(player), select_move(opponent)
 
         # switching

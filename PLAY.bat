@@ -1,11 +1,11 @@
 @echo off
 cd /d "%~dp0"
-title Pokemon Champion
+title Pokemon Championship
 color 0A
 
 echo.
 echo  =====================================================
-echo   POKEMON CHAMPION IN PYTHON - Setup ^& Launcher
+echo   POKEMON CHAMPIONSHIP - Launcher
 echo  =====================================================
 echo.
 
@@ -73,7 +73,7 @@ if "%HAVE_QT%"=="0" (
     echo   PySide6 did not install correctly
     echo  =====================================================
     echo.
-    echo   Pokemon Champion needs PySide6 to run. Try this file again,
+    echo   Pokemon Championship needs PySide6 to run. Try this file again,
     echo   or run "pip install PySide6" yourself to see the real error.
     echo.
     pause
@@ -81,7 +81,7 @@ if "%HAVE_QT%"=="0" (
 )
 
 echo.
-echo  Starting Pokemon Champion...
+echo  Starting Pokemon Championship...
 echo.
 "%PY%" play.py
 

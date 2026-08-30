@@ -256,9 +256,12 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             # than a move's five: this is the ground the battle starts on,
             # the same as a naturally rolled terrain, not something somebody
             # spent a turn laying.
-            # `turn` is 1 on a fresh Battleground, not 0 -- switching in at
-            # the start of the battle happens before the first increment.
-            if (battleground.turn <= 1
+            # `turn` is 0 until `move_selection` starts the first turn, and
+            # switching in at the start of the battle happens before that.
+            # So 0 means 'the battle has not begun'; 1 means the first turn
+            # is already being played, and a Pokemon arriving then is a
+            # mid-battle switch that must not re-lay the ground.
+            if (battleground.turn < 1
                     and terrain.current(battleground) != "Electric"):
                 battleground.terrain = "Electric"
                 battleground.terrain_turn = terrain.NATURAL_TURNS
@@ -436,8 +439,22 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # A fresh copy: everything downstream writes its per-use working
         # state onto the move it is handed, and the entries of list_of_moves
         # are shared by every Pokemon in the game.
-        battleground.encore_move = fast_copy(
-            list_of_moves[random.choice(pool)])
+        # On the *Pokemon*, not the battleground. This is the whole of the
+        # fix for a bug that read as "the opponent's ability worked for me".
+        #
+        # The slot used to be `battleground.encore_move`, which is shared by
+        # both sides, and `move_order_and_execution` gives it to whoever
+        # finishes a move next. Two things then went wrong at once. The AI
+        # scores its candidates by running this very code with `reality`
+        # off, so Mivy queued the move while merely *thinking* about one --
+        # and a player using a priority move then moved first and collected
+        # it, leaving Mivy's own turn to find the slot already emptied.
+        #
+        # Hanging it on the Pokemon fixes both by construction rather than
+        # by a guard: the scorer works on `fast_copy` of the Pokemon, so a
+        # write during scoring lands on a copy that is thrown away, and a
+        # slot that belongs to one Pokemon cannot be read by the other side.
+        user.encore_move = fast_copy(list_of_moves[random.choice(pool)])
         notice(battleground, user_side)
 
     def overloaded(*args):
@@ -524,17 +541,37 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         mean finding them all; the difference across a turn catches every one
         of them by construction.
         """
+        # Each snapshot remembers *whose* it is. A stat change is the
+        # difference between two readings of the same Pokemon, and the
+        # Pokemon standing there can change in between: a switch chosen as
+        # the turn's move, a replacement sent out after a faint, or a forced
+        # switch from another character ability. Comparing the outgoing
+        # Pokemon's stages against the incoming one's reports a change that
+        # never happened -- a Pokemon recalled at +2 Attack read as a
+        # two-stage drop and Synchronize inflicted it on the other side.
+        # Measured at 6 mismatches in 532 firings over 30 battles.
         if abilityphase == ORDER_PHASE:
-            battleground.sync_before = list(user.modifier)
-            battleground.sync_foe_before = (list(target.modifier)
-                                            if target is not None else None)
+            battleground.sync_before = (user, list(user.modifier))
+            battleground.sync_foe_before = (
+                (target, list(target.modifier)) if target is not None else None)
             return
         # end of turn: what went down here, and what went up over there?
-        before = getattr(battleground, "sync_before", None)
-        foe_before = getattr(battleground, "sync_foe_before", None)
+        mine = getattr(battleground, "sync_before", None)
+        theirs = getattr(battleground, "sync_foe_before", None)
         battleground.sync_before = battleground.sync_foe_before = None
         if target is None or target.status == "Fainted":
             return
+        # A snapshot of somebody else is no snapshot at all -- but the right
+        # answer is not to give up on the turn, it is to read the Pokemon
+        # that *is* standing there from where it started. Switching resets
+        # the stat stages, so a Pokemon that arrived this turn began it on
+        # zeroes; comparing against those is exactly "what has been done to
+        # it since it came in". Discarding the turn instead meant the ability
+        # only woke up on the turn *after* a switch, and an Intimidate on the
+        # way in was never shared.
+        fresh = [0] * 9
+        before = mine[1] if mine and mine[0] is user else fresh
+        foe_before = theirs[1] if theirs and theirs[0] is target else fresh
 
         # the curse, spread outwards
         if before:
@@ -743,7 +780,8 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         matter, so the ground does the work instead.
         """
         if abilityphase == 1:
-            if (battleground.turn <= 1
+            # 0 is 'before the first turn'; see sparking_cascade above
+            if (battleground.turn < 1
                     and terrain.current(battleground) != "Psychic"):
                 battleground.terrain = "Psychic"
                 battleground.terrain_turn = terrain.NATURAL_TURNS
@@ -910,7 +948,8 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         under it. The two halves would have cancelled each other out.
         """
         if abilityphase == 1:
-            if (battleground.turn <= 1
+            # 0 is 'before the first turn'; see sparking_cascade above
+            if (battleground.turn < 1
                     and terrain.current(battleground) != "Electric"):
                 battleground.terrain = "Electric"
                 battleground.terrain_turn = terrain.NATURAL_TURNS

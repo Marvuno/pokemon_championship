@@ -8,7 +8,7 @@ keyed by GUI/bridge.py's sprite_key():
     Assets/pokemon/right/<key>-right.gif   the opponent's side
     Assets/pokemon/left/<key>-left.gif     your side, mirrored
 
-which is the same split Test/image_builder.py made for the downloaded
+which is the same split the original download tool made for the downloaded
 Pokemon: the artwork as drawn goes to right/, and left/ is its mirror, so the
 two sides face each other across the arena.
 

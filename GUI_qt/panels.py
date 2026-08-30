@@ -1391,6 +1391,20 @@ class _PickChip(Chip):
                c.red(), c.green(), c.blue(), 190 if on else 110, T.RADIUS_SM))
 
 
+#: The footnote under the champion roll. The thresholds are deliberately
+#: not in it: the badge is a claim about the road, and a player reading a
+#: roll of champions wants to know what the mark means, not the percentage
+#: that produced it. The numbers live in game_procedure.py, next to the
+#: measurement that uses them.
+BADGE_NOTE = ("👑 highly-proven title  ·  "
+              "🥇 less-proven title")
+
+
+def badge_note():
+    """The footnote under the champion roll."""
+    return BADGE_NOTE
+
+
 class CareerDialog(QDialog):
     """The main menu's HISTORY screen, as one window you click around in.
 
@@ -1412,8 +1426,16 @@ class CareerDialog(QDialog):
 
     #: rank -> colour, for the championship-history chips
     PODIUM = {1: T.ACCENT, 2: T.TEXT, 3: T.TEXT}
-    TABS = ("Opponents", "Champions", "Career", "Tournaments",
+    TABS = ("Opponents", "Champions", "Records", "Career", "Tournaments",
             "Head to Head")
+
+    #: how many names each leaderboard on the Records tab shows
+    BOARD_SIZE = 10
+    #: fewest matches before a win rate is worth ranking on. Without it a
+    #: competitor drawn into one bracket and never seen again tops the table
+    #: at 100%, which is not what "best" means. Matches the engine's own
+    #: BOARD_MIN_MATCHES in start_interface.py.
+    BOARD_MIN_MATCHES = 5
     #: the three that belong to whichever competitor is being shown, and have
     #: to be cleared together when that changes -- a competitor with nothing
     #: on record publishes no table at all, and leaving the last one's up
@@ -1521,6 +1543,7 @@ class CareerDialog(QDialog):
         if signature == getattr(self, "_roster_signature", None):
             return
         self._roster_signature = signature
+        self._show_records(entries)
         body = self.bodies["Opponents"]
         clear_layout(body)
         self._rows = {}
@@ -1542,7 +1565,14 @@ class CareerDialog(QDialog):
     #: how wide each name on a run path gets. Fixed, so the arrows line up
     #: down the column however long the nicknames are -- a path is read across
     #: *and* compared down, and ragged spacing defeats the second.
-    PATH_NAME_WIDTH = 120
+    #:
+    #: 112 and PATH_FONT together, rather than 120 at the body font: the
+    #: longest nickname in the game measured 131px at 11.5pt and was elided
+    #: in a 120px slot, so "Champion Marvin" and two others were never shown
+    #: in full. At 10pt the widest is 110, which fits with room to spare --
+    #: and eight pixels off each of five slots gives the champion's own name,
+    #: the elastic item at the end of the row, forty more to be drawn in.
+    PATH_NAME_WIDTH = 112
     #: the gutter around each arrow. Name, gap, arrow, gap, name -- without
     #: it a name that fills its slot runs straight into the arrow beside it.
     PATH_ARROW_WIDTH = 18
@@ -1553,6 +1583,10 @@ class CareerDialog(QDialog):
     #: meant to be compared down are no longer columns.
     RUN_TAG_WIDTH = 34
     RANK_WIDTH = 96
+    #: what a name on a path is written in. Its own role rather than
+    #: `fonts.small` inline, because the slot width above is measured against
+    #: it -- changing one without the other is what cut the names off.
+    PATH_FONT = "tiny"
 
     def _path_row(self, steps, colour=None, stretch=True):
         """A run path as "A -> B -> C", each name in a fixed-width slot.
@@ -1575,7 +1609,8 @@ class CareerDialog(QDialog):
         row.setSpacing(self.PATH_GAP)
         for position, (name, won) in enumerate(steps):
             if position:
-                arrow = _label("→", self.fonts.small, T.TEXT_FAINT)
+                arrow = _label("→", getattr(self.fonts, self.PATH_FONT),
+                               T.TEXT_FAINT)
                 arrow.setAlignment(Qt.AlignCenter)
                 arrow.setFixedWidth(self.PATH_ARROW_WIDTH)
                 row.addWidget(arrow)
@@ -1583,7 +1618,8 @@ class CareerDialog(QDialog):
                 shade = colour or T.TEXT_DIM
             else:
                 shade = T.PLAYER if won else T.OPPONENT
-            cell = ElidedLabel(str(name), self.fonts.small, shade)
+            cell = ElidedLabel(str(name), getattr(self.fonts, self.PATH_FONT),
+                               shade)
             cell.setFixedWidth(self.PATH_NAME_WIDTH)
             # setFixedWidth is not enough on its own here. ElidedLabel is
             # horizontally Ignored by default -- that is the whole point of it
@@ -1613,6 +1649,101 @@ class CareerDialog(QDialog):
         label = ElidedLabel(str(text), font, colour)
         label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         return label
+
+    def _show_records(self, entries):
+        """Everybody who has ever won a championship, and what it took.
+
+        The champion roll next door lists who won each run, so a three-time
+        champion appears three times and somebody consistently second never
+        appears at all. This is one row per holder: how many titles, how many
+        runs entered, how often they win a match, and how often a run ends in
+        a title.
+
+        Built from the same roster publish the Opponents rail uses -- every
+        row already carries its titles, its runs and its all-time record, so
+        there is nothing here the window has to ask the game for.
+        """
+        body = self.bodies["Records"]
+        clear_layout(body)
+
+        holders = []
+        for entry in entries:
+            titles = entry.get("titles", 0) or 0
+            if not titles:
+                continue
+            runs = entry.get("runs", 0) or 0
+            played = entry.get("wins", 0) + entry.get("losses", 0)
+            holders.append({
+                "entry": entry, "titles": titles, "runs": runs,
+                # a run still being played has not been counted yet, so the
+                # divisor is guarded rather than assumed to be >= titles
+                "title_rate": titles / max(runs, titles, 1),
+                "win_rate": (entry.get("wins", 0) / played) if played else 0.0})
+        holders.sort(key=lambda row: (-row["titles"], -row["title_rate"],
+                                      -row["win_rate"],
+                                      row["entry"].get("nickname", "")))
+
+        body.addWidget(_eyebrow("WORLD CHAMPION TITLES", self.fonts))
+        if not holders:
+            body.addWidget(_label("Nobody has won a championship yet.",
+                                  self.fonts.body, T.TEXT_FAINT, wrap=True))
+            return
+        body.addWidget(self._leader_head())
+        for row in holders:
+            body.addWidget(self._leader_row(row))
+
+    def _figure_cell(self, text, font, colour):
+        """One right-aligned number in a Records column."""
+        cell = ElidedLabel(str(text), font, colour)
+        cell.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        return cell
+
+    #: the four figures on a Records row, and how wide each column sits
+    RECORD_COLUMNS = ((72, "TITLES"), (72, "RUNS"),
+                      (96, "WIN RATE"), (104, "TITLE RATE"))
+
+    def _leader_head(self):
+        """The column headings, on the same widths as the rows below."""
+        head = RoundedPanel(None, bg=T.PANEL_SUNK, border=T.LINE_SOFT,
+                            radius=T.RADIUS_SM)
+        line = QHBoxLayout(head)
+        line.setContentsMargins(12, 4, 12, 4)
+        line.setSpacing(8)
+        name = _label("NAME", self.fonts.small, T.TEXT_FAINT)
+        line.addWidget(name)
+        line.addStretch(1)
+        for width, caption in self.RECORD_COLUMNS:
+            cell = self._figure_cell(caption, self.fonts.small, T.TEXT_FAINT)
+            cell.setFixedWidth(width)
+            cell.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+            line.addWidget(cell)
+        return head
+
+    def _leader_row(self, row):
+        """One title holder: who, then the four figures, right-aligned."""
+        entry = row["entry"]
+        panel = RoundedPanel(None, bg=T.PANEL, border=T.LINE_SOFT,
+                             radius=T.RADIUS_SM)
+        line = QHBoxLayout(panel)
+        line.setContentsMargins(12, 6, 12, 6)
+        line.setSpacing(8)
+        # the player stands out among the champions
+        colour = T.PLAYER if entry.get("is_player") else T.TEXT
+        line.addWidget(_label(str(entry.get("nickname", "?")),
+                              self.fonts.body_bold, colour))
+        line.addStretch(1)
+        figures = ("%d" % row["titles"], "%d" % row["runs"],
+                   "%.1f%%" % (row["win_rate"] * 100),
+                   "%.1f%%" % (row["title_rate"] * 100))
+        for (width, _), text in zip(self.RECORD_COLUMNS, figures):
+            cell = self._figure_cell(text, self.fonts.body, T.TEXT_DIM)
+            cell.setFixedWidth(width)
+            # ElidedLabel reports 0 to the layout unless the policy says
+            # otherwise, and the row would then step by nothing -- see the
+            # career path rows for the same trap.
+            cell.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+            line.addWidget(cell)
+        return panel
 
     def show_champions(self, champions):
         body = self.bodies["Champions"]
@@ -1646,6 +1777,14 @@ class CareerDialog(QDialog):
             line.addWidget(self._tail_label(entry.get("champion", "—"),
                                             self.fonts.body_bold, T.ACCENT))
             body.addWidget(row)
+        # The two marks a champion's name can carry, and what they claim.
+        # There were four: a crown and a medal for opponent score, a sword
+        # and a shield for the rating of the opponents beaten. The score half
+        # is gone -- how far the beaten went says nothing about how good they
+        # were -- and the rating half kept the crown and the medal.
+        if champions:
+            body.addWidget(_label(badge_note(), self.fonts.small,
+                                  T.TEXT_FAINT, wrap=True))
         body.addStretch(1)
 
     # -- tab 3: one competitor's career -----------------------------------

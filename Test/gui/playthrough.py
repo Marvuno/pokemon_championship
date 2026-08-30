@@ -147,8 +147,19 @@ def answer_for(prompt, request):
     good = [c for c in prompt.choices
             if not any(b in (c.label or "").lower() for b in bad)]
     pool = good or prompt.choices
-    # rotate so battles don't loop on one move forever
-    return pool[state["n"] % len(pool)].value
+    # Rotate on how many times *this* question has been asked, not on the
+    # tick counter. The ticks between two appearances of the same menu are
+    # roughly constant -- a screen takes what it takes -- so when that
+    # spacing happens to be a multiple of the pool size the same option comes
+    # up every time and the run never gets past it. That is what wedged the
+    # pre-battle menu on Career History: open it, come back, open it again.
+    # Counting the question itself cannot do that; six appearances of a
+    # six-option menu try all six.
+    seen = state.setdefault("asked", {})
+    key = (prompt.question or "") + "|" + ",".join(values)
+    turn = seen.get(key, 0)
+    seen[key] = turn + 1
+    return pool[turn % len(pool)].value
 
 
 #: the windows the game is *meant* to be able to put on screen. Anything else
@@ -164,6 +175,7 @@ ALLOWED_WINDOWS = {
     # who you are, at the start of a new career -- a real screen the player
     # answers, not a window that escaped
     "AppearanceDialog",
+
     "QMenu", "QToolTip", "QComboBoxPrivateContainer",
 }
 

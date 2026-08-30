@@ -1,0 +1,506 @@
+======================================================================
+2026-08-29 21:50:49.940305
+| 
+Background:
+The most prosperous and prestigious region in the Pokemon World, known as Krusades, is organizing the World Pokemon Championship
+after a resounding success last year. the winner will be renowned as the Official World Champion
+With an astronomical amount of prize money (roughly 2M USD for the champion) and the fame of being the World's No.1 trainer among the world,
+the Championship successfully attracted thousands of trainers around the world to challenge the title. After several stages of
+Preliminaries and Wildcards chosen by the organizers, the Tournament filtered the remaining 32 elites in the Playoffs stage.
+Despite the fierce competition, there are a few Tournament favorites throughout. Before the Official Pokemon Championship,
+Krusades invited a few renowned trainers in an Unofficial match. Marvin is the Champion of the match and claimed himself as the World Champion,
+which given his prowess is relatively uncontested and even unanimously accepted.
+In the Unofficial World Pokemon Championship, he has defeated the opponent in all 5 rounds in domination almost effortlessly.
+This year, he is directly seeded into the Playoffs striving to be the reigning champion. Along with World Champion Marvin,
+There are 8 particularly strong participants, otherwise known as the Elite Eight. They are further divided into Lower Elite Four 四小天王 and
+Upper Elite Four 四大天王, where the Upper ones each obtains an honor title. This is in accordance with the World Pokemon Rankings Table and will be
+updated every few years. 
+
+You have been renowned as one of the most talented trainers in recent decades. You are highly respected as one of the rising prodigies in the
+Pokemon Competitive Environment. Most recently, you have been the youngest winner of the U15 Pokemon Amateur Tournament in the history.
+Hence, the organizer generously granted you the wildcard, allowing you to directly seed into the Playoffs.
+Each trainer has his/her own character ability. Your character ability is the ability to copy one Pokemon of the opponent when emerging victorious.
+| 
+Tutorial #1: Receiving Pokemon
+
+If your team has less than 4 Pokemon at the start, you will receive random Pokemon from the organizer.
+When you have won, you are usually allowed to take 1 Pokemon from the opponent or receive a random Pokemon instead.
+However, if you have more Pokemon than needed for the next round, you will not receive any Pokemon or grant the opportunity to
+take 1 Pokemon from the opponent upon victory.
+If you lost the battle, unfortunately you will automatically receive a random Pokemon only.
+If you already have a team of six (full team), You can swap 1 Pokemon if you won the battle, and nothing to do if you lost.
+(NOTE: the Pokemon you receive initially depends on your ratings. The higher your ratings, the better Pokemon you will get!
+       the Pokemon you randomly obtains when you WON the battle depends on the opponent. The stronger the opponent, the better Pokemon you will get!
+       the Pokemon you randomly obtains when you LOST the battle will always be much inferior.
+| 
+Tutorial #2: Before Battle
+
+The system will randomly pair 32 participants. The individual match-up will then be shown. You should see 32 of these boxes:
+╔====╦======╦========╦=======╗
+║ ID ║ NAME ║ POINTS ║ SCORE ║
+╚====╩======╩========╩=======╝
+Points: each win scores 1 point, and each defeat scores 0 point.
+Score: the number of Pokemon defeated in that match. It will thus only display after the round. The purpose of it is for tiebreaks.
+
+As the Player, you may do 4 things before entering the battle:
+View My Pokemon: have a solid understanding of your team. You want to do this at least once at the start, since you will obtain new Pokemon.
+Switch Pokemon Order: you may switch a Pokemon to be the starting Pokemon.
+Scout Opponent: know about your next opponent. It will show his/her Character Ability and Signature Pokemon.
+                If your ratings are high, you can even know about the starting Pokemon of the opponent, sometimes including its moveset!
+                (TIPS: Pokemon with the ability Illuminate can increase the probability of this by 10 times, for ability Pressure 100 times.)
+Check History: your record against him/her, and the scoreline of every previous meeting.
+If your team has more Pokemon than the round requires, you will have to select some Pokemon that you DO NOT need for this round.
+| 
+Tutorial #3: In Battle
+
+I will assume that you are a Pokemon expert when you play this game. Hence, I cannot give you much tips for the battle.
+But I would like to remind you that the weather for each battle may have changed. Observe carefully.
+For opponent with ratings <30, they are usually more stupid and only rely on attacking moves. Any opponent higher than that ratings can be
+a prominent opponent that requires special attention.
+However, if you think that your Pokemon is vastly better than your opponent, you may activate Auto Battle with '100'. Sometimes, the AI may
+even perform better than you. ^_^
+You may receive or swap Pokemon after the battle, depends on the situation.
+| 
+Tutorial #4: End Game
+
+Very soon you will play all 5 rounds and receive the result. A large scoreboard will be displayed. However, usually only the Champion matters.
+The ranking is based on 3 factors: Points, Net Kill Score and Ratings.
+Points: first deciding factor. The higher the points, the higher the ranking.
+Opponent Score (OS): second deciding factor. It's the accumulated points of your defeated opponents. The higher the better.Net Kill Score (NKS): third deciding factor. net number of pokemon you fainted in total.  The higher the better.
+Ratings: third deciding factor. The lower the ratings, the higher the ranking.
+You will also see how many ratings you gain in this Tournament.
+(NOTE: Initially, you may find it difficult to gain ratings. No worries. After some time, you will grasp some win by having a mediocre team.
+       When you slowly build up your ratings, it will trigger a snowball effect and you will start having better performance.)
+
+That's all for the tutorial! Please enjoy the game for now!
+| 
+| ┏------------┓
+| 0 NEW GAME |
+|------------|
+| 1 CONTINUE |
+|------------|
+| 2 HISTORY  |
+|------------|
+| 3 AUTO RUN |
+┗------------┛
+| 
+Whose history?
+| 1: Slot 1: unreadable
+| 2: Slot 2: Lady Evonne -- rating 1043, 38 run(s), 20 title(s)
+| 3: Slot 3: Tata -- rating 1657, 188 run(s), 48 title(s)
+| 4: Slot 4: Lily -- rating 1791, 82 run(s), 31 title(s)
+| 0: back
+Traceback (most recent call last):
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 344, in _run
+    game_main.main()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\main.py", line 32, in main
+    start_game()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 168, in start_game
+    main_screen()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 1554, in main_screen
+    return original_main_screen(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 278, in main_screen
+    load_data()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 179, in load_data
+    return savefile.load(list_of_competitors, list_of_pokemon)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\savefile.py", line 436, in load
+    data = json.load(handle)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+======================================================================
+2026-08-29 21:51:29.659509
+| 
+Background:
+The most prosperous and prestigious region in the Pokemon World, known as Krusades, is organizing the World Pokemon Championship
+after a resounding success last year. the winner will be renowned as the Official World Champion
+With an astronomical amount of prize money (roughly 2M USD for the champion) and the fame of being the World's No.1 trainer among the world,
+the Championship successfully attracted thousands of trainers around the world to challenge the title. After several stages of
+Preliminaries and Wildcards chosen by the organizers, the Tournament filtered the remaining 32 elites in the Playoffs stage.
+Despite the fierce competition, there are a few Tournament favorites throughout. Before the Official Pokemon Championship,
+Krusades invited a few renowned trainers in an Unofficial match. Marvin is the Champion of the match and claimed himself as the World Champion,
+which given his prowess is relatively uncontested and even unanimously accepted.
+In the Unofficial World Pokemon Championship, he has defeated the opponent in all 5 rounds in domination almost effortlessly.
+This year, he is directly seeded into the Playoffs striving to be the reigning champion. Along with World Champion Marvin,
+There are 8 particularly strong participants, otherwise known as the Elite Eight. They are further divided into Lower Elite Four 四小天王 and
+Upper Elite Four 四大天王, where the Upper ones each obtains an honor title. This is in accordance with the World Pokemon Rankings Table and will be
+updated every few years. 
+
+You have been renowned as one of the most talented trainers in recent decades. You are highly respected as one of the rising prodigies in the
+Pokemon Competitive Environment. Most recently, you have been the youngest winner of the U15 Pokemon Amateur Tournament in the history.
+Hence, the organizer generously granted you the wildcard, allowing you to directly seed into the Playoffs.
+Each trainer has his/her own character ability. Your character ability is the ability to copy one Pokemon of the opponent when emerging victorious.
+| 
+Tutorial #1: Receiving Pokemon
+
+If your team has less than 4 Pokemon at the start, you will receive random Pokemon from the organizer.
+When you have won, you are usually allowed to take 1 Pokemon from the opponent or receive a random Pokemon instead.
+However, if you have more Pokemon than needed for the next round, you will not receive any Pokemon or grant the opportunity to
+take 1 Pokemon from the opponent upon victory.
+If you lost the battle, unfortunately you will automatically receive a random Pokemon only.
+If you already have a team of six (full team), You can swap 1 Pokemon if you won the battle, and nothing to do if you lost.
+(NOTE: the Pokemon you receive initially depends on your ratings. The higher your ratings, the better Pokemon you will get!
+       the Pokemon you randomly obtains when you WON the battle depends on the opponent. The stronger the opponent, the better Pokemon you will get!
+       the Pokemon you randomly obtains when you LOST the battle will always be much inferior.
+| 
+Tutorial #2: Before Battle
+
+The system will randomly pair 32 participants. The individual match-up will then be shown. You should see 32 of these boxes:
+╔====╦======╦========╦=======╗
+║ ID ║ NAME ║ POINTS ║ SCORE ║
+╚====╩======╩========╩=======╝
+Points: each win scores 1 point, and each defeat scores 0 point.
+Score: the number of Pokemon defeated in that match. It will thus only display after the round. The purpose of it is for tiebreaks.
+
+As the Player, you may do 4 things before entering the battle:
+View My Pokemon: have a solid understanding of your team. You want to do this at least once at the start, since you will obtain new Pokemon.
+Switch Pokemon Order: you may switch a Pokemon to be the starting Pokemon.
+Scout Opponent: know about your next opponent. It will show his/her Character Ability and Signature Pokemon.
+                If your ratings are high, you can even know about the starting Pokemon of the opponent, sometimes including its moveset!
+                (TIPS: Pokemon with the ability Illuminate can increase the probability of this by 10 times, for ability Pressure 100 times.)
+Check History: your record against him/her, and the scoreline of every previous meeting.
+If your team has more Pokemon than the round requires, you will have to select some Pokemon that you DO NOT need for this round.
+| 
+Tutorial #3: In Battle
+
+I will assume that you are a Pokemon expert when you play this game. Hence, I cannot give you much tips for the battle.
+But I would like to remind you that the weather for each battle may have changed. Observe carefully.
+For opponent with ratings <30, they are usually more stupid and only rely on attacking moves. Any opponent higher than that ratings can be
+a prominent opponent that requires special attention.
+However, if you think that your Pokemon is vastly better than your opponent, you may activate Auto Battle with '100'. Sometimes, the AI may
+even perform better than you. ^_^
+You may receive or swap Pokemon after the battle, depends on the situation.
+| 
+Tutorial #4: End Game
+
+Very soon you will play all 5 rounds and receive the result. A large scoreboard will be displayed. However, usually only the Champion matters.
+The ranking is based on 3 factors: Points, Net Kill Score and Ratings.
+Points: first deciding factor. The higher the points, the higher the ranking.
+Opponent Score (OS): second deciding factor. It's the accumulated points of your defeated opponents. The higher the better.Net Kill Score (NKS): third deciding factor. net number of pokemon you fainted in total.  The higher the better.
+Ratings: third deciding factor. The lower the ratings, the higher the ranking.
+You will also see how many ratings you gain in this Tournament.
+(NOTE: Initially, you may find it difficult to gain ratings. No worries. After some time, you will grasp some win by having a mediocre team.
+       When you slowly build up your ratings, it will trigger a snowball effect and you will start having better performance.)
+
+That's all for the tutorial! Please enjoy the game for now!
+| 
+| ┏------------┓
+| 0 NEW GAME |
+|------------|
+| 1 CONTINUE |
+|------------|
+| 2 HISTORY  |
+|------------|
+| 3 AUTO RUN |
+┗------------┛
+| 
+Whose history?
+| 1: Slot 1: unreadable
+| 2: Slot 2: Lady Evonne -- rating 1043, 38 run(s), 20 title(s)
+| 3: Slot 3: Tata -- rating 1657, 188 run(s), 48 title(s)
+| 4: Slot 4: Lily -- rating 1791, 82 run(s), 31 title(s)
+| 0: back
+Traceback (most recent call last):
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 344, in _run
+    game_main.main()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\main.py", line 32, in main
+    start_game()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 168, in start_game
+    main_screen()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 1554, in main_screen
+    return original_main_screen(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 278, in main_screen
+    load_data()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 179, in load_data
+    return savefile.load(list_of_competitors, list_of_pokemon)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\savefile.py", line 436, in load
+    data = json.load(handle)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+======================================================================
+2026-08-29 21:51:47.340147
+| 
+Background:
+The most prosperous and prestigious region in the Pokemon World, known as Krusades, is organizing the World Pokemon Championship
+after a resounding success last year. the winner will be renowned as the Official World Champion
+With an astronomical amount of prize money (roughly 2M USD for the champion) and the fame of being the World's No.1 trainer among the world,
+the Championship successfully attracted thousands of trainers around the world to challenge the title. After several stages of
+Preliminaries and Wildcards chosen by the organizers, the Tournament filtered the remaining 32 elites in the Playoffs stage.
+Despite the fierce competition, there are a few Tournament favorites throughout. Before the Official Pokemon Championship,
+Krusades invited a few renowned trainers in an Unofficial match. Marvin is the Champion of the match and claimed himself as the World Champion,
+which given his prowess is relatively uncontested and even unanimously accepted.
+In the Unofficial World Pokemon Championship, he has defeated the opponent in all 5 rounds in domination almost effortlessly.
+This year, he is directly seeded into the Playoffs striving to be the reigning champion. Along with World Champion Marvin,
+There are 8 particularly strong participants, otherwise known as the Elite Eight. They are further divided into Lower Elite Four 四小天王 and
+Upper Elite Four 四大天王, where the Upper ones each obtains an honor title. This is in accordance with the World Pokemon Rankings Table and will be
+updated every few years. 
+
+You have been renowned as one of the most talented trainers in recent decades. You are highly respected as one of the rising prodigies in the
+Pokemon Competitive Environment. Most recently, you have been the youngest winner of the U15 Pokemon Amateur Tournament in the history.
+Hence, the organizer generously granted you the wildcard, allowing you to directly seed into the Playoffs.
+Each trainer has his/her own character ability. Your character ability is the ability to copy one Pokemon of the opponent when emerging victorious.
+| 
+Tutorial #1: Receiving Pokemon
+
+If your team has less than 4 Pokemon at the start, you will receive random Pokemon from the organizer.
+When you have won, you are usually allowed to take 1 Pokemon from the opponent or receive a random Pokemon instead.
+However, if you have more Pokemon than needed for the next round, you will not receive any Pokemon or grant the opportunity to
+take 1 Pokemon from the opponent upon victory.
+If you lost the battle, unfortunately you will automatically receive a random Pokemon only.
+If you already have a team of six (full team), You can swap 1 Pokemon if you won the battle, and nothing to do if you lost.
+(NOTE: the Pokemon you receive initially depends on your ratings. The higher your ratings, the better Pokemon you will get!
+       the Pokemon you randomly obtains when you WON the battle depends on the opponent. The stronger the opponent, the better Pokemon you will get!
+       the Pokemon you randomly obtains when you LOST the battle will always be much inferior.
+| 
+Tutorial #2: Before Battle
+
+The system will randomly pair 32 participants. The individual match-up will then be shown. You should see 32 of these boxes:
+╔====╦======╦========╦=======╗
+║ ID ║ NAME ║ POINTS ║ SCORE ║
+╚====╩======╩========╩=======╝
+Points: each win scores 1 point, and each defeat scores 0 point.
+Score: the number of Pokemon defeated in that match. It will thus only display after the round. The purpose of it is for tiebreaks.
+
+As the Player, you may do 4 things before entering the battle:
+View My Pokemon: have a solid understanding of your team. You want to do this at least once at the start, since you will obtain new Pokemon.
+Switch Pokemon Order: you may switch a Pokemon to be the starting Pokemon.
+Scout Opponent: know about your next opponent. It will show his/her Character Ability and Signature Pokemon.
+                If your ratings are high, you can even know about the starting Pokemon of the opponent, sometimes including its moveset!
+                (TIPS: Pokemon with the ability Illuminate can increase the probability of this by 10 times, for ability Pressure 100 times.)
+Check History: your record against him/her, and the scoreline of every previous meeting.
+If your team has more Pokemon than the round requires, you will have to select some Pokemon that you DO NOT need for this round.
+| 
+Tutorial #3: In Battle
+
+I will assume that you are a Pokemon expert when you play this game. Hence, I cannot give you much tips for the battle.
+But I would like to remind you that the weather for each battle may have changed. Observe carefully.
+For opponent with ratings <30, they are usually more stupid and only rely on attacking moves. Any opponent higher than that ratings can be
+a prominent opponent that requires special attention.
+However, if you think that your Pokemon is vastly better than your opponent, you may activate Auto Battle with '100'. Sometimes, the AI may
+even perform better than you. ^_^
+You may receive or swap Pokemon after the battle, depends on the situation.
+| 
+Tutorial #4: End Game
+
+Very soon you will play all 5 rounds and receive the result. A large scoreboard will be displayed. However, usually only the Champion matters.
+The ranking is based on 3 factors: Points, Net Kill Score and Ratings.
+Points: first deciding factor. The higher the points, the higher the ranking.
+Opponent Score (OS): second deciding factor. It's the accumulated points of your defeated opponents. The higher the better.Net Kill Score (NKS): third deciding factor. net number of pokemon you fainted in total.  The higher the better.
+Ratings: third deciding factor. The lower the ratings, the higher the ranking.
+You will also see how many ratings you gain in this Tournament.
+(NOTE: Initially, you may find it difficult to gain ratings. No worries. After some time, you will grasp some win by having a mediocre team.
+       When you slowly build up your ratings, it will trigger a snowball effect and you will start having better performance.)
+
+That's all for the tutorial! Please enjoy the game for now!
+| 
+| ┏------------┓
+| 0 NEW GAME |
+|------------|
+| 1 CONTINUE |
+|------------|
+| 2 HISTORY  |
+|------------|
+| 3 AUTO RUN |
+┗------------┛
+| 
+Continue which career?
+| 1: Slot 1: unreadable
+| 2: Slot 2: Lady Evonne -- rating 1043, 38 run(s), 20 title(s)
+| 3: Slot 3: Tata -- rating 1657, 188 run(s), 48 title(s)
+| 4: Slot 4: Lily -- rating 1791, 82 run(s), 31 title(s)
+| 0: back
+| ┏------------┓
+| 0 NEW GAME |
+|------------|
+| 1 CONTINUE |
+|------------|
+| 2 HISTORY  |
+|------------|
+| 3 AUTO RUN |
+┗------------┛
+| 
+Continue which career?
+| 1: Slot 1: unreadable
+| 2: Slot 2: Lady Evonne -- rating 1043, 38 run(s), 20 title(s)
+| 3: Slot 3: Tata -- rating 1657, 188 run(s), 48 title(s)
+| 4: Slot 4: Lily -- rating 1791, 82 run(s), 31 title(s)
+| 0: back
+Traceback (most recent call last):
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 344, in _run
+    game_main.main()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\main.py", line 32, in main
+    start_game()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 168, in start_game
+    main_screen()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 1554, in main_screen
+    return original_main_screen(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 359, in main_screen
+    load_data()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 179, in load_data
+    return savefile.load(list_of_competitors, list_of_pokemon)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\savefile.py", line 436, in load
+    data = json.load(handle)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+======================================================================
+2026-08-30 11:15:15.388439
+Traceback (most recent call last):
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 344, in _run
+    game_main.main()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\main.py", line 32, in main
+    start_game()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 168, in start_game
+    main_screen()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 1554, in main_screen
+    return original_main_screen(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 238, in main_screen
+    option = int(input(f"Your Option: "))
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\auto_run.py", line 127, in scripted
+    return state.previous(prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^
+EOFError: EOF when reading a line
+
+======================================================================
+2026-08-30 11:15:24.047029
+Traceback (most recent call last):
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 344, in _run
+    game_main.main()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\main.py", line 32, in main
+    start_game()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 168, in start_game
+    main_screen()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 1554, in main_screen
+    return original_main_screen(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 225, in main_screen
+    print(f"┏------------┓\n"
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u250f' in position 0: character maps to <undefined>
+
+======================================================================
+2026-08-30 13:57:20.285542
+| 38: Lance
+| 39: Bondrewd
+| 40: Gin
+| 41: Misty
+| 42: Lusamine
+| 43: Makise Kurisu
+| 44: Titan
+| 45: Leon
+| 46: Jack the Ripper
+| 47: Rudolf
+| 48: Velvet
+| 49: The Trio
+| 50: Serena
+| 51: Ash Ketchum
+| 52: Evonne
+| 53: Vex
+| 54: Celeste
+| 55: Privy
+| 56: Auraia
+| 57: Ginko
+| 58: Violet Evergarden
+| 59: Albert Einstein
+| 60: King Bradley
+| 61: Faker
+| 62: Mivy Wenceslas
+| 63: Elias Ainsworth
+| 64: Animenz
+| 65: Magnus Carlsen
+| 66: Reaper Conan
+| 67: Expert Cynthia
+| 68: Demon Muzan
+| 69: Emperor Marvuno
+| 70: Champion Marvin
+| ┏------------┓
+| 0 NEW GAME |
+|------------|
+| 1 CONTINUE |
+|------------|
+| 2 HISTORY  |
+|------------|
+| 3 AUTO RUN |
+┗------------┛
+| 
+Continue which career?
+| 1: Slot 1: ? -- rating 299, 119 run(s), 0 title(s)
+| 2: Slot 2: Lady Evonne -- rating 1043, 38 run(s), 20 title(s)
+| 3: Slot 3: Tata -- rating 1657, 188 run(s), 48 title(s)
+| 4: Slot 4: Lily -- rating 1791, 82 run(s), 31 title(s)
+| 0: back
+Traceback (most recent call last):
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 344, in _run
+    game_main.main()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\main.py", line 32, in main
+    start_game()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 168, in start_game
+    main_screen()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\GUI\bridge.py", line 1582, in main_screen
+    return original_main_screen(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 359, in main_screen
+    load_data()
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\start_interface.py", line 179, in load_data
+    return savefile.load(list_of_competitors, list_of_pokemon)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\Documents\[CLAUDE]\[Personal] Important\Project\Scripts\Game\savefile.py", line 436, in load
+    data = json.load(handle)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MarvinHui\AppData\Local\Programs\Python\Python312\Lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+

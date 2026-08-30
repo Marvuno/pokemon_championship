@@ -33,6 +33,13 @@ def texts(widget):
 
 w = MainWindow(ROOT)
 w.bridge.stop()                      # no game thread; states are fed by hand
+# ...and the window's own event pump has to stop with it. It drains the
+# bridge every 20ms and calls _apply_state with whatever it finds, so a
+# stopped bridge still delivered one final empty state -- which wiped the
+# hand-fed battle state mid-test and left the hover with nothing to show.
+# That is the whole of this suite's long-standing intermittent failure: it
+# depended on whether the timer happened to fire between two hovers.
+w._timer.stop()
 # the bridge redirects builtins.print into its event queue, and a stopped
 # bridge raises Shutdown from it -- put the real one back so this file can
 # report its own results

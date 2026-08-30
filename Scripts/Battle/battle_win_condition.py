@@ -76,6 +76,18 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
     for pokemon in player_team + opponent_team:
         pokemon.modifier = [0] * 9
         pokemon.status = "Normal"
+        # ...and the HP with it. Clearing the status but leaving
+        # `battle_stats[0]` on 0 left a knocked-out Pokemon still *looking*
+        # fainted to anything that reads its HP -- and it stayed that way
+        # until the next `battle_setup` rebuilt the stats, which is after the
+        # next battle has already been drawn. That is the "fainted on turn 1"
+        # that was really the previous battle showing through: `snap_pokemon`
+        # calls anything on 0 HP fainted, and `snap_roster` had to paper over
+        # it. Every battle starts from full HP anyway, so putting it back
+        # here changes nothing about play and everything about what is shown
+        # in between.
+        with suppress(AttributeError, IndexError, TypeError):
+            pokemon.battle_stats[0] = pokemon.hp
         pokemon.volatile_status = dict.fromkeys(pokemon.volatile_status.keys(), 0)
         pokemon.protection = [0, 0]
         pokemon.charging = ["", "", 0]
@@ -254,7 +266,25 @@ def round_end(stage):
         # for world champ
         victor_crown, loser_crown = f' |{victor.championship}|' if victor.championship > 0 else '', f' |{loser.championship}|' if loser.championship > 0 else ''
         victor_bold, loser_bold = CBOLD if victor.championship > 0 else '', CBOLD if loser.championship > 0 else ''
-        narrator.say(CWHITE2 + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if level_order[victor.level] < level_order[loser.level] else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
+        # An upset is beating somebody from a higher class *while rated below
+        # them*, and it needs both halves now that ratings drift with form.
+        #
+        # The class alone was enough while ratings sat exactly where the CSV
+        # put them -- the tiers are stratified there (Low 1-49, Intermediate
+        # 53-147, Advanced 162-312, Elite 374-833) and not one of the 2,346
+        # pairings disagreed. Drift is what breaks it: the Low/Intermediate
+        # gap is four points, so 39 cross-tier pairings can invert, and the
+        # badge would then contradict the two ratings printed on the very
+        # same line -- "Bojji [67] beat Dulunga [45]", marked UPSET.
+        #
+        # Rating alone would be worse than either: it would flag every
+        # within-class win by the lower-rated side, which is most of them,
+        # and a badge that fires constantly says nothing. Requiring both
+        # keeps it to what it has always meant and reads the numbers the
+        # player can see.
+        upset = (level_order[victor.level] < level_order[loser.level]
+                 and victor.strength < loser.strength)
+        narrator.say(CWHITE2 + victor_bold + EntryBox(victor.id, f"{victor.nickname} [{victor.strength}]{victor_crown}{' !!' if upset else ''}", victor.stage - 1, ROUND_LIMIT[stage]).structure + CEND)
         if main:  # the protagonist battle
             print((CGREEN if loser.main else CGREY) + loser_bold + EntryBox(loser.id, f"{loser.nickname} [{loser.strength}]{loser_crown}",
                                    loser.stage - 1, loser.result).structure, "\n" + CEND)

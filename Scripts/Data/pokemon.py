@@ -15,6 +15,12 @@ class Pokemon:
         #: stops re-picking an attack already proven to do nothing to whatever
         #: is standing opposite.
         self.ineffective_moves = {}
+        #: a second move this Pokemon has earned inside the same turn, set by
+        #: Wizardry as its move resolves and taken by move_order_and_execution
+        #: once that move is known to have worked. On the Pokemon rather than
+        #: on the battleground: a shared slot handed the extra move to
+        #: whichever side finished a move next.
+        self.encore_move = None
         self.modifier = [0] * 9
         self.applied_modifier = [0] * 9
         self.status = "Normal"

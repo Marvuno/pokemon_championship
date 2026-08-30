@@ -350,7 +350,64 @@ class Bridge:
         except _RestartRequest:
             self.emit(EV_DONE, "restart")
         except BaseException:
-            self.emit(EV_ERROR, traceback.format_exc())
+            report = traceback.format_exc()
+            self._park_crash(report)
+            self.emit(EV_ERROR, report)
+
+    def _park_crash(self, report):
+        """Write a crash to crash_report.txt, next to the game.
+
+        The traceback already reaches the window, but it goes past with the
+        run and a player who has just lost a battle has no way to get it
+        back. Landing it in a file turns "it crashed and I do not know why"
+        into something that can actually be read afterwards -- which is the
+        only reason this exists.
+
+        Appended, never overwritten: an intermittent fault is worth having
+        several of. Best-effort throughout, because a crash handler that
+        raises replaces a useful traceback with a useless one.
+        """
+        try:
+            import datetime
+            path = os.path.join(self.root, "crash_report.txt")
+            with open(path, "a", encoding="utf-8") as handle:
+                handle.write("=" * 70 + chr(10))
+                handle.write(datetime.datetime.now().isoformat(" ") + chr(10))
+                # what was on screen when it went, so the traceback has a
+                # battle around it
+                for line in list(getattr(self, "_recent_lines", []))[-40:]:
+                    handle.write("| " + str(line).rstrip() + chr(10))
+                handle.write(report)
+                handle.write(chr(10))
+        except Exception:
+            pass
+
+    #: how many prints go by between yields to the interface. Small enough
+    #: that the window repaints several times a second, large enough that the
+    #: cost is nothing: a millisecond every 40 lines.
+    BREATH_EVERY = 40
+
+    def _breathe(self):
+        """Give the interface a slice of the GIL during an unattended run.
+
+        The worker plays a normal game between `input()` calls, and those
+        block -- which is what lets the window repaint at all. An Auto Run
+        answers every prompt itself, so nothing ever blocks, the worker holds
+        the GIL from the first battle to the last, and Qt never gets to draw.
+        The run works and the player watches a frozen screen until it ends.
+
+        A short sleep is what releases the lock; `sleep(0)` does not reliably
+        do it. Only while unattended, so ordinary play is untouched.
+        """
+        self._breaths = getattr(self, "_breaths", 0) + 1
+        if self._breaths % self.BREATH_EVERY:
+            return
+        try:
+            from Scripts.Game import auto_run
+        except Exception:
+            return
+        if auto_run.unattended():
+            time.sleep(0.001)
 
     # -- event plumbing ----------------------------------------------------
     def emit(self, kind, payload=None):
@@ -390,6 +447,17 @@ class Bridge:
     def _write(self, text):
         if self.stopping:
             raise Shutdown()
+        self._breathe()
+        # The last few lines the engine said, kept for _park_crash so a
+        # traceback in crash_report.txt has the battle around it rather than
+        # arriving on its own. A bounded deque: this runs on every print, and
+        # an unbounded list would grow for the length of a career.
+        try:
+            self._recent_lines.append(text)
+        except AttributeError:
+            import collections
+            self._recent_lines = collections.deque(maxlen=60)
+            self._recent_lines.append(text)
         # Feed any active capture() calls first -- these exist regardless of
         # whether the text also reaches the visible log.
         for buf in self._capture_stack:
@@ -811,6 +879,22 @@ def snap_side(participant):
     }
 
 
+def _terrain_note(name):
+    """One line on what a terrain does, or "" when there is none down.
+
+    Read from Scripts/Battle/terrain.py so the description and the mechanic
+    are the same edit. Guarded because this runs on the interface side and a
+    missing note is worth an empty tooltip, never a crash mid-battle.
+    """
+    if not name or str(name) == "None":
+        return ""
+    try:
+        from Scripts.Battle.terrain import TERRAIN_NOTE
+    except Exception:
+        return ""
+    return str(TERRAIN_NOTE.get(str(name), ""))
+
+
 def snap_field(battleground):
     if battleground is None:
         return {}
@@ -840,6 +924,12 @@ def snap_field(battleground):
         "terrain": (str(terrain) if terrain and terrain != "None" else None),
         "terrain_turns": (int(_g(battleground, "terrain_turn", 0) or 0)
                           if terrain and terrain != "None" else None),
+        # What the ground is actually doing, for the box to say on hover.
+        # Published rather than looked up in the window: the interface reads
+        # plain dicts and never calls into the game, and this keeps the
+        # wording in Scripts/Battle/terrain.py where the mechanic lives, so
+        # the two cannot drift.
+        "terrain_note": _terrain_note(terrain),
         "sudden_death": bool(_g(battleground, "sudden_death", False)),
         "auto_battle": bool(_g(battleground, "auto_battle", False)),
     }
@@ -904,10 +994,10 @@ def install_hooks(bridge, game_main):
     import Scripts.Art.music as music_mod
 
     # -- difficulty --------------------------------------------------------
-    # Beginner holds every opponent to the simple battle AI. Rather than teach
-    # battle_cycle a second rule -- it already picks between the two by
-    # rating, and there are three separate call sites -- the smart routine is
-    # simply replaced by the simple one everywhere. Both take
+    # Beginner holds every opponent to the simple battle AI, and Normal is
+    # the absence of this: battle_cycle always reaches for the scoring AI, so
+    # there is no second rule anywhere and no rating boundary. The smart
+    # routine is replaced by the simple one everywhere. Both take
     # (battleground, protagonist, ai), so the swap is exact, and it covers the
     # AI-vs-AI simulation path as well as the player's own match. Read once,
     # here, because changing an opponent's brain mid-match would be worse
@@ -1534,17 +1624,33 @@ def install_hooks(bridge, game_main):
         patch_everywhere("choose_appearance", original_appearance,
                          choose_appearance)
 
+    def _career_row(who, number, name):
+        """One competitor, as the career window needs them.
+
+        Titles and the all-time record come along now: the Records tab ranks
+        on them, and computing a win rate in the window would mean reaching
+        into the game from the interface thread. `opponent_history` is
+        {name: [wins, losses]}, the same source `career_totals` reads.
+        """
+        record = _g(who, "opponent_history", {}) or {}
+        won = sum((value or [0, 0])[0] for value in record.values())
+        lost = sum((value or [0, 0])[1] for value in record.values())
+        return {"index": number, "name": name,
+                "nickname": str(_g(who, "nickname", name)),
+                "tier": str(_g(who, "level", "") or ""),
+                "rating": _g(who, "strength", 0),
+                "titles": int(_g(who, "championship", 0) or 0),
+                "runs": int(_g(who, "participation", 0) or 0),
+                "wins": won, "losses": lost,
+                "is_player": bool(_g(who, "main", False))}
+
     original_list = start.participant_list
 
     def participant_list(*a, **kw):
         result, _raw = bridge.capture_quiet(original_list, *a, **kw)
         roster = list_of_competitors_ref()
         bridge.publish(career_roster=[
-            {"index": number, "name": name,
-             "nickname": str(_g(roster.get(name), "nickname", name)),
-             "tier": str(_g(roster.get(name), "level", "") or ""),
-             "rating": _g(roster.get(name), "strength", 0),
-             "is_player": bool(_g(roster.get(name), "main", False))}
+            dict(_career_row(roster.get(name), number, name))
             for number, name in sorted((result or {}).items())],
             career_open=True)
         return result
@@ -1908,9 +2014,14 @@ def install_hooks(bridge, game_main):
         except Exception:
             pass
 
-    def safe_sound(*, audio):
+    def safe_sound(*, audio, **kw):
+        # **kw rather than naming the parameters: a wrapper that lists them
+        # by hand turns any keyword added to `sound` later into a TypeError
+        # swallowed by this very `except` -- a sound that silently stops
+        # playing, in the build that has an interface, which is the only
+        # build anybody uses. That has happened here once already.
         try:
-            original_sound(audio=audio)
+            original_sound(audio=audio, **kw)
         except Exception:
             pass
 

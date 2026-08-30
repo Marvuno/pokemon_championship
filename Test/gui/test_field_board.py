@@ -199,6 +199,20 @@ app.processEvents()
 check("identical state does not rebuild", (rows(), w.field_board._signature),
       (before, sig))
 
+# Terrain is its own field layer, and this board never listed it -- so the
+# one screen devoted to "what is on the field" was the one place a player
+# could not read it.
+w.field_board.set_state({}, {}, {"weather": "Clear", "field": {},
+                                 "terrain": "Misty", "terrain_turns": 3,
+                                 "terrain_note": "Dragon moves are halved."})
+app.processEvents()
+_said = " | ".join(board_text())
+check("the board lists the terrain", "Misty" in _said, True)
+check("...with its countdown", "3" in _said, True)
+check("...and says what it does, on the hover",
+      any("halved" in panel.toolTip()
+          for panel in w.field_board.findChildren(RoundedPanel)), True)
+
 print("\n%s" % ("ALL PASS" if not failures
                 else "%d FAILURES: %s" % (len(failures), failures)))
 sys.exit(1 if failures else 0)

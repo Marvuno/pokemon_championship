@@ -118,7 +118,19 @@ def tick():
     if st["step"] == 3:
         st["settle"] += 1
         report = (w.game_state or {}).get("career_report")
-        if report is not None and report is not st.get("before"):
+        # The career and the head-to-head table arrive on two separate hooks
+        # (competitor_report and individual_records), so the report landing
+        # does not mean the Records tab has been filled -- it still reads
+        # "Loading ..." for a moment. Snapshotting on the report alone caught
+        # that placeholder about one run in five and failed a table that was
+        # about to be perfectly correct.
+        #
+        # Waiting on the placeholder rather than on a second publish, because
+        # a competitor with no history never gets one: the engine skips the
+        # section entirely, and waiting for it left them reported as never
+        # answering at all.
+        loading = "Loading" in texts("Head to Head")
+        if report is not None and not loading and report is not st.get("before"):
             app.processEvents()
             st["seen"].append({
                 "index": st["current"],
@@ -172,8 +184,17 @@ def finish(why):
     for entry in played:
         check("  %s: career filled" % entry["nickname"],
               "%" in entry["career"])
-        check("  %s: head to head filled" % entry["nickname"],
-              " W  " in entry["records"])
+        filled = " W  " in entry["records"]
+        check("  %s: head to head filled" % entry["nickname"], filled)
+        if not filled:
+            # got=False on its own says nothing about why. This is a table
+            # built from opponent_history, and the win rate above is summed
+            # from the same dict -- so a rate with no table means the rows
+            # are there and the text is not what is expected.
+            st["log"].append("      records text: %r"
+                             % (entry["records"][:12],))
+            st["log"].append("      career text:  %r"
+                             % (entry["career"][:6],))
     # Someone drawn into the bracket for the first time has played nobody --
     # the case that used to raise ZeroDivisionError on the win rate.
     if unplayed:

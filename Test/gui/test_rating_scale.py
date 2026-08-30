@@ -27,7 +27,7 @@ os.environ.setdefault("POKEMON_MUTE", "1")
 
 import Scripts.Battle.battle_cycle                                 # noqa: F401,E402
 from Scripts.Battle.constants import (PLAYER_IV, RATING_SCALE,       # noqa: E402
-                                      SMART_AI_RATING, on_old_scale)
+                                      on_old_scale)
 from Scripts.Data.competitors import list_of_competitors            # noqa: E402
 from Scripts.Game.game_procedure import team_generation             # noqa: E402
 from Scripts.Game.game_system import GameSystem                     # noqa: E402
@@ -44,38 +44,19 @@ def check(what, got, want=True):
 
 
 print("-- the two scales --")
-check("the boundary is at 50", SMART_AI_RATING, 50)
-check("...which is 30 on the old scale",
-      round(on_old_scale(SMART_AI_RATING), 6), 30.0)
+check("50 on the new scale is 30 on the old one",
+      round(on_old_scale(50), 6), 30.0)
 check("the factor is five thirds", round(RATING_SCALE, 6),
       round(5.0 / 3.0, 6))
 check("on_old_scale undoes it", round(on_old_scale(100 * RATING_SCALE), 6),
       100.0)
 
-print()
-print("-- who plays with the simple AI --")
-# Deliberately not a list of names or a count. Ratings are the designer's
-# dial and get tuned by hand between runs -- pinning "these fourteen" here
-# only means the suite breaks every time the ladder is adjusted, which is
-# noise, not a defect. What must hold is that the boundary *is* the rating.
-simple = [c for c in list_of_competitors.values()
-          if c.strength < SMART_AI_RATING]
-clever = [c for c in list_of_competitors.values()
-          if c.strength >= SMART_AI_RATING]
-check("the roster splits on the boundary, both sides non-empty",
-      bool(simple) and bool(clever))
-check("nobody below the boundary is above it",
-      max(c.strength for c in simple) < SMART_AI_RATING)
-check("...and nobody above it is below",
-      min(c.strength for c in clever) >= SMART_AI_RATING)
-check("the weakest competitor is on the simple AI",
-      min(c.strength for c in list_of_competitors.values())
-      < SMART_AI_RATING)
-check("the Champion is not",
-      max(c.strength for c in list_of_competitors.values())
-      >= SMART_AI_RATING)
-print("   %d of %d competitors use the simple AI"
-      % (len(simple), len(simple) + len(clever)))
+# The section that was here checked which competitors played with the simple
+# AI, and there is no longer any such split: which AI an opponent uses is the
+# difficulty setting, not their rating, so every competitor on Normal plays
+# the scoring one and every competitor on Beginner plays the simple one.
+# SMART_AI_RATING is gone with it -- a difficulty dial that decided nothing
+# would be worse than no dial at all.
 
 print()
 print("-- the ladder still reads in order --")

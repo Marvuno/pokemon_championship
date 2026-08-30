@@ -92,11 +92,15 @@ STATUS_SHORT = {
 # Preference chains -- resolved against installed families at startup so the
 # app looks intentional on Windows, macOS and Linux without shipping fonts.
 FONT_STACKS = {
-    "display": ["Bahnschrift SemiBold Condensed", "Bahnschrift Condensed",
-                "Oswald", "Archivo Narrow", "Segoe UI Semibold",
-                "Helvetica Neue", "DejaVu Sans", "Helvetica"],
-    "ui":      ["Segoe UI", "SF Pro Text", "Helvetica Neue", "Inter",
-                "DejaVu Sans", "Helvetica"],
+    # Fredoka and Nunito ship with the game in Assets/fonts and are loaded
+    # into Qt before any of this is read (GUI_qt/fonts.load_bundled). The
+    # rest of each stack is what a machine without them falls back to.
+    "display": ["Fredoka", "Bahnschrift SemiBold Condensed",
+                "Bahnschrift Condensed", "Oswald", "Archivo Narrow",
+                "Segoe UI Semibold", "Helvetica Neue", "DejaVu Sans",
+                "Helvetica"],
+    "ui":      ["Nunito", "Segoe UI", "SF Pro Text", "Helvetica Neue",
+                "Inter", "DejaVu Sans", "Helvetica"],
     "mono":    ["Cascadia Mono", "Consolas", "SF Mono", "Menlo",
                 "JetBrains Mono", "DejaVu Sans Mono", "Courier New"],
 }
