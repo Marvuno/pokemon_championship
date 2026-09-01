@@ -118,6 +118,19 @@ def play(task):
     # on the same seed, literally the same team. Champion Marvin fielded a
     # generic squad instead of his own. Fresh copies come from deepcopy
     # above, so there is nothing to clear.
+    # POKEMON_FLAT_RATING draws every team as though its trainer were rated
+    # this, while leaving the designed aces in `team` alone. It answers a
+    # different question from the ordinary run: not "who wins", which a high
+    # rating buys with better Pokemon, but "whose ace and character ability
+    # are worth the most" with the calibre of the other five held equal.
+    #
+    # An env var rather than a global, because Windows spawns its workers
+    # rather than forking and a global set in the parent would not reach
+    # them. Rating is read by team_generation for both the tier draw and the
+    # IV floor, so pinning it equalises both.
+    flat = os.environ.get("POKEMON_FLAT_RATING", "").strip()
+    if flat:
+        side_a.strength = side_b.strength = int(flat)
     side_a.team = team_generation(side_a)
     side_b.team = team_generation(side_b)
 

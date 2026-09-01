@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from Scripts.Data.abilities import *
 from Scripts.Data.character_abilities import *
-from Scripts.Battle.constants import has_ability
+from Scripts.Battle.constants import FOE_ARRIVAL_PHASE, has_ability
 from Scripts.Battle.context import Side, Turn
 from Scripts.Battle.fastcopy import fast_copy
 from Scripts.Art import narrator
@@ -24,6 +24,9 @@ def switched_in_initialization(user_side, opponent_side, user, opponent, battleg
                          opponent))
     UseCharacterAbility(arriving, "", abilityphase=1)
     UseAbility(arriving, "", abilityphase=1)
+    # ...and tell the other trainer somebody walked in. Flipped, so the
+    # ability consulted is theirs and the Pokemon it acts on is the arrival.
+    UseCharacterAbility(arriving.flip(), "", abilityphase=FOE_ARRIVAL_PHASE)
 
 
 def multi_strike_move(move):

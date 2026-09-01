@@ -159,94 +159,94 @@ ID,Name,Type1,Type2,Type3,Ability,SAbility,HP,Atk,Def,SpA,SpDef,Spd,Total,Move1,
 158,Machamp,Fighting,,,No Guard,Guts,90,130,80,65,85,55,505,Dynamic Punch,Bulk Up,Mach Punch,Earthquake,Darkest Lariat,Counter,High,N
 159,Nidoking,Ground,Poison,,Poison Point,Sheer Force,81,102,77,85,75,85,505,Poison Jab,Megahorn,Head Smash,Sucker Punch,Earthquake,Avalanche,High,N
 160,Nidoqueen,Ground,Poison,,Poison Point,Sheer Force,90,92,87,75,85,76,505,Venoshock,Toxic Spikes,Earth Power,Flamethrower,Surf,Thunderbolt,High,N
-161,Ninetales,Fire,,,Flash Fire,Drought,73,76,75,81,100,100,505,Nasty Plot,Fire Blast,Disable,Solar Beam,Psyshock,,High,N
-162,Alolan Ninetales,Ice,Fairy,,Snow Cloak,Snow Warning,73,67,75,81,100,109,505,Dazzling Gleam,Aurora Veil,Blizzard,Nasty Plot,Psyshock,,High,N
-163,Honchkrow,Dark,Flying,,Super Luck,Moxie,100,125,52,105,52,71,505,Night Slash,Brave Bird,Superpower,Tailwind,Sucker Punch,,High,N
-164,Tinkaton,Fairy,Steel,,Own Tempo,Mold Breaker,85,75,77,70,105,94,506,Gigaton Hammer,Wood Hammer,Ice Hammer,Fake Out,Foul Play,Play Rough,High,N
-165,Pyroar,Fire,Normal,,Moxie,,86,68,72,109,66,106,507,Overheat,Hyper Voice,Noble Roar,Dark Pulse,Yawn,,High,N
-166,Excadrill,Ground,Steel,,Mold Breaker,,110,135,60,50,65,88,508,Earthquake,Swords Dance,Rock Slide,Submission,Skull Bash,Iron Head,High,N
-167,Overqwil,Dark,Poison,,Poison Point,Intimidate,85,115,95,65,65,85,510,Barb Barrage,Crunch,Destiny Bond,Waterfall,Aqua Jet,Toxic Spikes,High,N
-168,Tsareena,Grass,,,Queenly Majesty,,72,120,98,50,98,72,510,Trop Kick,High Jump Kick,Play Rough,Zen Headbutt,Acupressure,Triple Axel,High,N
-169,Grimmsnarl,Dark,Fairy,,Prankster,,95,120,65,95,75,60,510,False Surrender,Spirit Break,Bulk Up,Fire Punch,Ice Punch,Thunder Punch,High,N
-170,Steelix,Steel,Ground,,Rock Head,Sheer Force,75,85,200,55,65,30,510,Breaking Swipe,Stone Edge,Stealth Rock,Iron Tail,Earthquake,,High,N
-171,Roserade,Grass,Poison,,Technician,Poison Point,60,70,65,125,105,90,515,Energy Ball,Sludge Bomb,Giga Drain,Shadow Ball,Dazzling Gleam,,High,N
-172,Yanmega,Bug,Flying,,Speed Boost,Tinted Lens,86,76,86,116,56,95,515,Air Slash,Bug Buzz,Giga Drain,Ancient Power,Psychic,,High,N
-173,Aerodactyl,Rock,Flying,,Rock Head,,80,105,65,60,75,130,515,Stone Edge,Fire Fang,Dragon Dance,Defog,Fly,,High,N
-174,Eelektross,Electric,,,Levitate,,85,115,80,105,80,50,515,Charge Beam,Flamethrower,Signal Beam,Dragon Pulse,Giga Drain,Acid Spray,High,N
-175,Tentacruel,Water,Poison,,Liquid Ooze,Clear Body,80,70,65,80,120,100,515,Ice Beam,Surf,Rapid Spin,Toxic Spikes,Venoshock,Aqua Ring,High,N
-176,Starmie,Water,Psychic,,Natural Cure,Illuminate,60,75,85,100,85,115,520,Power Gem,Psychic,Surf,Recover,Ice Beam,Thunderbolt,High,N
-177,Rotom (Frost),Electric,Ice,,Levitate,,50,65,107,105,107,86,520,Blizzard,Dark Pulse,Thunder,Thunder Wave,Rain Dance,Hex,High,N
-178,Cloyster,Water,Ice,,Skill Link,,50,95,180,85,45,70,525,Icicle Spear,Shell Smash,Liquidation,Pin Missile,Rock Blast,Icicle Crash,High,N
-179,Sylveon,Fairy,,,Pixelate,,95,65,65,110,130,60,525,Hyper Voice,Calm Mind,Moonblast,Shadow Ball,,,High,N
-180,Lucario,Fighting,Steel,,Adaptability,Justified,70,110,70,115,70,90,525,Aura Sphere,Dragon Pulse,Meteor Mash,Extreme Speed,Close Combat,,High,N
-181,Ceruledge,Fire,Ghost,,Flash Fire,Weak Armor,75,125,80,60,100,85,525,Shadow Claw,Shadow Sneak,Swords Dance,Psycho Cut,Bitter Blade,,High,N
-182,Greninja,Water,Dark,,Protean,,72,95,67,103,71,122,530,Shadow Sneak,Extrasensory,Work Up,Water Shuriken,Haze,Rock Slide,High,N
-183,Cinderace,Fire,,,Libero,,80,116,75,65,75,119,530,Pyro Ball,Court Change,U-Turn,Bounce,Bulk Up,,High,N
-184,Incineroar,Fire,Dark,,Intimidate,,95,115,90,80,90,60,530,Darkest Lariat,Bulk Up,Flare Blitz,Drain Punch,Fake Out,,High,N
-185,Decidueye,Grass,Ghost,,Long Reach,,78,107,75,100,100,70,530,Spirit Shackle,Leaf Blade,Brave Bird,U-Turn,Sucker Punch,Defog,High,N
-186,Inteleon,Water,,,Sniper,,70,85,65,125,65,120,530,Focus Energy,Snipe Shot,Ice Beam,Dark Pulse,Shadow Ball,,High,N
-187,Mamoswine,Ice,Ground,,Thick Fat,Snow Cloak,110,130,80,70,60,80,530,Avalanche,Ice Shard,Earthquake,Curse,Rock Slide,,High,N
-188,Infernape,Fire,Fighting,,Iron Fist,Blaze,76,104,71,104,71,108,534,Flare Blitz,Fire Spin,Power-Up Punch,Stone Edge,,,High,N
-189,Tangrowth,Grass,,,Regenerator,,100,100,125,110,50,50,535,Power Whip,Ancient Power,Sleep Powder,Earthquake,Aerial Ace,Rock Slide,High,N
-190,Swampert,Water,Ground,,Torrent,Swift Swim,100,110,90,85,90,60,535,Earth Power,Muddy Water,Avalanche,Darkest Lariat,Sludge Wave,Yawn,High,N
-191,Vanilluxe,Ice,,,Snow Warning,,71,95,85,110,95,79,535,Blizzard,Flash Cannon,Ice Shard,Water Pulse,Aurora Veil,,High,N
-192,Magnezone,Electric,Steel,,Sturdy,Analytic,70,70,115,130,90,60,535,Lock-On,Zap Cannon,Magnet Rise,Flash Cannon,Light Screen,,High,N
-193,Milotic,Water,,,Marvel Scale,,95,60,79,100,125,81,540,Recover,Hypnosis,Ice Beam,Surf,Freeze-Dry,,High,N
-194,Kingdra,Water,Dragon,,Swift Swim,Sniper,75,95,95,95,95,85,540,Dragon Dance,Hydro Pump,Dragon Pulse,Ice Beam,Scald,Flash Cannon,High,N
-195,Naganadel,Poison,Dragon,,Beast Boost,,73,73,73,127,73,121,540,Air Slash,Dragon Pulse,Nasty Plot,Venoshock,Toxic,Flamethrower,High,N
-196,Electivire,Electric,,,Motor Drive,,75,123,67,95,85,95,540,Thunder Punch,Darkest Lariat,Electric Terrain,Power-Up Punch,Cross Chop,,High,N
-197,Haxorus,Dragon,,,Mold Breaker,,76,147,90,60,70,97,540,Outrage,Dragon Dance,Earthquake,Poison Jab,First Impression,,High,N
-198,Togekiss,Flying,Fairy,,Serene Grace,,85,50,95,120,115,80,545,Ancient Power,Air Slash,Nasty Plot,Moonblast,Draining Kiss,Defog,High,N
-199,Fezandipiti,Poison,Fairy,,Toxic Chain,,88,91,82,70,125,99,555,Cross Poison,Play Rough,Brave Bird,Icy Wind,U-Turn,,High,N
-200,Archeops,Rock,Flying,,Defeatist,,75,140,65,112,65,110,567,U-Turn,Rock Slide,Dragon Claw,Fly,Earthquake,,High,N
-201,Blacephalon,Fire,Ghost,,Beast Boost,,53,127,53,151,79,107,570,Shadow Ball,Mind Blown,Calm Mind,Mystical Fire,Solar Beam,,High,N
-202,Nihilego,Rock,Poison,,Beast Boost,,109,53,47,127,131,103,570,Power Gem,Stealth Rock,Toxic Spikes,Sludge Bomb,Thunderbolt,,High,N
-203,Celesteela,Steel,Flying,,Beast Boost,,97,101,103,107,101,61,570,Leech Seed,Giga Drain,Ingrain,Toxic,Smart Strike,,High,N
-204,Tyranitar,Rock,Dark,,Sand Stream,,100,134,110,95,100,61,600,Crunch,Smack Down,Fire Punch,Earthquake,,,High,N
-205,Kommo-o,Dragon,Fighting,,Bulletproof,Soundproof,75,110,125,100,105,85,600,Clanging Scales,Clangorous Soul,Close Combat,Noble Roar,Outrage,Poison Jab,High,N
-206,Goodra,Dragon,,,Sap Sipper,Hydration,90,100,70,110,150,80,600,Dragon Pulse,Surf,Ice Beam,Giga Drain,Curse,,High,N
-207,Gyutaro,Poison,Ghost,,Disguise,,80,100,90,40,50,90,450,Poison Jab,Taunt,Parting Shot,Night Slash,Double Sickle,,High,Y
-208,Nightdaunter,Ghost,,,Levitate,Prankster,50,80,65,110,65,120,490,Cold Touch,Wail,Hypnosis,Phantom Force,,,High,Y
-209,Gyokko,Water,Psychic,,Improvise,,80,60,80,100,110,60,490,Whirlpool,Perish Song,Octolock,Psychic,Fish Needle,,High,Y
-210,Maruka,Fairy,,,Speed Boost,Serene Grace,55,50,65,120,108,92,490,Moonblast,Encore,Aura Sphere,Metronome,Silver Wind,,High,Y
-211,Boneknight,Steel,Ghost,,Battle Armor,Analytic,92,122,102,53,62,64,495,First Strike,Trick Room,Swords Dance,Revenant Charge,Bone Rush,,High,Y
-212,Fairyflame,Fire,Fairy,,Shield Dust,Flash Fire,70,60,70,120,70,115,505,Faerie Fire,Double Team,Moonblast,Encore,Air Slash,,High,Y
-213,Scorchrome,Fire,Ground,,Scorch,,68,96,64,96,83,102,509,Scorching Sands,Overheat,Accelerock,Flame Wheel,Sunny Day,,High,Y
-214,Charmorin,Normal,Fairy,,Moody,,98,94,63,75,126,60,516,Cling,Charming Tap,Sparkling Punch,Body Slam,Bounce,,High,Y
-215,Hantengu,Electric,Flying,,Defiant,,100,80,100,80,100,60,520,Thunder,Wood Hammer,Boomburst,Icicle Spear,Enragement,,High,Y
-216,Sworphin,Water,,,Swift Swim,Speed Boost,78,125,76,55,76,112,522,Flip Turn,Swords Dance,Razor Shell,Slash,Smart Strike,Crunch,High,Y
-217,Psyvinstry,Grass,Ice,Psychic,Snow Warning,Early Bird,65,120,50,120,50,120,525,Petal Dance,Blizzard,Psyshock,Calm Mind,Ingrain,,High,Y
-218,Vindaxe,Rock,,,Goredrinker,,70,126,98,26,98,112,530,Battle Axe,Thunderclap,Taunt,Bulk Up,Flame Charge,,High,Y
-219,Fieritre,Fire,Grass,,Strong Roots,,86,93,108,93,108,54,542,Will-O-Wisp,Flamethrower,Leech Seed,Leaf Storm,Scald,,High,Y
-220,Ygadr,Ice,Dragon,,Refrigerate,Insomnia,102,118,112,78,102,46,558,Strength,Enragement,Dragon Claw,Revenge,Slack Off,Bulk Up,High,Y
-221,Aegislash (Blade Forme),Steel,Ghost,,Stance Change,,60,140,50,140,50,60,500,King's Shield,Swords Dance,Shadow Sneak,Iron Head,Sacred Sword,,Secret,N
-222,Gambler,Typeless,,,Pressure,,90,90,90,90,90,90,540,Metronome,,,,,,Secret,Y
-223,Blaziken,Fire,Fighting,,Speed Boost,,80,120,70,110,70,80,530,Blaze Kick,High Jump Kick,Bulk Up,Brave Bird,Earthquake,,Very High,N
-224,Charizard,Fire,Flying,,Drought,,78,84,78,109,85,100,534,Flamethrower,Breaking Swipe,Air Slash,Scorching Sands,Solar Beam,,Very High,N
-225,Porygon-Z,Normal,,,Adaptability,Download,85,80,70,135,75,90,535,Nasty Plot,Tri Attack,Recover,Thunderbolt,Ice Beam,Psychic,Very High,N
-226,Gyarados,Water,Flying,,Intimidate,Moxie,95,125,79,60,100,81,540,Aqua Tail,Dragon Dance,Waterfall,Bulldoze,Power Whip,,Very High,N
-227,Volcarona,Fire,Bug,,Flame Body,,85,60,65,135,105,100,550,Quiver Dance,Fiery Dance,Bug Buzz,Hurricane,Giga Drain,,Very High,N
-228,Kingambit,Dark,Steel,,Supreme Overload,,100,135,120,60,85,50,550,Sucker Punch,Kowtow Cleave,Iron Head,Swords Dance,Guillotine,,Very High,N
-229,Arcanine,Fire,,,Intimidate,Flash Fire,90,110,80,100,80,95,555,Extreme Speed,Flare Blitz,Play Rough,Wild Charge,Psychic Fangs,,Very High,N
-230,Xurkitree,Electric,,,Beast Boost,,83,89,71,173,71,83,570,Thunderbolt,Tail Glow,Energy Ball,Magnet Rise,Volt Switch,,Very High,N
-231,Kartana,Grass,Steel,,Beast Boost,,59,181,131,59,31,109,570,Leaf Blade,Sacred Sword,Swords Dance,Guillotine,Synthesis,Night Slash,Very High,N
-232,Spectrier,Ghost,,,Grim Neigh,,100,65,60,145,80,130,580,Shadow Ball,Nasty Plot,Dark Pulse,Confuse Ray,Disable,,Very High,N
-233,Volcanion,Fire,Water,,Water Absorb,,80,110,120,130,90,70,600,Steam Eruption,Flame Charge,Sunny Day,Wild Charge,Solar Beam,,Very High,N
-234,Jirachi,Steel,Psychic,,Serene Grace,,100,100,100,100,100,100,600,Meteor Mash,Thunderbolt,Psychic,Ice Punch,Energy Ball,Shadow Ball,Very High,N
-235,Heatran,Fire,Steel,,Flash Fire,Flame Body,91,90,106,130,106,77,600,Iron Head,Magma Storm,Earth Power,Heat Wave,Lunge,,Very High,N
-236,Metagross,Psychic,Steel,,Clear Body,,80,135,130,95,90,70,600,Zen Headbutt,Bullet Punch,Hammer Arm,Ice Punch,,,Very High,N
-237,Hydreigon,Dark,Dragon,,Levitate,,92,105,90,125,90,98,600,Tri Attack,Surf,Flamethrower,Nasty Plot,Earth Power,Dragon Pulse,Very High,N
-238,Garchomp,Ground,Dragon,,Rough Skin,,108,130,95,80,85,102,600,Dragon Claw,Shadow Claw,Earthquake,Swords Dance,Outrage,,Very High,N
-239,Victini,Fire,Psychic,,Victory Star,,100,100,100,100,100,100,600,Glaciate,Searing Shot,Thunderbolt,Psyshock,,,Very High,N
-240,Darkrai,Dark,,,Bad Dreams,,70,90,90,135,90,125,600,Dark Void,Nasty Plot,Thunderbolt,Dark Pulse,Ice Beam,Dream Eater,Very High,N
-241,Dragonite,Dragon,Flying,,Multiscale,,91,134,95,100,100,80,600,Dragon Dance,Fire Punch,Outrage,Aqua Tail,Iron Head,Defog,Very High,N
-242,Genesect,Bug,Steel,,Download,,71,120,95,120,95,99,600,Bug Buzz,Psychic,Thunderbolt,Ice Beam,Techno Blast,,Very High,N
-243,Dragapult,Ghost,Dragon,,Infiltrator,Clear Body,88,120,75,100,75,142,600,Dragon Darts,Phantom Force,Dragon Dance,U-Turn,Psychic Fangs,,Very High,N
-244,Magearna,Steel,Fairy,,Soul-Heart,,80,95,115,130,115,65,600,Calm Mind,Flash Cannon,Fleur Cannon,Thunderbolt,Draining Kiss,Aura Sphere,Very High,N
-245,Marshadow,Fighting,Ghost,,Technician,,90,125,80,90,90,125,600,Shadow Punch,Force Palm,Spectral Thief,Rock Tomb,Poison Jab,,Very High,N
-246,Baxcalibur,Ice,Dragon,,Thermal Exchange,,115,145,92,75,86,87,600,Ice Shard,Dragon Claw,Dragon Rush,Ice Hammer,Earthquake,,Very High,N
-247,Mega Scizor,Bug,Steel,,Technician,,70,150,140,65,100,75,600,Bullet Punch,Swords Dance,Bug Bite,Aerial Ace,Roost,,Very High,N
-248,Tanjiro,Water,Fire,,Dead Calm,,100,120,90,60,90,60,520,Close Combat,Solar Blade,Total Concentration,Nichirin Sword,,,Very High,Y
+161,Honchkrow,Dark,Flying,,Super Luck,Moxie,100,125,52,105,52,71,505,Night Slash,Brave Bird,Superpower,Tailwind,Sucker Punch,,High,N
+162,Tinkaton,Fairy,Steel,,Own Tempo,Mold Breaker,85,75,77,70,105,94,506,Gigaton Hammer,Wood Hammer,Ice Hammer,Fake Out,Foul Play,Play Rough,High,N
+163,Pyroar,Fire,Normal,,Moxie,,86,68,72,109,66,106,507,Overheat,Hyper Voice,Noble Roar,Dark Pulse,Yawn,,High,N
+164,Excadrill,Ground,Steel,,Mold Breaker,,110,135,60,50,65,88,508,Earthquake,Swords Dance,Rock Slide,Submission,Skull Bash,Iron Head,High,N
+165,Overqwil,Dark,Poison,,Poison Point,Intimidate,85,115,95,65,65,85,510,Barb Barrage,Crunch,Destiny Bond,Waterfall,Aqua Jet,Toxic Spikes,High,N
+166,Tsareena,Grass,,,Queenly Majesty,,72,120,98,50,98,72,510,Trop Kick,High Jump Kick,Play Rough,Zen Headbutt,Acupressure,Triple Axel,High,N
+167,Grimmsnarl,Dark,Fairy,,Prankster,,95,120,65,95,75,60,510,False Surrender,Spirit Break,Bulk Up,Fire Punch,Ice Punch,Thunder Punch,High,N
+168,Steelix,Steel,Ground,,Rock Head,Sheer Force,75,85,200,55,65,30,510,Breaking Swipe,Stone Edge,Stealth Rock,Iron Tail,Earthquake,,High,N
+169,Roserade,Grass,Poison,,Technician,Poison Point,60,70,65,125,105,90,515,Energy Ball,Sludge Bomb,Giga Drain,Shadow Ball,Dazzling Gleam,,High,N
+170,Yanmega,Bug,Flying,,Speed Boost,Tinted Lens,86,76,86,116,56,95,515,Air Slash,Bug Buzz,Giga Drain,Ancient Power,Psychic,,High,N
+171,Aerodactyl,Rock,Flying,,Rock Head,,80,105,65,60,75,130,515,Stone Edge,Fire Fang,Dragon Dance,Defog,Fly,,High,N
+172,Eelektross,Electric,,,Levitate,,85,115,80,105,80,50,515,Charge Beam,Flamethrower,Signal Beam,Dragon Pulse,Giga Drain,Acid Spray,High,N
+173,Tentacruel,Water,Poison,,Liquid Ooze,Clear Body,80,70,65,80,120,100,515,Ice Beam,Surf,Rapid Spin,Toxic Spikes,Venoshock,Aqua Ring,High,N
+174,Starmie,Water,Psychic,,Natural Cure,Illuminate,60,75,85,100,85,115,520,Power Gem,Psychic,Surf,Recover,Ice Beam,Thunderbolt,High,N
+175,Rotom (Frost),Electric,Ice,,Levitate,,50,65,107,105,107,86,520,Blizzard,Dark Pulse,Thunder,Thunder Wave,Rain Dance,Hex,High,N
+176,Cloyster,Water,Ice,,Skill Link,,50,95,180,85,45,70,525,Icicle Spear,Shell Smash,Liquidation,Pin Missile,Rock Blast,Icicle Crash,High,N
+177,Sylveon,Fairy,,,Pixelate,,95,65,65,110,130,60,525,Hyper Voice,Calm Mind,Moonblast,Shadow Ball,,,High,N
+178,Lucario,Fighting,Steel,,Adaptability,Justified,70,110,70,115,70,90,525,Aura Sphere,Dragon Pulse,Meteor Mash,Extreme Speed,Close Combat,,High,N
+179,Ceruledge,Fire,Ghost,,Flash Fire,Weak Armor,75,125,80,60,100,85,525,Shadow Claw,Shadow Sneak,Swords Dance,Psycho Cut,Bitter Blade,,High,N
+180,Greninja,Water,Dark,,Protean,,72,95,67,103,71,122,530,Shadow Sneak,Extrasensory,Work Up,Water Shuriken,Haze,Rock Slide,High,N
+181,Cinderace,Fire,,,Libero,,80,116,75,65,75,119,530,Pyro Ball,Court Change,U-Turn,Bounce,Bulk Up,,High,N
+182,Incineroar,Fire,Dark,,Intimidate,,95,115,90,80,90,60,530,Darkest Lariat,Bulk Up,Flare Blitz,Drain Punch,Fake Out,,High,N
+183,Decidueye,Grass,Ghost,,Long Reach,,78,107,75,100,100,70,530,Spirit Shackle,Leaf Blade,Brave Bird,U-Turn,Sucker Punch,Defog,High,N
+184,Inteleon,Water,,,Sniper,,70,85,65,125,65,120,530,Focus Energy,Snipe Shot,Ice Beam,Dark Pulse,Shadow Ball,,High,N
+185,Mamoswine,Ice,Ground,,Thick Fat,Snow Cloak,110,130,80,70,60,80,530,Avalanche,Ice Shard,Earthquake,Curse,Rock Slide,,High,N
+186,Infernape,Fire,Fighting,,Iron Fist,Blaze,76,104,71,104,71,108,534,Flare Blitz,Fire Spin,Power-Up Punch,Stone Edge,,,High,N
+187,Tangrowth,Grass,,,Regenerator,,100,100,125,110,50,50,535,Power Whip,Ancient Power,Sleep Powder,Earthquake,Aerial Ace,Rock Slide,High,N
+188,Swampert,Water,Ground,,Torrent,Swift Swim,100,110,90,85,90,60,535,Earth Power,Muddy Water,Avalanche,Darkest Lariat,Sludge Wave,Yawn,High,N
+189,Vanilluxe,Ice,,,Snow Warning,,71,95,85,110,95,79,535,Blizzard,Flash Cannon,Ice Shard,Water Pulse,Aurora Veil,,High,N
+190,Magnezone,Electric,Steel,,Sturdy,Analytic,70,70,115,130,90,60,535,Lock-On,Zap Cannon,Magnet Rise,Flash Cannon,Light Screen,,High,N
+191,Kingdra,Water,Dragon,,Swift Swim,Sniper,75,95,95,95,95,85,540,Dragon Dance,Hydro Pump,Dragon Pulse,Ice Beam,Scald,Flash Cannon,High,N
+192,Electivire,Electric,,,Motor Drive,,75,123,67,95,85,95,540,Thunder Punch,Darkest Lariat,Electric Terrain,Power-Up Punch,Cross Chop,,High,N
+193,Haxorus,Dragon,,,Mold Breaker,,76,147,90,60,70,97,540,Outrage,Dragon Dance,Earthquake,Poison Jab,First Impression,,High,N
+194,Archeops,Rock,Flying,,Defeatist,,75,140,65,112,65,110,567,U-Turn,Rock Slide,Dragon Claw,Fly,Earthquake,,High,N
+195,Blacephalon,Fire,Ghost,,Beast Boost,,53,127,53,151,79,107,570,Shadow Ball,Mind Blown,Calm Mind,Mystical Fire,Solar Beam,,High,N
+196,Nihilego,Rock,Poison,,Beast Boost,,109,53,47,127,131,103,570,Power Gem,Stealth Rock,Toxic Spikes,Sludge Bomb,Thunderbolt,,High,N
+197,Celesteela,Steel,Flying,,Beast Boost,,97,101,103,107,101,61,570,Leech Seed,Giga Drain,Ingrain,Toxic,Smart Strike,,High,N
+198,Gyutaro,Poison,Ghost,,Disguise,,80,100,90,40,50,90,450,Poison Jab,Taunt,Parting Shot,Night Slash,Double Sickle,,High,Y
+199,Nightdaunter,Ghost,,,Levitate,Prankster,50,80,65,110,65,120,490,Cold Touch,Wail,Hypnosis,Phantom Force,,,High,Y
+200,Gyokko,Water,Psychic,,Improvise,,80,60,80,100,110,60,490,Whirlpool,Perish Song,Octolock,Psychic,Fish Needle,,High,Y
+201,Maruka,Fairy,,,Speed Boost,Serene Grace,55,50,65,120,108,92,490,Moonblast,Encore,Aura Sphere,Metronome,Silver Wind,,High,Y
+202,Scorchrome,Fire,Ground,,Scorch,,68,96,64,96,83,102,509,Scorching Sands,Overheat,Accelerock,Flame Wheel,Sunny Day,,High,Y
+203,Charmorin,Normal,Fairy,,Moody,,98,94,63,75,126,60,516,Cling,Charming Tap,Sparkling Punch,Body Slam,Bounce,,High,Y
+204,Hantengu,Electric,Flying,,Defiant,,100,80,100,80,100,60,520,Thunder,Wood Hammer,Boomburst,Icicle Spear,Enragement,,High,Y
+205,Vindaxe,Rock,,,Goredrinker,,70,126,98,26,98,112,530,Battle Axe,Thunderclap,Taunt,Bulk Up,Flame Charge,,High,Y
+206,Fieritre,Fire,Grass,,Strong Roots,,86,93,108,93,108,54,542,Will-O-Wisp,Flamethrower,Leech Seed,Leaf Storm,Scald,,High,Y
+207,Ygadr,Ice,Dragon,,Refrigerate,Insomnia,102,118,112,78,102,46,558,Strength,Enragement,Dragon Claw,Revenge,Slack Off,Bulk Up,High,Y
+208,Aegislash (Blade Forme),Steel,Ghost,,Stance Change,,60,140,50,140,50,60,500,King's Shield,Swords Dance,Shadow Sneak,Iron Head,Sacred Sword,,Secret,N
+209,Gambler,Typeless,,,Pressure,,90,90,90,90,90,90,540,Metronome,,,,,,Secret,Y
+210,Ninetales,Fire,,,Drought,,73,76,75,81,100,100,505,Nasty Plot,Fire Blast,Disable,Solar Beam,Psyshock,,Very High,N
+211,Alolan Ninetales,Ice,Fairy,,Snow Warning,,73,67,75,81,100,109,505,Dazzling Gleam,Aurora Veil,Blizzard,Nasty Plot,Psyshock,,Very High,N
+212,Blaziken,Fire,Fighting,,Speed Boost,,80,120,70,110,70,80,530,Blaze Kick,High Jump Kick,Bulk Up,Brave Bird,Earthquake,,Very High,N
+213,Charizard,Fire,Flying,,Drought,,78,84,78,109,85,100,534,Flamethrower,Breaking Swipe,Air Slash,Scorching Sands,Solar Beam,,Very High,N
+214,Porygon-Z,Normal,,,Adaptability,Download,85,80,70,135,75,90,535,Nasty Plot,Tri Attack,Recover,Thunderbolt,Ice Beam,Psychic,Very High,N
+215,Gyarados,Water,Flying,,Intimidate,Moxie,95,125,79,60,100,81,540,Aqua Tail,Dragon Dance,Waterfall,Bulldoze,Power Whip,,Very High,N
+216,Naganadel,Poison,Dragon,,Beast Boost,,73,73,73,127,73,121,540,Air Slash,Dragon Pulse,Nasty Plot,Venoshock,Toxic,Flamethrower,Very High,N
+217,Milotic,Water,,,Marvel Scale,,95,60,79,100,125,81,540,Recover,Hypnosis,Ice Beam,Surf,Freeze-Dry,,Very High,N
+218,Togekiss,Flying,Fairy,,Serene Grace,,85,50,95,120,115,80,545,Ancient Power,Air Slash,Nasty Plot,Moonblast,Draining Kiss,Defog,Very High,N
+219,Volcarona,Fire,Bug,,Flame Body,,85,60,65,135,105,100,550,Quiver Dance,Fiery Dance,Bug Buzz,Hurricane,Giga Drain,,Very High,N
+220,Kingambit,Dark,Steel,,Supreme Overload,,100,135,120,60,85,50,550,Sucker Punch,Kowtow Cleave,Iron Head,Swords Dance,Guillotine,,Very High,N
+221,Fezandipiti,Poison,Fairy,,Toxic Chain,,88,91,82,70,125,99,555,Cross Poison,Play Rough,Brave Bird,Icy Wind,U-Turn,,Very High,N
+222,Arcanine,Fire,,,Intimidate,Flash Fire,90,110,80,100,80,95,555,Extreme Speed,Flare Blitz,Play Rough,Wild Charge,Psychic Fangs,,Very High,N
+223,Xurkitree,Electric,,,Beast Boost,,83,89,71,173,71,83,570,Thunderbolt,Tail Glow,Energy Ball,Magnet Rise,Volt Switch,,Very High,N
+224,Kartana,Grass,Steel,,Beast Boost,,59,181,131,59,31,109,570,Leaf Blade,Sacred Sword,Swords Dance,Guillotine,Synthesis,Night Slash,Very High,N
+225,Spectrier,Ghost,,,Grim Neigh,,100,65,60,145,80,130,580,Shadow Ball,Nasty Plot,Dark Pulse,Confuse Ray,Disable,,Very High,N
+226,Volcanion,Fire,Water,,Water Absorb,,80,110,120,130,90,70,600,Steam Eruption,Flame Charge,Sunny Day,Wild Charge,Solar Beam,,Very High,N
+227,Jirachi,Steel,Psychic,,Serene Grace,,100,100,100,100,100,100,600,Meteor Mash,Thunderbolt,Psychic,Ice Punch,Energy Ball,Shadow Ball,Very High,N
+228,Heatran,Fire,Steel,,Flash Fire,Flame Body,91,90,106,130,106,77,600,Iron Head,Magma Storm,Earth Power,Heat Wave,Lunge,,Very High,N
+229,Metagross,Psychic,Steel,,Clear Body,,80,135,130,95,90,70,600,Zen Headbutt,Bullet Punch,Hammer Arm,Ice Punch,,,Very High,N
+230,Hydreigon,Dark,Dragon,,Levitate,,92,105,90,125,90,98,600,Tri Attack,Surf,Flamethrower,Nasty Plot,Earth Power,Dragon Pulse,Very High,N
+231,Garchomp,Ground,Dragon,,Rough Skin,,108,130,95,80,85,102,600,Dragon Claw,Shadow Claw,Earthquake,Swords Dance,Outrage,,Very High,N
+232,Victini,Fire,Psychic,,Victory Star,,100,100,100,100,100,100,600,Glaciate,Searing Shot,Thunderbolt,Psyshock,,,Very High,N
+233,Darkrai,Dark,,,Bad Dreams,,70,90,90,135,90,125,600,Dark Void,Nasty Plot,Thunderbolt,Dark Pulse,Ice Beam,Dream Eater,Very High,N
+234,Dragonite,Dragon,Flying,,Multiscale,,91,134,95,100,100,80,600,Dragon Dance,Fire Punch,Outrage,Aqua Tail,Iron Head,Defog,Very High,N
+235,Genesect,Bug,Steel,,Download,,71,120,95,120,95,99,600,Bug Buzz,Psychic,Thunderbolt,Ice Beam,Techno Blast,,Very High,N
+236,Dragapult,Ghost,Dragon,,Infiltrator,Clear Body,88,120,75,100,75,142,600,Dragon Darts,Phantom Force,Dragon Dance,U-Turn,Psychic Fangs,,Very High,N
+237,Magearna,Steel,Fairy,,Soul-Heart,,80,95,115,130,115,65,600,Calm Mind,Flash Cannon,Fleur Cannon,Thunderbolt,Draining Kiss,Aura Sphere,Very High,N
+238,Marshadow,Fighting,Ghost,,Technician,,90,125,80,90,90,125,600,Shadow Punch,Force Palm,Spectral Thief,Rock Tomb,Poison Jab,,Very High,N
+239,Baxcalibur,Ice,Dragon,,Thermal Exchange,,115,145,92,75,86,87,600,Ice Shard,Dragon Claw,Dragon Rush,Ice Hammer,Earthquake,,Very High,N
+240,Tyranitar,Rock,Dark,,Sand Stream,,100,134,110,95,100,61,600,Crunch,Smack Down,Fire Punch,Earthquake,,,Very High,N
+241,Kommo-o,Dragon,Fighting,,Bulletproof,Soundproof,75,110,125,100,105,85,600,Clanging Scales,Clangorous Soul,Close Combat,Noble Roar,Outrage,Poison Jab,Very High,N
+242,Goodra,Dragon,,,Sap Sipper,Hydration,90,100,70,110,150,80,600,Dragon Pulse,Surf,Ice Beam,Giga Drain,Curse,,Very High,N
+243,Mega Scizor,Bug,Steel,,Technician,,70,150,140,65,100,75,600,Bullet Punch,Swords Dance,Bug Bite,Aerial Ace,Roost,,Very High,N
+244,Boneknight,Steel,Ghost,,Battle Armor,Analytic,92,122,102,53,62,64,495,First Strike,Trick Room,Swords Dance,Revenant Charge,Bone Rush,,Very High,Y
+245,Fairyflame,Fire,Fairy,,Shield Dust,Flash Fire,70,60,70,120,70,115,505,Faerie Fire,Double Team,Moonblast,Encore,Air Slash,,Very High,Y
+246,Tanjiro,Water,Fire,,Dead Calm,,100,120,90,60,90,60,520,Close Combat,Solar Blade,Total Concentration,Nichirin Sword,,,Very High,Y
+247,Sworphin,Water,,,Swift Swim,Speed Boost,78,125,76,55,76,112,522,Flip Turn,Swords Dance,Razor Shell,Slash,Smart Strike,Crunch,Very High,Y
+248,Psyvinstry,Grass,Ice,Psychic,Snow Warning,Early Bird,65,120,50,120,50,120,525,Petal Dance,Blizzard,Psyshock,Calm Mind,Ingrain,,Very High,Y
 249,Brambleblood,Poison,Dark,,Rough Skin,,87,87,127,87,107,67,562,Poison Jab,Baneful Bunker,Dark Pulse,Cosmic Power,Cannibalism,Recover,Very High,Y
 250,Akaza,Fighting,,,No Guard,,90,115,115,110,70,80,580,Focus Blast,Chaotic Shockwave,Flying Press,Work Up,Annihilation,,Very High,Y
 251,Chesiquen,Ground,Flying,,Queenly Majesty,,65,78,62,138,92,145,580,Time Pressure,Air Slash,Gambit,Sticky Web,Draining Kiss,,Ultra High,Y

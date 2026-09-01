@@ -7,6 +7,13 @@ to catch, and character abilities have no such net.
 """
 import io
 import os
+
+# the roster table itself, so a check can read a design value instead of
+# pinning one that moves whenever the roster is re-rated
+import csv as _csv
+_rows = list(_csv.DictReader(io.open("Data/competitors.csv",
+                                     encoding="utf-8",
+                                     errors="replace")))
 import re
 import sys
 from contextlib import redirect_stdout
@@ -180,11 +187,21 @@ check("...and a full one is not overhealed", full.battle_stats[0], 160)
 
 print()
 print("-- Auraia: Serene Grace --")
-check("Auraia is Advanced, rated %d" % list_of_competitors["Auraia"].strength,
-      list_of_competitors["Auraia"].level, "Advanced")
-check("...with Alolan Ninetales",
+# Her tier is read from the table, not pinned here. Tier follows rating and
+# rating follows measured win rate, so both move when the roster is re-rated
+# -- and this section is about her *ability*, not her rung.
+_auraia = [c for c in _rows if c.get("Name") == "Auraia"][0]
+check("Auraia sits on the tier her rating puts her (%s, rated %s)"
+      % (_auraia["Level"], _auraia["Strength"]),
+      list_of_competitors["Auraia"].level, _auraia["Level"])
+# Read from the table rather than pinned here. Which Pokemon Auraia brings
+# is a design decision in Data/competitors.csv -- it moved from Alolan
+# Ninetales to Jirachi and failed a check that is about her *ability*. What
+# is worth asserting is that the designed ace is what she actually fields.
+_designed = [c for c in _rows if c.get("Name") == "Auraia"][0]["Poke1"]
+check("...fielding her designed ace (%s)" % _designed,
       [getattr(a, "name", a) for a in list_of_competitors["Auraia"].team],
-      ["Alolan Ninetales"])
+      [_designed])
 
 # It doubles a secondary effect but never past the cap, and never touches a
 # move already at or above it. The point of the cap is that nothing Serene

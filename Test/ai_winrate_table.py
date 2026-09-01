@@ -181,27 +181,6 @@ def write_report(path, names, original, record, margin, head, matches,
             add("    %-22s %8d %8d %+6d"
                 % (name[:22], place[name], elo_place[name], shift))
 
-    add("")
-    add("")
-    add("Hardest and easiest match-ups on record")
-    add("-" * 78)
-    pairs = []
-    for name in names:
-        for foe, wins in head[name].items():
-            played = wins + head.get(foe, {}).get(name, 0)
-            if played >= matches:                 # both directions counted
-                pairs.append((wins / played, played, name, foe))
-    pairs.sort(reverse=True)
-    add("    most one-sided (winner took every meeting):")
-    shown = 0
-    for share, played, name, foe in pairs:
-        if share < 1.0 or shown >= 10:
-            break
-        add("        %-22s beat %-22s %d-0" % (name[:22], foe[:22], played))
-        shown += 1
-    if not shown:
-        add("        none -- every pairing was split at least once")
-
     with open(path, "w", encoding="utf-8") as out:
         out.write(as_markdown("Win rate table",
                               chr(10).join(lines)))

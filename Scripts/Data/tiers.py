@@ -44,16 +44,34 @@ import random
 TIERS = ("Very Low", "Low", "Medium", "High", "Very High", "Ultra High")
 
 #: the rating at which a competitor's centre of gravity sits on each tier.
-#: Tuned so the *top* of the roster is spread out rather than bunched: the
-#: old formula gave everyone above ~300 the same draw, which is the flaw
-#: this fixes. Ultra High is deliberately far out -- there are only six
-#: Pokemon in it, and it should read as the Champion's own shelf.
-TIER_CENTRE = (0, 40, 90, 160, 320, 700)
+#:
+#: The ladder is meant to *matter* from 0 to RATING_CEILING and to stop
+#: there, so these are spaced across that range rather than trailing off
+#: past it. Two anchors decide the rest:
+#:
+#:   rating 5    Low is the centre -- and 5 is what the player starts on, so
+#:               a first career draws mostly Low, a little Very Low, a little
+#:               Medium
+#:   rating 500  Very High is the centre, with Ultra High above it and High
+#:               below: about 65 / 15 / 20
+#:
+#: Ultra High's centre sits past the ceiling on purpose. It is six Pokemon,
+#: the last shelf, and nobody should ever draw a majority from it -- reaching
+#: the ceiling gets you a share of it, never a teamful.
+TIER_CENTRE = (0, 5, 40, 150, 500, 1200)
 
-#: how many tiers either side of the centre still get a look in. 1.5 means a
-#: competitor draws from about three tiers, which is roughly the spread the
-#: old formula had in its mid-range -- the part of it that worked.
-SPREAD = 1.5
+#: Above this, everybody draws alike. Ultra High is the last shelf, so a
+#: ladder that kept climbing past it would either hand out teams of six
+#: Ultra Highs or, as the old numbers did, quietly flatten anyway -- that
+#: version saturated at 320 and gave rating 320 and rating 2000 the identical
+#: draw without saying so. This says so.
+RATING_CEILING = 500
+
+#: how many tiers either side of the centre still get a look in. 1.4 keeps a
+#: competitor to about three tiers, which is what stops the ends bleeding:
+#: at 1.5 and the old centres a rating-2 competitor could be handed a Very
+#: High Pokemon, and the point of the bottom of the ladder is that it cannot.
+SPREAD = 1.4
 
 #: The player and every competitor read the same ladder at their own rating.
 #: There was a 1.2 here -- an opponent fielded Pokemon as though rated 20%
@@ -83,17 +101,21 @@ LOSS_MULTIPLIER = 0.8
 #: and 69 High to choose from.
 #:
 #: A tier not named here is unconstrained.
-SHARE_CEILING = {"Ultra High": 0.15, "Very High": 0.55}
+#: Very High is 28 Pokemon -- plenty to fill a team from, so it is allowed
+#: to be the top of the ladder rather than capped down into High. Ultra
+#: High is six, and stays held to a share.
+SHARE_CEILING = {"Ultra High": 0.15, "Very High": 0.65}
 
 
 def ladder_position(rating):
     """Where `rating` sits on the tier ladder, as a float index into TIERS.
 
-    Piecewise linear between the centres, clamped at both ends. The clamp at
-    the top is honest rather than a flaw: Ultra High is the last shelf and
-    there is nothing above it to hand out.
+    Piecewise linear between the centres, clamped at both ends. The top clamp
+    is RATING_CEILING rather than the last centre: everybody at or above it
+    draws alike, because Ultra High is the last shelf and there is nothing
+    above it to hand out.
     """
-    rating = max(0.0, float(rating))
+    rating = min(max(0.0, float(rating)), RATING_CEILING)
     if rating >= TIER_CENTRE[-1]:
         return float(len(TIERS) - 1)
     for index in range(len(TIER_CENTRE) - 1):

@@ -41,6 +41,7 @@ def move_special_effect(turn, move):
     """
     move_additional_effect = {
         "target_non_volatile": check_move_target_non_volatile_status_effect,
+        "user_non_volatile": check_move_user_non_volatile_status_effect,
         "target_volatile": check_move_target_volatile_status_effect,
         "user_volatile": check_move_user_volatile_status_effect,
         "opponent_modifier": check_move_target_modifier,
@@ -124,6 +125,14 @@ def check_move_target_volatile_status_effect(turn, move, special_effect):
         narrator.failed()
     elif temporary_status[0] == "Flinch" and turn.foe.trainer.faster:
         pass
+    elif temporary_status[0] == "LeechSeed" and blocks_seeding(
+            turn.foe.active)[0]:
+        # The same rule Sylvan Sprout plants by, from the one place that
+        # holds it: no Grass types, and nothing off the ground. The move
+        # checked neither -- it would seed a Venusaur, a Crobat, or something
+        # half-way through Fly -- while the ability that copies it did.
+        narrator.say(blocks_seeding(turn.foe.active)[1]
+                     % turn.foe.active.name, "fail")
     else:
         with suppress(KeyError):
             if turn.foe.active.volatile_status[temporary_status[0]] <= 0:
@@ -131,6 +140,37 @@ def check_move_target_volatile_status_effect(turn, move, special_effect):
                 narrator.say(f"{turn.foe.active.name} is now {temporary_status[0]}!")
             else:
                 narrator.say(f"The opponent is already {temporary_status[0]}!")
+
+
+def check_move_user_non_volatile_status_effect(turn, move, special_effect):
+    """A non-volatile status the move puts on its *own* user.
+
+    The mirror of check_move_target_non_volatile_status_effect. It exists
+    because Adrenaline badly poisons the Pokemon using it -- the cost of the
+    stat boost -- and there was no way to say that in the table: every
+    non-volatile status went to the target. Terrain and immunity checks are
+    read against the user for the same reason they are read against the
+    target over there; a Poison type does not poison itself either.
+    """
+    temporary_status = special_effect(move.effect_accuracy)
+    if temporary_status[0] in ("", "Normal"):
+        return
+    refused, line = terrain.blocks_status(turn.ground, turn.user.active,
+                                         temporary_status[0])
+    if refused:
+        narrator.say(line % turn.user.active.name, "fail")
+        return
+    if turn.user.active.status != "Normal":
+        narrator.say(f"{turn.user.active.name} is already "
+                     f"{turn.user.active.status}!")
+        return
+    turn.user.active.status = status_effect_immunity_check(
+        turn.user.active, turn.user.active, move, temporary_status[0])
+    with suppress(IndexError, KeyError):
+        if turn.user.active.volatile_status["NonVolatile"] <= 0:
+            turn.user.active.volatile_status["NonVolatile"] = temporary_status[1]
+            narrator.say(f"{turn.user.active.name} is now "
+                         f"{turn.user.active.status}!")
 
 
 # check if the move induces a volatile status on the user
@@ -439,7 +479,19 @@ def check_move_disable(turn, move, special_effect):
             move = list_of_moves[turn.foe.active.moveset[i]]
             if 'f' in move.flags:
                 try:
-                    if turn.foe.active.disabled_moves[move.name] != 0 and turn.foe.active.previous_move.name != "Switching":
+                    # getattr, because `previous_move` is "" until the
+                    # Pokemon has actually taken a turn -- a string, with no
+                    # `.name`. The three reads above sit inside an
+                    # `except AttributeError` that turns this into a failed
+                    # move, which is right for Disable and Encore: you cannot
+                    # disable a move nobody has used yet. This branch catches
+                    # KeyError only, so the same read crashed the battle
+                    # outright. Throat Chop into anything that owns a sound
+                    # move and has not moved yet did it -- Scrafty knows
+                    # Throat Chop, which is where it was seen.
+                    previous = getattr(turn.foe.active.previous_move,
+                                       "name", "")
+                    if turn.foe.active.disabled_moves[move.name] != 0                             and previous != "Switching":
                         narrator.say("The move is already disabled!", "fail")
                 except KeyError:
                     turn.foe.active.disabled_moves[move.name] = 2

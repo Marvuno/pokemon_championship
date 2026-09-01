@@ -106,7 +106,7 @@ What this game changes from the series it borrows from.
 - Cold Touch (Ice): 30 power, physical, priority move, 30% flinch
 - Wail (Ghost): 90 special power, 50% to lower SpDef and Acc. by 1 stage
 - Corrosive Water (Water): 80 power, special, 90% accuracy, 20% poison, super-effective against grass and fairy type
-- Adrenaline (Dark): status, increase ATK and SpA by 2 stages, DEF and SpDef by 1 stage, decrease Spd by 2 stages, while increasing target pokemon ATK, SpA and Spd by 1 stage
+- Adrenaline (Dark): status, increase own ATK and SpA by 1 stage and Spd by 2 stages, and badly poison the user
 - Depraved Shriek (Dark): 100 power, special, duo-type with psychic, double power when move first
 - Double Sickle (Ghost): 50 power, physical, double hit, drain 15% hp and 20% to poison for each hit
 - Fish Needle (Water): 90 power, special, 30% badly poison
@@ -218,6 +218,31 @@ Stages run -6..+6 and are clamped. `modifierChart` rows are `_StageRow`,
 which does the clamping: 0..+6 are the first seven entries, -1..-6 are read
 off the end by negative indexing.
 
+### Sylvan seed
+
+*Sylvan Sprout* is Elowen's character ability. A *Sylvan seed* is what it
+plants -- the status, not the ability -- and it is Leech Seed at half
+strength: 1/16 of maximum HP a turn drained from the seeded Pokemon and
+healed to the one facing it, against Leech Seed's 1/8.
+
+It obeys the same rules the move does. Grass types are immune, it does not
+stack, and it is shed when the seeded Pokemon switches out. Flying types,
+Levitate holders and anything half-way through Fly *are* seedable, by both --
+Leech Seed is not a ground hazard like Spikes. Both read
+`constants.blocks_seeding`, so the two cannot drift apart; the move used to
+check nothing at all and would seed a Venusaur.
+
+There is no second status for it. `volatile_status['LeechSeed']` holds
+`SYLVAN_SEED` (2) instead of 1, and the two lines in `battle_checklist` that
+drain it read that number to pick the divisor; everything else only asks
+whether it is above zero. The battle log and the condition chip say which
+seed is draining you.
+
+Half strength because the ability plants one on *every* arrival for free,
+where the move spends a turn on each. Measured over 284 battles against the
+whole roster: at full strength it was worth +32.4 points of win rate, half
+strength +19.0, and restricting it to the holder's own switch-ins +14.8.
+
 ### Status condition
 
 `0 Normal | 1 Poison | 2 BadPoison | 3 Paralysis | 4 Burn | 5 Sleep |
@@ -275,6 +300,7 @@ position with `special_effect`.
 | countering | retaliation | hp_split |
 | before_hand | after_hand | modifier_dependent |
 | target_disable | swap_barrier | add_target_type |
+| user_non_volatile | | |
 | cursing | ohko | roost |
 
 `terrain`, `weather_heal` and `roost` are the newest: the four
@@ -318,6 +344,7 @@ worked. They live in `Scripts/Battle/move_rules.py`.
 | 8 | End of turn |
 | 9 | Switched out |
 | 10 | Before the turn order is decided (`ORDER_PHASE`) |
+| 11 | The *other* side switched something in (`FOE_ARRIVAL_PHASE`) |
 
 Phase 10 is the odd one out and is there for a reason: 1..9 all happen once a
 Pokemon is already taking its turn, which is too late for an ability that
@@ -326,6 +353,14 @@ Prankster and Gale Wings live there, along with the character abilities that
 change a move's priority or its holder's Speed -- Tension Release and
 Primordial. It fires from `compare_speed`, after the speed adjustment and
 before the comparison.
+
+Phase 11 is the other addition. Phase 1 fires only for the side whose
+Pokemon arrived, which is right for an ability greeting its own switch-in and
+useless for one reacting to the opponent's -- Sylvan Sprout seeds whatever
+walks in. It is called with the turn flipped, so the ability consulted
+belongs to the trainer who did *not* switch and the Pokemon it acts on is the
+arrival. A phase of its own rather than firing phase 1 for both sides, which
+would have changed all fifteen abilities already sitting on phase 1.
 
 `REGISTRY` at the bottom of `Scripts/Battle/ability_effects.py` is the single
 source; the phase map is derived from it.

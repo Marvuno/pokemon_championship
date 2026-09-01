@@ -11,8 +11,9 @@ from Scripts.Battle.type_immunity import *
 from Scripts.Battle.context import Side, Turn
 from Scripts.Battle.weather import weather_desc
 from Scripts.Battle import terrain
-from Scripts.Battle.constants import (GUARANTEE_ACCURACY,
-                                      ORDER_PHASE)
+from Scripts.Battle.constants import (FOE_ARRIVAL_PHASE, GUARANTEE_ACCURACY,
+                                      ORDER_PHASE, SYLVAN_SEED,
+                                      TEAM_BUFF_TURNS, blocks_seeding)
 from Scripts.Battle.fastcopy import fast_copy
 from Scripts.Data.competitors import ability_text
 from Scripts.Art import narrator
@@ -23,6 +24,11 @@ from Scripts.Art import narrator
 #: become a certainty -- doubling used to clamp to 1.0, which made a 50%
 #: effect land every time.
 SERENE_GRACE_CEILING = 0.8
+
+#: How many stages of priority Assassination is worth while its Pokemon is
+#: untouched. One, so it beats an ordinary move and still loses to a real
+#: priority move -- Extreme Speed at +2 goes first either way.
+ASSASSINATION_PRIORITY = 1
 
 #: Sparking Cascade's per-turn paralysis roll, and the types the current
 #: does not reach: Flying is not standing in it, Ground earths it, Electric
@@ -1146,6 +1152,94 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
                                  weather="Rain")
                 notice(battleground, user_side)
 
+    def assassination(*args):
+        """Strikes first, while it is untouched.
+
+        ORDER_PHASE, not phase 2: the speed comparison reads `move.priority`
+        and phase 2 fires after a Pokemon is already taking its turn, which
+        is too late to change who goes first. See the note on ORDER_PHASE --
+        Swift Swim and Prankster were both silently inert for exactly this
+        reason.
+
+        "Full HP" is read at the moment the order is decided, so trading a
+        hit costs the edge for the rest of the battle unless something heals
+        it back to the top.
+        """
+        if abilityphase != ORDER_PHASE:
+            return
+        # `hp` is the maximum and `battle_stats[0]` the current one, which is
+        # the pair Sturdy compares too.
+        if user.battle_stats[0] < user.hp:
+            return
+        move.priority += ASSASSINATION_PRIORITY
+        notice(battleground, user_side)
+
+    def aurora_borealis(*args):
+        """The battle opens in hail, with the veil already up.
+
+        Phase 1 and the turn check, the same shape Light Speed uses: the
+        start of the *battle*, not every switch-in, so the veil runs its
+        clock down and the hail can be replaced like any other weather.
+
+        The veil is put up directly rather than by playing Aurora Veil,
+        because the move refuses to work outside hail (see
+        move_additional_effect) and the two would race on the opening turn.
+        """
+        if abilityphase != 1 or battleground.turn >= 1:
+            return
+        battleground.weather_effect = "Hail"
+        battleground.weather_artificial = True
+        user_side.in_battle_effects["Aurora Veil"] = TEAM_BUFF_TURNS
+        narrator.say("A polar light rises, and the hail closes in!",
+                     "weather")
+        notice(battleground, user_side)
+
+    def sylvan_sprout(*args):
+        """Anything that walks in gets seeded.
+
+        Fires on FOE_ARRIVAL_PHASE, which is the other side switching in --
+        phase 1 would be this trainer's own arrivals, which is the opposite
+        of what this does. `target` is the Pokemon that just arrived,
+        because the call is flipped (see battle_initialization).
+
+        Leech Seed's own rules apply, via `terrain.blocks_seeding`: Grass
+        types and anything not standing on the ground are unseedable, and a
+        Pokemon already seeded is not re-seeded.
+
+        What it plants is a *Sylvan seed*, not a Leech Seed: half strength,
+        1/16 a turn each way rather than 1/8. The ability plants one on every
+        arrival for free, where the move spends a turn on each, and measured
+        over 284 battles against the whole roster the two are worth:
+
+            full strength, every arrival    +32.4 points of win rate
+            half strength, every arrival    +19.0      <- this
+            full strength, own switch-in    +14.8
+
+        At full strength it put a rating-188 competitor 6th of 72 with every
+        team drawn at the same rating -- ahead of three of the Elite Four on
+        ace and ability alone. See SYLVAN_SEED in constants.py, which is how
+        the engine tells the two seeds apart. It never touches this
+        trainer's own Pokemon -- the phase is the *opponent* arriving, and
+        `target` is that arrival.
+        """
+        if abilityphase != FOE_ARRIVAL_PHASE:
+            return
+        if target is None or target.status == "Fainted":
+            return
+        # The move's own rule, read from the one place that holds it: Grass
+        # types and anything off the ground are unseedable. Written out here
+        # once and it would have been free to drift from Leech Seed itself.
+        refused, line = blocks_seeding(target)
+        if refused:
+            narrator.say(line % target.name, "fail")
+            return
+        with suppress(KeyError):
+            if target.volatile_status["LeechSeed"] > 0:
+                return
+            target.volatile_status["LeechSeed"] = SYLVAN_SEED
+            narrator.say("A Sylvan seed takes root on %s!" % target.name)
+            notice(battleground, user_side)
+
     def last_stand(*args):
         # at the last pokemon, massive buff and renegerate all HP
         if sum(1 for pokemon in user_side.team if pokemon.status != 'Fainted') == 1:
@@ -1253,6 +1347,9 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # still raining, so a weather change does not leave it stranded.
         "Primordial": ((0, ORDER_PHASE, 8), primordial),
         "Last Stand": (1, last_stand),
+        "Assassination": (ORDER_PHASE, assassination),
+        "Aurora Borealis": (1, aurora_borealis),
+        "Sylvan Sprout": (FOE_ARRIVAL_PHASE, sylvan_sprout),
     }
 
     if _CHARACTER_PHASES is None:

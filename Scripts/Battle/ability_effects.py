@@ -903,14 +903,22 @@ def screencleaner(call):
         if call.target_side.in_battle_effects[effect] > 0:
             call.target_side.in_battle_effects[effect] = 0
 
+# `reality` gates the *line*, never the block. Both of these used to sit
+# entirely inside the guard, so the move was only refused on a real turn --
+# and `reality` is False while the AI scores its candidates. The AI therefore
+# scored a priority move as though it would land, picked it, watched it be
+# refused, and picked it again next turn, for the whole battle. Terrain says
+# the same thing the same way and gates only its narration; these now match.
 def queenlymajesty(call):
-    if call.move.priority > 0 and call.ground.reality:
-        narrator.say(f"{call.target.name} cannot use {call.move.name} due to the Majesty's pressure!")
+    if call.move.priority > 0:
+        if call.ground.reality:
+            narrator.say(f"{call.target.name} cannot use {call.move.name} due to the Majesty's pressure!")
         call.move.accuracy = 0
 
 def dazzling(call):
-    if call.move.priority > 0 and call.ground.reality:
-        narrator.say(f"{call.target.name} cannot use {call.move.name}!")
+    if call.move.priority > 0:
+        if call.ground.reality:
+            narrator.say(f"{call.target.name} cannot use {call.move.name}!")
         call.move.accuracy = 0
 
 def toughclaws(call):

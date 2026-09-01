@@ -614,11 +614,24 @@ CONDITION_LABELS = {
 CONDITION_NOISE = ("Turn", "Grounded", "NonVolatile")
 
 
+#: Sylvan Sprout plants its own seed, worth half a Leech Seed, and the engine
+#: marks it by the value it stores rather than a second status key -- see
+#: SYLVAN_SEED in Scripts/Battle/constants.py. The player should be told which
+#: one is draining them, so the chip reads the value too.
+SEED_LABELS = {2: "SYLVAN SEED"}
+
+
 def live_conditions(volatile):
     """The conditions actually in force, as display names."""
-    return [CONDITION_LABELS.get(name, name)
-            for name, value in sorted((volatile or {}).items())
-            if value and name not in CONDITION_NOISE]
+    shown = []
+    for name, value in sorted((volatile or {}).items()):
+        if not value or name in CONDITION_NOISE:
+            continue
+        if name == "LeechSeed":
+            shown.append(SEED_LABELS.get(value, CONDITION_LABELS[name]))
+        else:
+            shown.append(CONDITION_LABELS.get(name, name))
+    return shown
 
 
 class StageDots(QWidget):

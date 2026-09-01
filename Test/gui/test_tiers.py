@@ -24,7 +24,8 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("POKEMON_MUTE", "1")
 
 import Scripts.Battle.battle_cycle                                 # noqa: F401,E402
-from Scripts.Data import tiers                                      # noqa: E402
+from Scripts.Data import tiers
+from Scripts.Data.competitors import list_of_competitors                                      # noqa: E402
 from Scripts.Data.pokemon import list_of_pokemon                    # noqa: E402
 
 FAILURES = []
@@ -38,6 +39,27 @@ def check(what, got, want=True):
         FAILURES.append(what)
 
 
+# Every competitor's Level has to be a real rung. It is not decoration:
+# game_system.py builds a bracket from the Low/Intermediate/Advanced pool and
+# samples Elites out of theirs, so a Level that is not one of these silently
+# removes that competitor from every tournament ever played. Two of them held
+# "intermediate.mp3" -- the music filename pasted into the Level cell -- and
+# neither had appeared in a bracket since.
+print("-- every competitor sits on a real rung --")
+_RUNGS = ("Low", "Intermediate", "Advanced", "Elite", "Champion",
+          "Protagonist")
+_stray = sorted((c.nickname, c.level) for c in list_of_competitors.values()
+                if c.level not in _RUNGS)
+check("no competitor has an unknown Level (%d checked)"
+      % len(list_of_competitors), _stray, [])
+_drawable = [c for c in list_of_competitors.values()
+             if c.level in ("Low", "Intermediate", "Advanced")]
+_elite = [c for c in list_of_competitors.values() if c.level == "Elite"]
+check("the bracket pool is big enough to fill 32 seats",
+      len(_drawable) >= 26, True)
+check("...and there are enough Elites to sample 4-6", len(_elite) >= 6, True)
+
+print()
 print("-- the ladder --")
 check("six tiers, weakest first", tiers.TIERS[0], "Very Low")
 check("...and strongest last", tiers.TIERS[-1], "Ultra High")
@@ -45,8 +67,29 @@ check("a centre for each", len(tiers.TIER_CENTRE), len(tiers.TIERS))
 check("the centres climb", list(tiers.TIER_CENTRE),
       sorted(tiers.TIER_CENTRE))
 check("rating 0 sits at the bottom", tiers.ladder_position(0), 0.0)
-check("...and a huge rating at the top",
-      tiers.ladder_position(10 ** 6), float(len(tiers.TIERS) - 1))
+# The top of the ladder is RATING_CEILING, not the last tier's centre. Ultra
+# High is six Pokemon and is deliberately never the centre of anybody's draw
+# -- reaching the ceiling earns a share of it, never a teamful. This used to
+# assert position 5.0 for a huge rating, which was the old design.
+check("...and a huge rating clamps to the ceiling",
+      tiers.ladder_position(10 ** 6),
+      tiers.ladder_position(tiers.RATING_CEILING))
+check("...which is below the last tier's own centre",
+      tiers.ladder_position(10 ** 6) < float(len(tiers.TIERS) - 1))
+_top = tiers.tier_weights(tiers.RATING_CEILING)
+check("...and the top of the ladder still reaches Ultra High",
+      _top[tiers.TIERS.index("Ultra High")] > 0)
+check("...without it taking the team",
+      _top[tiers.TIERS.index("Ultra High")] / sum(_top)
+      <= tiers.SHARE_CEILING["Ultra High"] + 1e-9)
+# Nothing at the bottom may reach the top shelves: that is what the narrower
+# spread is for.
+for _low in (0, 2, 5, 20):
+    _w = tiers.tier_weights(_low)
+    _share = (_w[tiers.TIERS.index("Very High")]
+              + _w[tiers.TIERS.index("Ultra High")]) / (sum(_w) or 1)
+    check("rating %d draws nothing from the top two tiers" % _low,
+          _share, 0.0)
 check("a rating never falls off the ladder",
       all(0 <= tiers.ladder_position(r) <= len(tiers.TIERS) - 1
           for r in range(0, 2000, 7)))

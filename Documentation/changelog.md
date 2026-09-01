@@ -1,3 +1,26 @@
+Pokemon Championship v1.2.5
+
+Pokemon & Characters
+- added new characters: Lillie, Yor Forger, Elowen
+- added new character abilities: Aurora Borealis, Assassination, Sylvan Sprout
+- NEW STATUS Sylvan Seed: the seed the Sylvan Sprout character ability plants. Leech Seed at half strength -- 1/16 of max HP a turn drained from the target and healed to the seeder, against Leech Seed's 1/8 -- because Sylvan Sprout plants one on every opponent that switches in, for free, where the move spends a turn each time
+- a Sylvan Seed follows Leech Seed's rules: Grass types are immune and it does not stack, and it is shed when the seeded Pokemon switches out
+
+Bugfixes
+- MOVE Leech Seed now no longer took on a Grass type
+- MOVE Throat Chop could crash the battle outright: it read the target's previous move by name, and a Pokemon that has not taken a turn yet has no move there. It needed the target to own a sound move that Throat Chop had already disabled, which is why it looked random
+- AI threw priority moves at a target immune to them every turn: Queenly Majesty and Dazzling only refused the move on a real turn, and a real turn is not when the AI plans
+- AI would buff its stats and then switch out the next turn, throwing away the boost it had just spent a turn on: switching resets stat stages and the switch maths priced that at nothing
+
+Rebalancing
+- the Pokemon a rating draws is reworked: the ladder now matters from 0 to 500 and everybody at 500 or above draws alike. Rating 5 draws mostly Low, rating 500 mostly Very High with some Ultra High and a little High
+- ADJUSTED MOVE Adrenaline: no longer raise enemy pokemon attack, special attack or speed, instead increase own attack by 1 stage, special attack by 1 stage and speed by 2 stages, and also badly poison on itself
+- Auraia's ace pokemon is now Jirachi instead of Alolan Ninetales
+- Some characters' tier and ratings have been adjusted for game balancing purpose
+- Some pokemon's tier has been adjusted for game balancing purpose
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.2.4
 
 Auto Run

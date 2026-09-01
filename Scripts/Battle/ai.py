@@ -61,6 +61,13 @@ BLENDED = "blended"
 #: should, not enough to give away a knockout.
 PRIORITY_WORTH = 25.0
 
+#: What one positive stat stage on the active Pokemon adds to the case for
+#: staying in, as a fraction of what that Pokemon is already worth in the
+#: matchup. Switching resets the stages, so leaving throws them away -- and
+#: the switch arithmetic priced them at nothing, which is why the AI would
+#: buff on one turn and switch on the next.
+STAGE_FORFEIT = 0.15
+
 #: What the AI uses when a trainer does not name a rule. BLENDED since the
 #: experiment below; PRIORITY_FIRST is the rule the game shipped with, and
 #: putting it back here is the whole of the revert.
@@ -568,6 +575,16 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
         if 'j' in move.flags and user.volatile_status["Turn"] > 2:
             move_score[index][0] -= UNUSABLE_MOVE_PENALTY
             move_score[index][1] = 0
+        # Accuracy zeroed means the move cannot reach at all -- Psychic
+        # Terrain, Queenly Majesty and Dazzling all say "this does not
+        # reach" that way, and no move in the table ships with 0. Damage
+        # score is already multiplied by accuracy, so it is 0 here; without
+        # this the only mark against the move was the single point below,
+        # and a strong priority move still outranked everything and was
+        # thrown into the wall every turn.
+        if move.accuracy <= 0:
+            move_score[index][0] -= UNUSABLE_MOVE_PENALTY
+            move_score[index][1] = 0
         # prolly no-effect move
         if move.attack_type != 'Status' and move.damage == 0:
             move_score[index][0] -= 1
@@ -869,6 +886,9 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
             list_of_moves[protagonist.team[0].moveset[incoming_move]])
         incoming_type = incoming.type
 
+    #: what each slot can deal, kept so the stat-stage credit below is a
+    #: fraction of real output rather than a flat number
+    outgoing = [0.0] * len(available_pokemon)
     for index, pokemon in enumerate(available_pokemon):
         ai_speed, protagonist_speed = estimated_speed_adjustment(ai, pokemon, battleground), \
                                       estimated_speed_adjustment(protagonist, protagonist.team[0], battleground)
@@ -902,6 +922,27 @@ def ai_switching_mechanism(protagonist, ai, battleground, recall=False, forced_s
 
             estimated_incoming_damage = incoming_move_damage + estimated_incoming_damage
             net_damage[index] = estimated_outgoing_damage - estimated_incoming_damage
+            outgoing[index] = estimated_outgoing_damage
+
+    # What staying is worth beyond the damage sums above: switching resets
+    # every stat stage, and none of the arithmetic above knew that. So a
+    # Pokemon that had just spent a turn on Swords Dance would compare a
+    # buffed self against a fresh team-mate on damage alone, find the
+    # team-mate slightly better, and leave -- having paid for the boost and
+    # then binned it. That is the "buffs, then switches" the AI was doing.
+    #
+    # Priced against the Pokemon's own output rather than as a flat number,
+    # because a stage is worth a proportion of what it hits for: +2 Attack on
+    # something that hits for 80 is worth far more than on something that
+    # hits for 8.
+    active = ai.team[0]
+    if not forced_switch and active.status != "Fainted":
+        stages = sum(max(0, stage) for stage in active.modifier[1:6])
+        if stages and outgoing[0] > 0:
+            net_damage[0] += STAGE_FORFEIT * stages * outgoing[0]
+            if battleground.verbose:
+                narrator.say("Staying keeps %d stage(s), worth %.1f"
+                             % (stages, STAGE_FORFEIT * stages * outgoing[0]))
 
     try:
         if recall and max(net_damage) < -50:

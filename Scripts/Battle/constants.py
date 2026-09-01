@@ -30,6 +30,45 @@ MODIFIER = {0: 'HP', 1: 'Attack', 2: 'Defense', 3: 'Special Attack', 4: 'Special
 #: rather than before the turn; that was right for them and wrong for these.
 #: Hence a phase of its own rather than moving phase 2 back.
 ORDER_PHASE = 10
+#: "the *other* side just switched something in". Phase 1 fires only for the
+#: arriving Pokemon's own side, which is right for every ability that greets
+#: its own switch-in and useless for one that reacts to the opponent's --
+#: Sylvan Sprout seeds whatever walks in. Adding it as a phase of its own
+#: rather than firing phase 1 for both sides, which would change all fifteen
+#: abilities already on phase 1.
+FOE_ARRIVAL_PHASE = 11
+
+#: What `volatile_status['LeechSeed']` holds for a seed Sylvan Sprout planted
+#: rather than the move. Only the two lines in battle_checklist that drain it
+#: read the number -- everything else asks whether it is above zero -- so the
+#: value is free to say how strong the seed is. A Sylvan seed drains and heals
+#: half of what Leech Seed does: the ability plants one on every arrival, for
+#: free, where the move costs a turn each time.
+SYLVAN_SEED = 2
+SEED_SHARE = {SYLVAN_SEED: 16}      #: divisor per seed kind; the move is 8
+DEFAULT_SEED_SHARE = 8
+
+#: Neither seed takes on these. Grass types are the series' own rule and the
+#: only one: Leech Seed reaches a Flying type or a Levitate holder perfectly
+#: well, unlike Spikes, and it is not a hazard on the ground.
+SEED_PROOF_TYPES = ("Grass",)
+
+
+def blocks_seeding(pokemon):
+    """Can a seed take on this Pokemon? -> (refused, why).
+
+    The shape `terrain.blocks_status` uses, and here for the same reason: the
+    rule has two callers -- the Leech Seed move and the Sylvan Sprout
+    character ability, which plants a Sylvan seed on every arrival -- and two
+    copies of it would be free to disagree. The move used to check nothing at
+    all and would seed a Venusaur.
+    """
+    if pokemon is None:
+        return True, "%s is not there to be seeded."
+    for kind in SEED_PROOF_TYPES:
+        if kind in (getattr(pokemon, "type", None) or []):
+            return True, "%s shrugs the seeds off."
+    return False, ""
 #: How often a battle opens on weather at all, and which weathers it may
 #: be. One roll decides whether, a second decides which -- so these two are
 #: independent, and adding a weather does not make weather more likely.

@@ -3,7 +3,7 @@ name,power,attack_type,type,accuracy,pp,ignoreEvasion,ignoreDef,ignoreWeather,ig
 Accelerock,40,Physical,Rock,1,20,,,,,,,,,,,,,,,0,1,0,0,0,"0,1",a,,no_effect,,1,,,,
 Acid Spray,40,Special,Poison,1,20,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",i,,opponent_modifier,"0,0,0,0,-2,0,0,0,0",1,,,,
 Acupressure,0,Status,Normal,9,30,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",,,no_effect,,1,,,,in code: raises one random stat by two (Scripts/Battle/battle_move_execution.py:73)
-Adrenaline,0,Status,Dark,9,10,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",b,Y,self_modifier|opponent_modifier,"0,2,-2,2,-2,1,0,0,0|0,1,0,1,0,0,0,0,0",1,,,,
+Adrenaline,0,Status,Dark,9,10,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",b,Y,self_modifier|user_non_volatile,"0,1,0,1,0,2,0,0,0|@BadPoison",1,,,,
 Aerial Ace,60,Physical,Flying,9,20,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",a,,no_effect,,1,,,,
 Agility,0,Status,Psychic,9,30,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",b,,self_modifier,"0,0,0,0,0,2,0,0,0",1,,,,
 Air Slash,75,Special,Flying,0.95,15,,,,,,,,,,,,,,,0,0,0,0,0,"0,1",,,target_volatile,@Flinch,0.3,,,,

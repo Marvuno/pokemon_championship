@@ -339,11 +339,18 @@ check("a bracket of 32 was drawn", len(GameSystem.participants), 32)
 
 crash = ""
 rounds = 0
+finished = 0
 auto_run.start()
 try:
     with redirect_stdout(io.StringIO()):
         main.play_career()
-    rounds = protagonist.stage
+    # What "played rounds" means: the career reached the end of the bracket
+    # and every match was recorded. `protagonist.stage` was read here before
+    # and only counts *wins* -- so a seed where the player loses all five
+    # failed a check about whether the rounds happened at all. Which seed
+    # wins is a property of the ratings, and those move.
+    rounds = len([r for r in (getattr(protagonist, "win_order", None) or [])])
+    finished = GameSystem.stage
 except Exception as error:
     import traceback
     crash = traceback.format_exc()[-500:]
@@ -353,7 +360,8 @@ finally:
 check("a career ran to the end with nothing left unanswered", crash, "")
 if crash:
     print(crash)
-check("...and it actually played rounds", rounds > 1, True)
+check("...and it actually played rounds (%d)" % rounds, rounds >= 5, True)
+check("...reaching the end of the bracket", finished, 6)
 
 print()
 print("ALL PASS" if not fails else "%d FAILURES: %s" % (len(fails), fails))

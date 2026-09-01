@@ -400,11 +400,20 @@ def hp_decreasing_modifier(pokemon, target, battleground):
             narrator.say(f"The curse has damaged {pokemon.name} {pokemon.hp // 4} HP.")
             pokemon.battle_stats[0] -= max(1, pokemon.hp // 4)
         # leech seed
-        if pokemon.volatile_status['LeechSeed'] > 0:
-            narrator.say(f"Leech seed has drained {pokemon.name} {pokemon.hp // 8} HP.")
-            pokemon.battle_stats[0] -= max(1, pokemon.hp // 8)
-        if target.volatile_status['LeechSeed'] > 0:
-            pokemon.battle_stats[0] += max(1, min(target.hp // 8, pokemon.hp - pokemon.battle_stats[0]))
+        # The number says which kind of seed it is, not how many turns are
+        # left: 8 for the move, 16 for one Sylvan Sprout planted. See
+        # SYLVAN_SEED in constants.py.
+        seeded = pokemon.volatile_status['LeechSeed']
+        if seeded > 0:
+            share = SEED_SHARE.get(seeded, DEFAULT_SEED_SHARE)
+            drained = max(1, pokemon.hp // share)
+            kind = "Sylvan seed" if seeded == SYLVAN_SEED else "Leech seed"
+            narrator.say(f"{kind} has drained {pokemon.name} {drained} HP.")
+            pokemon.battle_stats[0] -= drained
+        theirs = target.volatile_status['LeechSeed']
+        if theirs > 0:
+            share = SEED_SHARE.get(theirs, DEFAULT_SEED_SHARE)
+            pokemon.battle_stats[0] += max(1, min(target.hp // share, pokemon.hp - pokemon.battle_stats[0]))
         # ingrain
         if pokemon.volatile_status['Ingrain'] > 0:
             narrator.say(f"Ingrain roots has regenerated {pokemon.name} {min(pokemon.hp // 16, pokemon.hp - pokemon.battle_stats[0])} HP.")
