@@ -35,7 +35,7 @@ elif mode == 2:  # one vs one
     side1_participants = ['Elias Ainsworth']
     side2_participants = ['Reaper Conan']
 elif mode == 3:  # truly random
-    side1_participants = ['Monkey King']
+    side1_participants = ['Petra']
     side2_participants = ['Takagi']
 
 winner_name = []

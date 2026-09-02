@@ -35,6 +35,10 @@ Test/gui/_out/
 Backup/
 Save/
 
+# Other files #
+######################
+Assets/characters/Alternate/
+
 .~*
 __pycache__/
 **/__pycache__/

@@ -9,7 +9,7 @@ it runs from the project root as:
     python Test/opponent_ladder.py                  every pairing, 5 each
     python Test/opponent_ladder.py --repeat 10      more matches per pairing
     python Test/opponent_ladder.py --stage 3        4v4 instead of 6v6
-    python Test/opponent_ladder.py --pair "Goblin" "Monkey King"
+    python Test/opponent_ladder.py --pair "Goblin" "Petra"
     python Test/opponent_ladder.py --only Elite Champion   by tier
     python Test/opponent_ladder.py --seed 7         reproducible
 

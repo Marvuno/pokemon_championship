@@ -30,6 +30,7 @@ from Scripts.Art import narrator
 TRAPPING_CHARACTER_ABILITIES = ("Naive",)
 
 
+
 def switching_criteria(protagonist, competitor, user_team, opponent_team, battleground, forced_switch=False, transfer=False):
     if not forced_switch and user_team[0].status != "Fainted":
         # `competitor` is always the other side, whichever side is switching

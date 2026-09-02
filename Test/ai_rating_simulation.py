@@ -131,6 +131,21 @@ def play(task):
     flat = os.environ.get("POKEMON_FLAT_RATING", "").strip()
     if flat:
         side_a.strength = side_b.strength = int(flat)
+    # POKEMON_STRIP_ACES throws the designed team away on purpose -- the one
+    # thing the block above warns against. Paired with POKEMON_FLAT_RATING
+    # that is not the bug it describes but the whole experiment: with no ace
+    # and no rating advantage, every competitor draws from an identical
+    # distribution, so the only thing left that differs between any two of
+    # them is the character ability.
+    #
+    # It does break the abilities that name a species -- `champion` fires
+    # only for Gardevoir, Metagross, Charizard or Dragonite, which are those
+    # four competitors' aces -- so a report using this has to say so rather
+    # than let those rows read as a weak ability. ability_score_table.py does.
+    if os.environ.get("POKEMON_STRIP_ACES", "").strip():
+        # two lists, not one bound twice: a shared empty list would leave
+        # both sides building into the same one
+        side_a.team, side_b.team = [], []
     side_a.team = team_generation(side_a)
     side_b.team = team_generation(side_b)
 

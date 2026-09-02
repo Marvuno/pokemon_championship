@@ -65,6 +65,71 @@ MOODY_HURT_CHANCE = 0.20
 #: What fraction of the damage dealt Blood Magic drains back as HP.
 BLOOD_MAGIC_DRAIN = 0.33
 
+#: The band Outliers draws its damage multiplier from. The engine rolls
+#: `random.uniform(0.85, 1)` for every hit; his is far wider on both
+#: sides, which is what kurtosis measures -- weight in the tails rather
+#: than at the centre.
+#:
+#: It was 0.7-1.35, which averages 1.025 -- and that measured at *nothing*:
+#: 39.9% and 66th of 72 on ability alone, the same win rate he scored in an
+#: earlier run where the ability was accidentally unregistered and never
+#: fired at all. Variance around an unchanged mean wins the battles it would
+#: have lost and loses the ones it would have won, and over 710 matches
+#: those cancel. The design note called it "he flattens people he should
+#: lose to and folds against people he should beat" -- which is right, and
+#: nets to zero.
+#:
+#: 0.8-1.5 averages 1.15, so the tails still swing wildly (a 1.9x spread
+#: between his worst roll and his best, against the engine's own 1.18x) but
+#: the mean now favours him. The flavour was never the problem; being
+#: centred on 1.0 was.
+OUTLIERS_BAND = (0.8, 1.5)
+
+#: How many of the 18 types Quantum Roll seals at a time. Three of eighteen is
+#: 16.7% of any one move -- measured against real movesets that leaves at
+#: least one attack sealed on 47.8% of turns, two on 10.5%, and every attack
+#: sealed on 0.2%. Blind that would be stronger than Charm's 10% miss; because
+#: the roll is announced a turn ahead it is a constraint to plan around
+#: instead, which is the point.
+QUANTUM_TYPES = 3
+
+#: What a move converted by Pixelate is multiplied by. The series own
+#: Pixilate does the same, and without it the ability measured at +0.3
+#: points of win rate -- nothing. Normal to Fairy on its own is a
+#: lateral trade: Fairy beats Dragon, Dark and Fighting where Normal
+#: beats nothing, but it is resisted by Fire, Poison and Steel where
+#: Normal is only resisted by Rock and Steel -- and a Normal-type
+#: Pokemon loses its STAB into the bargain.
+PIXELATE_BOOST = 1.2
+
+#: What Pixelate reaches. Normal is the conversion; Fairy is there so the
+#: boost follows the type she leaves moves in rather than the type they
+#: started as, which is what makes the ability read as one rule.
+PIXELATE_TYPES = ("Normal", "Fairy")
+
+#: How many layers of Stealth Rock Groundwork opens with. One is the cap the
+#: move itself uses, and one is already an eighth of an incoming Pokemon --
+#: half its health if it is doubly weak to Rock. Unlike a terrain or a room,
+#: a hazard is one-sided by nature: it can only ever be paid by the other
+#: side, so this is worth the same whatever her own team happens to be, which
+#: is the whole reason it is a hazard and not a field effect.
+GROUNDWORK_LAYERS = 1
+
+#: What each *distinct species* she has seen adds to her damage, and the
+#: ceiling. Distinct is deliberate: she studies specimens, so a team
+#: fielding two of the same Pokemon teaches her once and diminishes her
+#: -- the set is keyed on the species name for exactly that reason.
+#:
+#: The first species seen is worth nothing; the boost is the *catalogue*
+#: beyond it. Six different Pokemon is the most a team can show her, so
+#: the cap and the step are chosen to meet: 5 x 0.08 = 0.40.
+FIELD_STUDY_STEP = 0.08
+FIELD_STUDY_CAP = 0.40
+
+#: How long a Royal Decree lasts. Longer than any battle runs, so it is
+#: a ban rather than a Disable -- the median battle is 19 turns.
+DECREE_TURNS = 999
+
 #: Brain Wave's multipliers for Psychic moves: damage, then effect chance.
 BRAIN_WAVE_DAMAGE = 1.5
 BRAIN_WAVE_EFFECT = 1.3
@@ -240,14 +305,33 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
                     notice(battleground, user_side)
 
     def serene_grace(*args):
-        # twice the chance of a move's secondary effect -- but only for the
-        # long shots. A move that already lands its effect half the time or
-        # better is left alone, so this sharpens the unreliable moves rather
-        # than making the reliable ones certain. Strictly below a half: at
-        # exactly 50% it does nothing.
+        """Every rider she carries lands four times in five.
+
+        Not doubled -- set. Doubling was what this used to do and it was
+        almost invisible: the chances in Data/moves.csv are bottom-heavy,
+        with 35 moves at 10% and 17 at 20%, so twice a long shot is still a
+        long shot, and the whole ability measured at +2.8 points of win rate.
+        A flat SERENE_GRACE_CEILING takes those same moves from 10% to 80%,
+        which is the difference between a rider that occasionally surprises
+        somebody and one they have to play around.
+
+        The guard is still `<`, so a move already above the ceiling keeps
+        what it had rather than being dragged down to it -- the ability only
+        ever raises. Two moves sit at 70% and would otherwise have lost
+        nothing, but a rule that can lower a chance is not what the card
+        says. (The comment this replaced claimed the cut-off was a half and
+        that 50% moves were left alone; the constant has been 0.8 throughout,
+        so a 50% move was always doubled to 80%. It said one thing and did
+        another for as long as it existed.)
+
+        `effect_accuracy` is also what the AI scores a secondary effect by --
+        `weight * effect_accuracy * accuracy`, ai.py:483-521 -- so this
+        raises her own estimate of these moves along with their real chance.
+        That is correct rather than incidental: the effect really is coming,
+        and a scorer told otherwise would leave the ability unused.
+        """
         if move.effect_accuracy < SERENE_GRACE_CEILING:
-            move.effect_accuracy = min(SERENE_GRACE_CEILING,
-                                       move.effect_accuracy * 2)
+            move.effect_accuracy = SERENE_GRACE_CEILING
             notice(battleground, user_side)
 
     def sparking_cascade(*args):
@@ -618,16 +702,6 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         target.volatile_status['Trapped'] = 1
         notice(battleground, user_side)
 
-    def telekinesis(*args):
-        # boost evasion for psychic Pokemon
-        if 'Psychic' in user.type:
-            user.applied_modifier = [0, 0, 0, 0, 0, 0, 1, 0, 0]
-            _stages_before = list(user.modifier)
-            user.modifier = list(map(operator.add, user.applied_modifier, user.modifier))
-            narrator.stat_change(user, _stages_before, user.modifier,
-                                 user.applied_modifier, battleground)
-            notice(battleground, user_side)
-
     def energy_imbalance(*args):
         # trigger sudden death when opponent only has the last pokemon
         if sum(1 for pokemon in target_side.team if pokemon.status != 'Fainted') == 1:
@@ -691,22 +765,10 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             if target_side.main and not battleground.auto_battle:
                 notice(battleground, user_side)
 
-    def experienced(*args):
-        # half recoil damage
-        if move.recoil > 0:
-            move.recoil *= 0.5
-            notice(battleground, user_side)
-
     def ball_trick(*args):
         # boost move power for ball/bomb moves
         if 'i' in move.flags and battleground.reality:
             move.power *= 1.5
-            notice(battleground, user_side)
-
-    def mad_scientist(*args):
-        # add priority for electric and steel type moves
-        if 'Electric' in move.type or 'Steel' in move.type:
-            move.priority += 1
             notice(battleground, user_side)
 
     def moody(*args):
@@ -764,12 +826,6 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             target_side.in_battle_effects = dict.fromkeys(target_side.in_battle_effects.keys(), 0)
             notice(battleground, user_side)
 
-    def buggy(*args):
-        # bug pokemon gains speed at the end of each turn (aka apply speed boost)
-        if 'Bug' in user.type:
-            user.ability += ['Speed Boost']
-            notice(battleground, user_side)
-
     def brain_wave(*args):
         """Psychic moves hit harder, on ground that suits them.
 
@@ -825,11 +881,6 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             target.battle_stats[0] -= target.hp // 4
             user.battle_stats[0] -= user.hp // 8
             notice(battleground, user_side)
-
-    def outlier(*args):
-        # apply super luck to every pokemon
-        user.ability += ['Super Luck']
-        notice(battleground, user_side)
 
     def thief(*args):
         # steal positive stats at a random chance
@@ -936,6 +987,370 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         narrator.stat_change(user, _stages_before, user.modifier,
                              user.applied_modifier, battleground)
         user.volatile_status['Confused'] = random.randint(2, 5)
+        notice(battleground, user_side)
+
+    def field_study(*args):
+        """The more of your team she has seen, the harder she hits.
+
+        Two halves. Phase 11 is the opponent arriving -- which fires for the
+        *lead* as well as for every later switch, because battle_cycle calls
+        `switched_in_initialization` for both sides at the start and
+        `switching_mechanism` calls the same function on every switch. So the
+        Pokemon she opens against is catalogued like any other.
+
+        Phase 4 spends the catalogue: FIELD_STUDY_STEP for every species
+        beyond the first, up to FIELD_STUDY_CAP.
+
+        Keyed on the species name on purpose. Two of the same Pokemon on one
+        team is one specimen to her, and it makes her weaker for the rest of
+        the battle -- she studies what is unique, not what is numerous.
+
+        Only the *recording* is gated on `reality`. Phase 11 runs while the
+        AI is thinking about switches, and a hypothetical arrival must not
+        fill her notebook. The multiplier is deliberately left ungated so
+        that the AI's own damage estimate includes it and values her moves
+        for what they will actually do.
+
+        It suits a fast, frail ace. Nothing here asks her to survive a long
+        exchange -- the count climbs when *their* Pokemon come and go, so she
+        grows through the battle without needing to tank it.
+        """
+        if abilityphase == FOE_ARRIVAL_PHASE:
+            if not battleground.reality or target is None:
+                return
+            seen = getattr(battleground, "studied", None)
+            if seen is None:
+                seen = battleground.studied = set()
+            name = getattr(target, "name", "")
+            if name and name not in seen:
+                seen.add(name)
+                notice(battleground, user_side)
+            return
+        if abilityphase != 4 or getattr(move, "damage", 0) <= 0:
+            return
+        seen = getattr(battleground, "studied", None)
+        if not seen or len(seen) < 2:
+            return                          # one specimen teaches her nothing
+        boost = min(FIELD_STUDY_CAP, FIELD_STUDY_STEP * (len(seen) - 1))
+        move.damage = math.floor(move.damage * (1 + boost))
+        notice(battleground, user_side)
+
+    def cross_court(*args):
+        """Her attacks go wherever the court is open.
+
+        Every move she throws is worked out against whichever of the target's
+        two defences is *lower*, whether the move is physical or special. A
+        wall that is bulky on one side only stops being a wall.
+
+        It is done by setting `inverseDef`, which is the move field the
+        engine already reads to send a physical move at Special Defense and
+        a special one at Defense -- Psyshock's mechanism. So this changes
+        nothing about how damage is computed, only which number goes into it,
+        and `check_defense_strength` is shared with the AI's estimator so the
+        two cannot disagree about what a hit is worth.
+
+        Which defence is softer is decided by *asking that function both
+        ways* rather than working it out again here. The engine has been
+        bitten by re-derived damage maths before -- the AI carried
+        byte-identical copies of three of these helpers, so correcting a
+        formula in one place would have left the other deciding by the old
+        one with nothing failing. Calling it twice costs two multiplications
+        and cannot drift, and it handles `ignoreDef` for free: a move that
+        ignores stat stages compares the neutral defences because that is
+        what the helper will use.
+
+        `move` here is this turn's own copy, so writing to it cannot reach
+        the shared entry in `list_of_moves`.
+        """
+        if abilityphase != 2 or target is None:
+            return
+        if getattr(move, "attack_type", "") not in ("Physical", "Special"):
+            return
+        # imported here, not at the top: this module is imported *by* the
+        # battle package and a top-level import would close the circle
+        from Scripts.Battle.damage_calculation import check_defense_strength
+        was = move.inverseDef
+        move.inverseDef = False
+        straight = check_defense_strength(user, target, move)
+        move.inverseDef = True
+        swapped = check_defense_strength(user, target, move)
+        move.inverseDef = swapped < straight
+        if move.inverseDef != was:
+            notice(battleground, user_side)
+
+    def reflection(*args):
+        """Her Pokemon reflects whichever of the two is better, stat by stat.
+
+        Every base stat except HP is taken as the higher of the two Pokemon
+        on the field, so she is never the weaker of a pair -- and never the
+        stronger either. Facing something formidable, she matches it; facing
+        something feeble, nothing happens.
+
+        HP is left alone deliberately, and it is the whole balance of the
+        thing: she matches your power and keeps her own glass. A frail
+        Pokemon wearing a monster's Attack still folds to the same number of
+        hits it always did.
+
+        It is written to `nominal_base_stats`, not `battle_stats`. The latter
+        is rebuilt from the former every turn with the stat stages applied on
+        top (battle_cycle.py:91), so writing the base is what survives the
+        rebuild and still lets Swords Dance multiply it. `default_nominal_base_stats`
+        holds her real numbers, and switching restores from it.
+
+        Recomputed from her *own* defaults each time rather than from
+        whatever she is currently wearing, or it would ratchet: one brush
+        with a Champion's ace and she would keep its Attack for the rest of
+        the battle. Phases 1 and 11 are every moment the pairing can change
+        -- her Pokemon arriving, or theirs -- and both hand her `user` and
+        the opponent `target`.
+        """
+        if abilityphase not in (1, FOE_ARRIVAL_PHASE):
+            return
+        if not battleground.reality or user is None or target is None:
+            return
+        mine = getattr(user, "default_nominal_base_stats", None)
+        theirs = getattr(target, "nominal_base_stats", None)
+        if not mine or not theirs:
+            return
+        lifted = False
+        for index in range(1, 6):           # 0 is HP, and HP is hers alone
+            best = max(mine[index], theirs[index])
+            if user.nominal_base_stats[index] != best:
+                user.nominal_base_stats[index] = best
+                lifted = lifted or best > mine[index]
+        if lifted:
+            notice(battleground, user_side)
+
+    def pixelate(*args):
+        """Misty ground, and every Normal move she has comes out Fairy.
+
+        Two halves, and they are chosen to agree with each other. Misty
+        Terrain halves Dragon moves and refuses status on anything grounded;
+        turning her Normal moves Fairy gives them a type Dragon cannot resist
+        and Steel can. The pair is the point -- either alone is thinner.
+
+        The boost lands on Fairy moves too, not only the Normal ones it
+        converts, so the reward is "her moves are Fairy" rather than "her
+        moves used to be Normal" -- a Fairy-type Pokemon of hers is helped
+        by the ability instead of being the one exception to it.
+
+        The type change is the Pokemon ability Pixilate, widened to the whole
+        team. Phase 2 is where Protean and Libero already retype, and it runs
+        as the Pokemon takes its turn, so the move is aimed with the type it
+        will actually land with. `move` at this point is this turn's own copy
+        (see battle_cycle) -- writing to a shared entry of `list_of_moves`
+        would retype it for every Pokemon in the game, permanently, which is
+        the trap test_engine_integrity exists to catch.
+        """
+        if abilityphase == 1:
+            # 0 is 'before the first turn'; the same check Light Speed and
+            # Sparking Cascade use, so it lapses like any other terrain
+            if (battleground.turn < 1
+                    and terrain.current(battleground) != "Misty"):
+                battleground.terrain = "Misty"
+                battleground.terrain_turn = terrain.NATURAL_TURNS
+                if battleground.reality:
+                    narrator.say(terrain.TERRAIN_ARRIVES["Misty"],
+                                 "weather", terrain="Misty")
+                notice(battleground, user_side)
+            return
+        if abilityphase != 2:
+            return
+        if getattr(move, "type", None) in PIXELATE_TYPES:
+            move.type = "Fairy"
+            # Fairy as well as the Normal moves it converts -- the series
+            # ability boosts only what it retyped, but a Fairy-type Pokemon
+            # of hers would then be the one Pokemon on the team the ability
+            # does nothing for, which reads as a bug rather than a rule.
+            #
+            # Stamped rather than simply multiplied: with Fairy in the set
+            # the branch is no longer self-limiting the way Normal -> Fairy
+            # was, so a move shown to the ability twice for one use would
+            # compound to 1.44x. Every phase-2 caller hands over a fresh
+            # `fast_copy` today (ai.py, battle_initialization) and the flag
+            # is never on the shared `list_of_moves` entry, so this costs
+            # nothing and does not depend on that staying true.
+            #
+            # `power` is the right field rather than `damage`: the engine's
+            # damage_calculation reads it (line 69) and so does the AI's own
+            # estimator (ai.py:157), so the AI values the boosted move
+            # correctly instead of under-rating what it is about to throw.
+            if getattr(move, "power", 0) > 0 and not getattr(move, "pixelated", False):
+                move.pixelated = True
+                move.power = math.floor(move.power * PIXELATE_BOOST)
+            notice(battleground, user_side)
+
+    def quantum_roll(*args):
+        """Three types do not reach the Quantum Moon, and you are told which.
+
+        Two halves, and the announcement is the ability rather than a
+        courtesy: a blind seal is a 1-in-6 fizzle that reads as being cheated,
+        while a seal you were warned about a turn early is a constraint you
+        route around. It also means the AI plays around it for free -- phase 3
+        runs inside the AI's move scoring, so a sealed move scores as doing
+        nothing and it picks something else.
+
+        ORDER_PHASE fires once a turn, before the order is settled, and for
+        *both* orientations -- so the roll is keyed on the turn number or it
+        would happen twice and the announcement would disagree with itself.
+
+        Four rules, all of them from the design rather than the engine:
+
+          * three types, sealed for one turn
+          * next turn's three are announced a turn ahead
+          * attacking moves only; a status move is never sealed
+          * if every attack the opponent has is sealed, one is spared at
+            random -- nobody is ever left with nothing to do
+
+        The seal does nothing on turn 1. The first turn only announces.
+        """
+        state = getattr(battleground, "quantum", None)
+        if abilityphase == ORDER_PHASE:
+            if not battleground.reality:
+                return
+            if state is not None and state["turn"] == battleground.turn:
+                return                      # already rolled for this turn
+            # the 18 real types, read off the move table rather than
+            # importing the chart: this module already has the moves
+            pool = sorted({entry.type for entry in list_of_moves.values()
+                           if entry.type and entry.type != "Typeless"})
+            upcoming = set(random.sample(pool, min(QUANTUM_TYPES, len(pool))))
+            now = set() if state is None else state["next"]
+            state = battleground.quantum = {"turn": battleground.turn,
+                                            "now": now, "next": upcoming,
+                                            "spared": ""}
+            # nobody is ever locked out completely: if every attack the
+            # Pokemon opposite has is sealed, one of them is spared
+            if target is not None and now:
+                attacks = [name for name in (target.moveset or [])
+                           if name in list_of_moves
+                           and list_of_moves[name].attack_type != "Status"]
+                sealed = [name for name in attacks
+                          if list_of_moves[name].type in now]
+                if attacks and len(sealed) == len(attacks):
+                    state["spared"] = random.choice(sealed)
+            narrator.say("Next turn the Quantum Moon refuses %s."
+                         % ", ".join(sorted(upcoming)), "weather")
+            if now:
+                notice(battleground, user_side)
+            return
+        if abilityphase != 3 or state is None:
+            return
+        if getattr(move, "attack_type", "") == "Status":
+            return                          # status moves are never sealed
+        if getattr(move, "name", "") == state["spared"]:
+            return                          # the one left open
+        if getattr(move, "type", None) in state["now"]:
+            move.accuracy = 0
+
+    def outliers(*args):
+        """His damage is drawn from a much wider distribution than anyone's.
+
+        The engine's own roll is `random.uniform(0.85, 1)` -- a 15% band. His
+        is OUTLIERS_BAND on top of that, so a hit lands anywhere from
+        two-thirds to a third again of what it should. Nothing else in the
+        game touches variance.
+
+        This is the black horse in mechanical form: he flattens people he
+        should lose to and folds against people he should beat. The average
+        barely moves, which is why a win rate over hundreds of battles is the
+        wrong way to read him -- the spread of his results is the product.
+        """
+        if abilityphase != 4 or move.damage <= 0:
+            return
+        move.damage = math.floor(move.damage * random.uniform(*OUTLIERS_BAND))
+        notice(battleground, user_side)
+
+    def memento(*args):
+        """His Pokemon falls, and takes the opponent's offence down with it.
+
+        The move Memento's own effect -- Attack and Special Attack each down
+        two stages -- fired by a faint rather than spent as a turn.
+
+        Phase 9 is the switch-out, and it runs for a fainted Pokemon as well
+        as a volunteered one, so the faint check is what makes this a memento
+        rather than an aura: 598 faints over 144 battles, against 111
+        voluntary switches. `user` is the one leaving; `target` is who it was
+        facing.
+
+        Inverting or wiping the opponent's whole stat line was tried on
+        paper and dropped: the opponent held positive stages on 23% of those
+        faints, median 2 but as many as 10, so an inversion was a 20-stage
+        swing at the tail. Two fixed stages off two fixed stats cannot run
+        away with a battle, and it fires at most five times.
+        """
+        if abilityphase != 9 or not battleground.reality:
+            return
+        if user is None or user.status != "Fainted":
+            return
+        if target is None or target.status == "Fainted":
+            return
+        target.applied_modifier = [0, -2, 0, -2, 0, 0, 0, 0, 0]
+        _stages_before = list(target.modifier)
+        target.modifier = list(map(operator.add, target.applied_modifier,
+                                   target.modifier))
+        narrator.stat_change(target, _stages_before, target.modifier,
+                             target.applied_modifier, battleground)
+        notice(battleground, user_side)
+
+    def royal_decree(*args):
+        """The first move used against her in a battle is forbidden for it.
+
+        Phase 3, so `user` is her Pokemon -- the one being aimed at -- and
+        `target` is the attacker holding the move. The decree goes on the
+        attacker's own disabled list, which is the same dict Disable, Encore,
+        Taunt and Throat Chop write to, so the engine already refuses a
+        disabled move and already counts it down. A number well past any
+        battle length makes it permanent.
+
+        `reality` is not optional here. Phase 3 also fires while the AI is
+        scoring its candidate moves (ai.py), and writing to a real Pokemon's
+        disabled list from inside a hypothetical would forbid moves nobody
+        ever used.
+        """
+        if abilityphase != 3 or not battleground.reality:
+            return
+        name = getattr(move, "name", "")
+        if not name or name == "Switching":
+            return
+        decreed = getattr(battleground, "decreed", None)
+        if decreed is None:
+            decreed = battleground.decreed = set()
+        # once a battle, per side that holds it
+        if id(user_side) in decreed:
+            return
+        decreed.add(id(user_side))
+        target.disabled_moves[name] = DECREE_TURNS
+        narrator.say("%s forbids %s!" % (user_side.nickname, name), "fail")
+        notice(battleground, user_side)
+
+    def groundwork(*args):
+        """The ground was prepared before either of them got there.
+
+        Stealth Rock on the far side at the opening. It is laid on
+        `target_side` because a side's own `entry_hazard` is what its own
+        arrivals walk into -- the same field the move writes (ai.py:472) and
+        the same one the AI reads when it weighs a switch (ai.py:916), so
+        the AI counts these rocks against its own switching for free.
+
+        Turn 0 only, the same check Light Speed and Sparking Cascade
+        use, and it is not re-laid afterwards. That leaves the counterplay
+        the roster already has intact: Rapid Spin clears it, Gluttony
+        eats it, and Infiltration walks past it. An ability that re-laid
+        every switch-in would answer all three and would not be a hazard.
+
+        The lead never pays it. Hazards are collected on the way in, and the
+        opponent's first Pokemon is already standing there -- which is how
+        Stealth Rock reads normally, and why this is an ability about the
+        long game rather than an opening burst.
+        """
+        if abilityphase != 1 or battleground.turn >= 1:
+            return
+        if target_side.entry_hazard.get("Stealth Rock", 0):
+            return
+        target_side.entry_hazard["Stealth Rock"] = GROUNDWORK_LAYERS
+        narrator.say("Pointed stones were scattered around the far side of "
+                     "the field!", "field", hazard="Stealth Rock")
         notice(battleground, user_side)
 
     def light_speed(*args):
@@ -1294,7 +1709,6 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Calibration": (2, calibration, "Custom"),
         "Violence": (2, violence),
         "Naive": (1, naive),
-        "Telekinesis": (1, telekinesis),
         "Energy Imbalance": (1, energy_imbalance),
         # Phase 1 is "switched in", which is when her count is re-checked.
         "Frighten": (1, frighten),
@@ -1305,20 +1719,16 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Procrastination": (ORDER_PHASE, procrastination),
         "Death Realm": (6, death_realm),
         "Charm": (3, charm),
-        "Mad Scientist": (2, mad_scientist),
         "Moody": (8, moody),
-        "Experienced": (2, experienced),
         "Ball Trick": (2, ball_trick),
         "String Manipulation": (8, string_manipulation),
         "Heavy Blow": (1, heavy_blow),
         "Nimble": (1, nimble),
         "Fireworks": (2, fireworks),
         "Gluttony": (8, gluttony),
-        "Buggy": (1, buggy),
         "Brain Wave": ((1, 4), brain_wave),
         "Champion": (1, champion),
         "Impatient": (8, impatient),
-        "Outlier": (1, outlier),
         "Thief": (4, thief),
         "Tenebrous": (4, tenebrous),
         "Barbaric": (6, barbaric),
@@ -1326,6 +1736,13 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Plot Armor": ((1, 5, 7, 8), plot_armor),
         "Calm": ((7, 8), calm),
         "Ruthless": ((4, 5), ruthless),
+        "Memento": (9, memento),
+        "Outliers": (4, outliers),
+        "Quantum Roll": ((ORDER_PHASE, 3), quantum_roll),
+        "Pixelate": ((1, 2), pixelate),
+        "Reflection": ((1, FOE_ARRIVAL_PHASE), reflection),
+        "Cross Court": (2, cross_court),
+        "Field Study": ((4, FOE_ARRIVAL_PHASE), field_study),
         "Death Note": (8, death_note),
         "Soak": (1, soak),
         "Time Travel": (3, time_travel),
@@ -1350,6 +1767,8 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Assassination": (ORDER_PHASE, assassination),
         "Aurora Borealis": (1, aurora_borealis),
         "Sylvan Sprout": (FOE_ARRIVAL_PHASE, sylvan_sprout),
+        "Royal Decree": (3, royal_decree),
+        "Groundwork": (1, groundwork),
     }
 
     if _CHARACTER_PHASES is None:

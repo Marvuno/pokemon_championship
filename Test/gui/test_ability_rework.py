@@ -160,8 +160,15 @@ check("every hazard on her side is gone", sum(one.entry_hazard.values()), 0)
 check("...and she still gets Mold Breaker",
       "Mold Breaker" in (mine.ability or []), True)
 
-OUT.write(chr(10) + "-- Monkey King has no character ability --" + chr(10))
-check("his ability field is empty", C["Monkey King"].ability, "")
+OUT.write(chr(10) + "-- a competitor with no character ability --" + chr(10))
+# The Monkey ability was removed from Monkey King in v1.2.1, and Monkey King
+# himself was removed from the roster in v1.2.6. What that block was really
+# guarding outlives him: the dispatcher is handed a blank ability field on
+# every single battle, because the Protagonist has none. So the subject is
+# the Protagonist now -- a more permanent case than any competitor.
+check("the Protagonist holds no character ability",
+      (C["Protagonist"].ability or "").strip(), "")
+check("...and Monkey King is out of the roster", "Monkey King" in C, False)
 # the registry is local to UseCharacterAbility, so ask the derived phase map
 import Scripts.Data.character_abilities as CA                        # noqa: E402
 with redirect_stdout(io.StringIO()):
@@ -174,8 +181,8 @@ check("...and nobody in the roster still holds it",
 # and a blank ability must not raise when the engine dispatches on it
 try:
     with redirect_stdout(io.StringIO()):
-        one2 = deepcopy(C["Monkey King"])
-        m = built(owner="Monkey King")
+        one2 = deepcopy(C["Protagonist"])
+        m = built(owner="Jason")
         UseCharacterAbility(Turn(Battleground(), Side(one2, [m], m),
                                  Side(deepcopy(C["Jason"]), [m], m)),
                             "", abilityphase=1)
@@ -291,7 +298,7 @@ with redirect_stdout(io.StringIO()):
 check("...and a drop on a settled turn still spreads", theirs.modifier[1], -2)
 
 OUT.write(chr(10) + "-- a real battle still runs for each of them --" + chr(10))
-for who in ("Emperor Marvuno", "Albert Einstein", "Velvet", "Monkey King",
+for who in ("Emperor Marvuno", "Albert Einstein", "Velvet", "Petra",
             "Ash Ketchum", "Auraia", "Demon Muzan", "King Bradley"):
     wins = 0
     crash = ""

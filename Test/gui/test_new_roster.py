@@ -203,11 +203,12 @@ check("...fielding her designed ace (%s)" % _designed,
       [getattr(a, "name", a) for a in list_of_competitors["Auraia"].team],
       [_designed])
 
-# It doubles a secondary effect but never past the cap, and never touches a
-# move already at or above it. The point of the cap is that nothing Serene
-# Grace sharpens can become a certainty: doubling used to clamp to 1.0, so a
-# 50% effect landed every single time.
-check("the cap is 80%", CA.SERENE_GRACE_CEILING, 0.8)
+# It *sets* a secondary effect to the ceiling rather than doubling it, and
+# never touches a move already at or above it. Doubling was the old rule and
+# it was nearly invisible -- the chances in the move table are bottom-heavy,
+# so twice a long shot is still a long shot. The ceiling is what stops the
+# ability making anything a certainty: it only ever raises, and only to 80%.
+check("the ceiling is 80%", CA.SERENE_GRACE_CEILING, 0.8)
 for want in (0.1, 0.2, 0.3, 0.5, 0.7, 1.0):
     pick = next((n for n, m in list_of_moves.items()
                  if abs(m.effect_accuracy - want) < 0.001
@@ -215,7 +216,7 @@ for want in (0.1, 0.2, 0.3, 0.5, 0.7, 1.0):
     if pick is None:
         continue
     _, _, move = fire("Auraia", 2, pick, mon(["Fire"]), mon(["Grass"]))
-    expected = (min(CA.SERENE_GRACE_CEILING, want * 2)
+    expected = (CA.SERENE_GRACE_CEILING
                 if want < CA.SERENE_GRACE_CEILING else want)
     check("%-16s %.2f -> %.2f" % (pick, want, expected),
           round(move.effect_accuracy, 4), round(expected, 4))
@@ -229,8 +230,11 @@ for want in (0.1, 0.2, 0.3, 0.5, 0.7, 1.0):
 # no move in the table happens to carry -- 80%, the cap itself, has none.
 # Distinct loop variables: reusing `want` here would rebind the one the loop
 # above closes over, and its last check would then compare against this.
+# Every chance below the ceiling arrives at the ceiling now -- 10% and 30%
+# are the cases that used to come out at 20% and 60% and were the reason the
+# ability did almost nothing.
 for start, ends_at in ((1.00, 1.00), (0.80, 0.80), (0.70, 0.80),
-                       (0.50, 0.80), (0.30, 0.60)):
+                       (0.50, 0.80), (0.30, 0.80), (0.10, 0.80)):
     _, _, probe = fire("Auraia", 2, "Body Slam", mon(["Fire"]), mon(["Grass"]),
                        rate=start)
     check("  %3.0f%% -> %3.0f%%" % (start * 100, ends_at * 100),
@@ -321,6 +325,18 @@ check("every competitor's ability has an official description",
 check("...and it comes from their own Strategy cell, not from code",
       ability_text(list_of_competitors["Goblin"]),
       "decrease speed, but increase accuracy.")
+# ...and that the engine has actually heard of it. The check above only asks
+# whether the CSV describes the ability, which it will happily do for a name
+# no longer in the registry -- renaming an ability in code and forgetting the
+# CSV leaves the holder with a description, a Pokedex entry and no ability at
+# all, and nothing raises. `_CHARACTER_PHASES` is built lazily on the first
+# dispatch, so it is primed above by the abilities exercised earlier in this
+# file; assert it is populated rather than trusting that.
+check("the ability registry has been built", bool(CA._CHARACTER_PHASES), True)
+check("every ability a competitor holds is registered in the engine",
+      sorted(c.nickname for c in list_of_competitors.values()
+             if c.ability and c.ability not in (CA._CHARACTER_PHASES or {})),
+      [])
 check("Lusamine is Advanced now",
       list_of_competitors["Lusamine"].level, "Advanced")
 check("Devoltorm's write-up no longer names the source material",
