@@ -1,5 +1,11 @@
 Pokemon Championship v1.2.7
 
+Interface
+- side columns on battle log for clarity
+- Quantum Roll now shows which types are sealed in the next turn
+- fainted / switch-ins now indicate in the battle screen
+- improved clarity on battle log to show correct order of sequence
+
 Custom Play
 - NEW MODE Custom Play, where players could pick any competitor and battle them
 
