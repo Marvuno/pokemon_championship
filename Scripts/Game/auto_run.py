@@ -51,7 +51,7 @@ import re
 from Scripts.Art import music
 
 #: The most careers one Auto Run may be asked for.
-MAX_RUNS = 100
+MAX_RUNS = 1000
 
 #: Entered at the move prompt to turn auto battle on. `select_move` reads it
 #: and says the turn still needs a move, which is why the reply after it is
