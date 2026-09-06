@@ -1583,6 +1583,8 @@ class CareerDialog(QDialog):
     #: meant to be compared down are no longer columns.
     RUN_TAG_WIDTH = 34
     RANK_WIDTH = 96
+    #: the run's total rating change, beside the rank
+    SWING_WIDTH = 56
     #: what a name on a path is written in. Its own role rather than
     #: `fonts.small` inline, because the slot width above is measured against
     #: it -- changing one without the other is what cut the names off.
@@ -1610,9 +1612,10 @@ class CareerDialog(QDialog):
         for position, step in enumerate(steps):
             # two or three: (name, won) from the champion roll, (name, won,
             # rating change) from a run path recorded since the Tournaments
-            # rating column went in
+            # rating column went in. The change is not drawn here -- a figure
+            # under every opponent was six numbers to read where the run only
+            # has one answer; the row's total carries it instead.
             name, won = step[0], step[1]
-            change = step[2] if len(step) > 2 else None
             if position:
                 arrow = _label("→", getattr(self.fonts, self.PATH_FONT),
                                T.TEXT_FAINT)
@@ -1626,23 +1629,6 @@ class CareerDialog(QDialog):
             cell = ElidedLabel(str(name), getattr(self.fonts, self.PATH_FONT),
                                shade)
             cell.setFixedWidth(self.PATH_NAME_WIDTH)
-            if change is not None:
-                # What that round moved the rating by, under the name it was
-                # won or lost against. Green up, red down, and in the same
-                # weight RANK is set in so it reads as a figure rather than
-                # as a footnote. Stacked rather than placed beside the name
-                # because the name slot is a fixed width the row's alignment
-                # depends on -- see the note below on ElidedLabel.
-                stack = QVBoxLayout()
-                stack.setContentsMargins(0, 0, 0, 0)
-                stack.setSpacing(0)
-                stack.addWidget(cell)
-                delta = _label("%+d" % change, self.fonts.body_bold,
-                               T.PLAYER if change >= 0 else T.OPPONENT)
-                delta.setFixedWidth(self.PATH_NAME_WIDTH)
-                stack.addWidget(delta)
-                row.addLayout(stack)
-                continue
             # setFixedWidth is not enough on its own here. ElidedLabel is
             # horizontally Ignored by default -- that is the whole point of it
             # in the Pokedex rail, where a long name must not widen the row --
@@ -1963,6 +1949,19 @@ class CareerDialog(QDialog):
                                self.fonts.body_bold, colour)
                 place.setFixedWidth(self.RANK_WIDTH)
                 line.addWidget(place)
+                # What the whole run moved the rating by. One number, beside
+                # the rank, in the same weight -- green up, red down. Only
+                # the player has per-match figures to add up (see
+                # game_procedure.match_rating_steps), so for anybody else
+                # there is nothing here and the slot is simply absent.
+                steps = [step[2] for step in (entry.get("path") or [])
+                         if len(step) > 2 and step[2] is not None]
+                if steps:
+                    total = sum(steps)
+                    swing = _label("%+d" % total, self.fonts.body_bold,
+                                   T.PLAYER if total >= 0 else T.OPPONENT)
+                    swing.setFixedWidth(self.SWING_WIDTH)
+                    line.addWidget(swing)
             else:
                 # A run they sat out. Said plainly and dimly, so the row is
                 # still there to be counted but does not read as a result.
