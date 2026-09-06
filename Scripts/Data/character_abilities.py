@@ -158,10 +158,18 @@ BRAIN_WAVE_EFFECT = 1.3
 #: The types Tenebrous sharpens.
 TENEBROUS_TYPES = ("Dark", "Ghost")
 
-#: How far Tension Release pushes its user down the order. Deeply negative
-#: rather than -1: forcing the other side to switch is worth a turn of
-#: initiative, and the move should land after whatever they were going to do.
-TENSION_RELEASE_PRIORITY = -10
+#: What Tension Release sets its user's move priority to.
+#:
+#: Set, not decremented, and no longer the -10 it was. -10 put her behind
+#: everything, including the genuinely slow moves; -1 puts her behind ordinary
+#: moves and in among them, which is the right shape now that the switch
+#: happens every turn regardless of what landed.
+#:
+#: A set rather than a subtraction, so it flattens her priority moves too: a
+#: Quick Attack on her side resolves at -1 like the rest. She is slow and
+#: reactive by design, and a move that jumped the queue would be the one
+#: exception to that.
+TENSION_RELEASE_PRIORITY = -1
 
 #: Anger Point's reward, in stages, to Attack and Special Attack each.
 ANGER_POINT_STAGES = 2
@@ -442,15 +450,18 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         notice(battleground, user_side)
 
     def tension_release(*args):
-        """A plain hit shoves the other side off the field.
+        """Nobody stands still: every turn ends with both sides swapped out.
 
-        Three phases, and the third one is the whole reason this is not
-        simpler.
+        Two phases. ORDER_PHASE sets her move's priority to
+        TENSION_RELEASE_PRIORITY so she acts late; phase 8, the end of the
+        turn, drags *both* sides off the field and sends somebody else in.
 
-        Phase 2 drops the move's priority to TENSION_RELEASE_PRIORITY, so it
-        always resolves last -- forcing a switch is worth a turn of
-        initiative. Phase 6 notes that a *non*-super-effective hit landed.
-        Phase 8, the end of the turn, is where the switch actually happens.
+        It used to fire only when one of her hits landed without being super
+        effective, which made the ability read as random -- it turned itself
+        on and off according to type matchups nobody was tracking, and a turn
+        where she missed looked identical to a turn where the rule simply had
+        not applied. Every turn, both sides, is a rule a player can hold in
+        their head and play around, which is the point of her.
 
         **The switch cannot happen mid-turn**, and this is not caution. The
         first cut swapped `team[0]` the moment the move landed, at phase 6.
@@ -470,34 +481,41 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             notice(battleground, user_side)
             return
 
-        if abilityphase == 6:
-            # Remember, act later. `super_effective` is set by the damage
-            # calculation for the hit that just happened.
-            if not getattr(move, "super_effective", False):
-                battleground._tension_release_owed = True
+        # phase 8 -- the end of the turn, both sides, every turn.
+        #
+        # Keyed on the turn number because phase 8 fires once per side and
+        # this acts on both: without the key the second firing would drag
+        # everybody straight back out again.
+        if getattr(battleground, "_tension_release_turn", None) == \
+                battleground.turn:
             return
+        battleground._tension_release_turn = battleground.turn
 
-        # phase 8 -- the end of the turn
-        if not getattr(battleground, "_tension_release_owed", False):
-            return
-        battleground._tension_release_owed = False
-        team = target_side.team
-        bench = [index for index, mon in enumerate(team)
-                 if index > 0 and mon.status != "Fainted"]
-        if not bench or team[0].status == "Fainted":
-            return                      # nobody to bring in, or already gone
         # Imported here, not at the top: switching reaches back into the
         # battle modules that import this one, so a module-level import
         # closes the circle.
         from Scripts.Battle.switching import switching_mechanism
-        chosen = random.choice(bench)
-        going = team[0].name
-        team[0] = switching_mechanism(target_side, user_side, battleground,
-                                      team, user_side.team, chosen, False)
-        if battleground.reality:
-            narrator.say(f"{going} is dragged out! "
-                         f"{team[0].name} is forced in.", "switch",
-                         pokemon=team[0].name)
+
+        def drag(side, other):
+            """Send out somebody else, if there is anybody else to send."""
+            team = side.team
+            bench = [index for index, mon in enumerate(team)
+                     if index > 0 and mon.status != "Fainted"]
+            if not bench or team[0].status == "Fainted":
+                return              # nobody to bring in, or already gone
+            chosen = random.choice(bench)
+            going = team[0].name
+            team[0] = switching_mechanism(side, other, battleground,
+                                          team, other.team, chosen, False)
+            if battleground.reality:
+                narrator.say(f"{going} is dragged out! "
+                             f"{team[0].name} is forced in.", "switch",
+                             pokemon=team[0].name)
+
+        # hers first, so it reads in the order a player watches it happen:
+        # she lets go of her own, then pulls yours
+        drag(user_side, target_side)
+        drag(target_side, user_side)
         notice(battleground, user_side)
 
     def _repeatable(candidate):
@@ -603,9 +621,16 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         down afterwards, so TORMENT_TURNS of 1 means used this turn, gone
         next turn, back the turn after.
 
-        Phase 7 -- "after taking damage", with the turn flipped, so `user`
-        is the holder and `target` is whoever attacked them; the move being
-        locked away is the attacker's.
+        MOVE_SPENT_PHASE -- "the move has been used", with the turn
+        flipped, so `user` is the holder and `target` is whoever attacked
+        them; the move being locked away is the attacker's.
+
+        It sat on phase 7 first, which is "after taking damage" and so never
+        fired on a miss: an attack that went wide was free to be thrown again
+        the very next turn, which is not what "cannot use it twice in a row"
+        means. Phase 7 could not just be fired on the miss path either --
+        Rough Skin and Anger Point are on it, and neither should answer an
+        attack that never connected.
 
         **Not phase 3.** Phase 3 fires at battle_checklist.py:164, five
         lines before `move_fail_checklist_before_execution` refuses a move
@@ -645,6 +670,11 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         itself. A stat that rose on the holder is its own, and a stat that
         fell on the target is the target's problem.
 
+        And a third thing, on arrival: a Pokemon of hers that switches in
+        against an opponent already holding boosts copies them on the spot.
+        See the phase 1 branch -- the difference-based half below cannot see
+        stages that went up before the arrival existed.
+
         Worked out by comparing each side's stages against a snapshot taken
         at the top of the turn rather than by catching each change as it
         happens. Stat changes come from a dozen places -- moves, abilities,
@@ -661,6 +691,36 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # never happened -- a Pokemon recalled at +2 Attack read as a
         # two-stage drop and Synchronize inflicted it on the other side.
         # Measured at 6 mismatches in 532 firings over 30 battles.
+        # Phase 1 -- the holder's own Pokemon has just walked in.
+        #
+        # Switching wipes the stat stages, so the arrival starts on zeroes
+        # against an opponent that may be sitting on several turns of boosts.
+        # The end-of-turn half cannot help with that: it works by differences
+        # across a turn, and those boosts were put up before this Pokemon
+        # existed on the field, so there is no difference to find. Without
+        # this branch the ability simply did not greet its own switch-in --
+        # it mirrored the opponent perfectly for whoever was already standing
+        # there and not at all for anybody sent in afterwards.
+        #
+        # Only the blessing is taken, because only the blessing is there to
+        # take: a Pokemon that has just arrived has nothing of its own to
+        # spread. Reading `target.modifier` directly rather than a difference
+        # is the whole point -- the question here is "what are they holding",
+        # not "what did they just gain".
+        if abilityphase == 1:
+            if target is None or target.status == "Fainted":
+                return
+            standing = [max(0, stage) for stage in target.modifier]
+            if not any(standing):
+                return
+            user.applied_modifier = standing
+            _mine = list(user.modifier)
+            user.modifier = list(map(operator.add, standing, user.modifier))
+            narrator.stat_change(user, _mine, user.modifier,
+                                 user.applied_modifier, battleground)
+            notice(battleground, user_side)
+            return
+
         if abilityphase == ORDER_PHASE:
             battleground.sync_before = (user, list(user.modifier))
             battleground.sync_foe_before = (
@@ -1235,13 +1295,23 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         *both* orientations -- so the roll is keyed on the turn number or it
         would happen twice and the announcement would disagree with itself.
 
-        Four rules, all of them from the design rather than the engine:
+        Three rules, all of them from the design rather than the engine:
 
           * three types, sealed for one turn
           * next turn's three are announced a turn ahead
           * attacking moves only; a status move is never sealed
-          * if every attack the opponent has is sealed, one is spared at
-            random -- nobody is ever left with nothing to do
+
+        There used to be a fourth: if every attack the opponent held was of a
+        sealed type, one was spared at random so that nobody was ever left
+        with nothing to do. It is gone, and being kind was not worth what it
+        cost. From the other side of the field a spared move is
+        indistinguishable from the ability failing -- you throw a Ground move,
+        the log says Ground is sealed, and it lands for full damage -- and it
+        fired often enough to be noticed: 6 of 37 sealed attacks over twenty
+        battles. An exception nobody can see is worse than the inconvenience
+        it was avoiding, and the inconvenience was smaller than it looked:
+        status moves are never sealed and switching is always available, so a
+        Pokemon whose whole attacking set is refused still has a turn to take.
 
         The seal does nothing on turn 1. The first turn only announces.
         """
@@ -1258,29 +1328,40 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
             upcoming = set(random.sample(pool, min(QUANTUM_TYPES, len(pool))))
             now = set() if state is None else state["next"]
             state = battleground.quantum = {"turn": battleground.turn,
-                                            "now": now, "next": upcoming,
-                                            "spared": ""}
-            # nobody is ever locked out completely: if every attack the
-            # Pokemon opposite has is sealed, one of them is spared
-            if target is not None and now:
-                attacks = [name for name in (target.moveset or [])
-                           if name in list_of_moves
-                           and list_of_moves[name].attack_type != "Status"]
-                sealed = [name for name in attacks
-                          if list_of_moves[name].type in now]
-                if attacks and len(sealed) == len(attacks):
-                    state["spared"] = random.choice(sealed)
-            narrator.say("Next turn the Quantum Moon refuses %s."
+                                            "now": now, "next": upcoming}
+            # One line a turn, and it names *both* turns, because the
+            # confusion this replaces was between them.
+            #
+            # It used to say only "Next turn the Quantum Moon refuses X" --
+            # and then separately raise the ability's own callout, so the
+            # arena took two banners every turn for twenty turns. Worse, the
+            # only set ever named was the *coming* one, so a player who read
+            # the line and reached for one of those types found it worked
+            # perfectly: it was not sealed yet. The seal itself is sound --
+            # measured at 0 of 60 landing while sealed, against 60 of 60 in
+            # every control -- so what looked like a broken ability was the
+            # announcement describing a different turn from the one the
+            # player was in.
+            # Only ever the turn ahead. The set in force right now is not
+            # something anybody can still act on -- the roll for a turn
+            # happens after both sides have chosen, so by the time this line
+            # can be read that turn is spent. Naming it as well gave a player
+            # two sets of three types to hold and only one that mattered, and
+            # reading the wrong one is what made the ability look broken.
+            narrator.say("The Quantum Moon will seal %s next turn."
                          % ", ".join(sorted(upcoming)), "weather")
-            if now:
+            # The ability names itself once a battle. After that the field
+            # box carries it -- the three sealed types are on screen the
+            # whole time now, so repeating the callout every turn buried the
+            # rest of the log under the one ability that never stops firing.
+            if not getattr(battleground, "_quantum_named", False):
+                battleground._quantum_named = True
                 notice(battleground, user_side)
             return
         if abilityphase != 3 or state is None:
             return
         if getattr(move, "attack_type", "") == "Status":
             return                          # status moves are never sealed
-        if getattr(move, "name", "") == state["spared"]:
-            return                          # the one left open
         if getattr(move, "type", None) in state["now"]:
             move.accuracy = 0
 
@@ -1767,7 +1848,7 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         # Three phases: using a move (priority), after it lands (note it),
         # and the end of the turn (the switch itself -- see the docstring
         # for why it cannot be done any earlier).
-        "Tension Release": ((ORDER_PHASE, 6, 8),
+        "Tension Release": ((ORDER_PHASE, 8),
                             tension_release, "Custom"),
         # Phase 6 is "after a successful hit and its effect" -- the move has
         # finished, which is when a second one can be queued. The turn loop
@@ -1780,9 +1861,16 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         "Overloaded": (2, overloaded, "Custom"),
         # Phase 3 only -- "being targeted". The holder's own Pokemon is not
         # tormented; see the docstring.
-        "Torment": (7, torment, "Custom"),
+        # MOVE_SPENT_PHASE, not 7. Phase 7 is "after taking damage" and
+        # never fires on a miss, so an attack that went past was free to be
+        # thrown again next turn -- see the phase's own note in constants.py.
+        "Torment": (MOVE_SPENT_PHASE, torment, "Custom"),
         # A snapshot before anything moves, the comparison at the end.
-        "Synchronize": ((ORDER_PHASE, 8), synchronize_drops, "Custom"),
+        # Phase 1 as well: it greets its own switch-in, copying whatever the
+        # opponent is already holding. The other two phases work by
+        # differences across a turn and cannot see boosts older than the
+        # Pokemon standing there.
+        "Synchronize": ((1, ORDER_PHASE, 8), synchronize_drops, "Custom"),
         # Two phases: the opening, when the floor goes live, and the end of
         # every turn, when the current has its chance.
         "Sparking Cascade": ((1, 8), sparking_cascade, "Custom"),

@@ -52,7 +52,8 @@ import random
 from contextlib import suppress
 
 from Scripts.Battle import ai_knowledge
-from Scripts.Battle.fastcopy import fast_copy
+from Scripts.Battle import move_rules
+from Scripts.Battle.fastcopy import Bystander, fast_copy
 from Scripts.Battle.type_chart import modifierChart
 from Scripts.Data.moves import list_of_moves
 from Scripts.Data.pokemon import list_of_pokemon
@@ -510,10 +511,50 @@ def _hits(estimator, side, foe_side, me, foe, ground, kit=None,
             continue
         probe = _placeholder(me, assumed) if assumed is not None             else fast_copy(list_of_moves[name])
         if kit is not None:
+            # Both actives are copied before any ability phase is fired, and
+            # this is not caution -- it is a bug that shipped.
+            #
+            # Phases 2-5 exist here so the AI can see damage-shaping
+            # abilities. Several of those abilities do not merely shape the
+            # figure, they write to the Pokemon: Water Absorb heals a quarter
+            # of maximum HP on phase 5, Volt Absorb and Dry Skin the same, and
+            # Sturdy tops the holder up to survive a hit that has not landed.
+            # Fired against the live Pokemon -- and `believed()` hands back
+            # the live one for any trainer at Advanced or above -- that means
+            # an AI *considering* a Water move refills the Water Absorb holder
+            # opposite it, for real, with no turn played. Measured at 7 heals
+            # in 2,108 evaluations before this: a Dracovish going 94 -> 179,
+            # a Probopass 242 -> 408.
+            #
+            # The estimate loses nothing by working on copies. Everything it
+            # actually wants back is written to `probe`, which is already a
+            # fast_copy; the stat lines the abilities read are identical on a
+            # copy; and fast_copy costs ~14us against a battle's ~50ms.
+            # One pair of stand-ins per move, and *everything* in the
+            # estimate is pointed at them: the ability phases, the
+            # move-specific adjustment, and the estimator itself.
+            #
+            # Copying only for the ability phases was not enough, and the
+            # hole was `onParticularMoveChange`. Acupressure lives in there
+            # and writes a random stat stage to whoever is handed to it, so
+            # every time the AI thought about a move it had a chance of
+            # raising a stage on the real Pokemon. Caught by sweeping the
+            # whole board either side of a move choice rather than by
+            # looking for it: 41 stat-stage changes in 2,912 evaluations,
+            # none of them from a turn that had happened.
+            #
+            # A fresh pair per move, not per call: an ability that writes to
+            # its holder would otherwise carry that write into the estimate
+            # for the next move in the moveset.
+            mirror_me, mirror_foe = fast_copy(me), fast_copy(foe)
+            # ...and the trainers too: a side is writable, and a hazard
+            # ability reaches for `entry_hazard` rather than for a Pokemon.
+            bench, theirs_bench = Bystander(side), Bystander(foe_side)
             scoring = kit["Turn"](
                 ground,
-                kit["Side"](side, getattr(side, "team", []), me),
-                kit["Side"](foe_side, getattr(foe_side, "team", []), foe))
+                kit["Side"](bench, getattr(side, "team", []), mirror_me),
+                kit["Side"](theirs_bench, getattr(foe_side, "team", []),
+                            mirror_foe))
             with suppress(Exception):
                 kit["ability"](scoring, probe, abilityphase=2)
                 kit["ability"](scoring.flip(), probe, abilityphase=3)
@@ -521,12 +562,28 @@ def _hits(estimator, side, foe_side, me, foe, ground, kit=None,
                 if sees_theirs:
                     kit["character"](scoring.flip(), probe, abilityphase=3)
                 kit["weather"](ground, probe)
-                kit["particular"](me, foe, probe)
+                kit["particular"](mirror_me, mirror_foe, probe)
+        # A move whose own condition cannot be met is worth nothing, and the
+        # AI had no way to know it: `move_rules.refuses` is consulted by the
+        # engine at execution time and by nothing else, so Dream Eater scored
+        # its full 100 power against a target that was wide awake and the AI
+        # threw it every turn. Six moves carry such a condition; the four that
+        # read only the board are decided here, and the two that read the
+        # opponent's simultaneous choice are deliberately left alone -- see
+        # DECIDABLE_BEFORE_THE_TURN.
+        if move_rules.certainly_fails(me, foe, probe):
+            table[name] = (0.0, 0.0, 0.0)
+            continue
+        # `_real_accuracy` reads the live pair on purpose: evasion and
+        # accuracy stages are what they actually are, and it only reads.
         if getattr(probe, "attack_type", "") == "Status":
             table[name] = (0.0, _real_accuracy(probe, me, foe), 0.0)
             continue
         try:
-            dealt = estimator(side, foe_side, me, foe, ground, probe)
+            dealt = estimator(side, foe_side,
+                              mirror_me if kit is not None else me,
+                              mirror_foe if kit is not None else foe,
+                              ground, probe)
         except Exception:
             dealt = 0.0
 
@@ -564,12 +621,20 @@ def _hits(estimator, side, foe_side, me, foe, ground, kit=None,
         # heal it for real, every time the AI thought about a move.
         healed = 0.0
         if kit is not None and want_heal and dealt > 0:
+            # A copy of the attacker to measure the healing on, and a copy
+            # of the target for the same reason phases 2-5 use one: a phase-6
+            # ability may write to whoever was hit as readily as to whoever
+            # hit them. `shadow` is taken fresh rather than reusing the copy
+            # above, because the earlier phases may have moved its HP and the
+            # figure wanted here is a difference against an untouched start.
             shadow = fast_copy(me)
             probe.damage = dealt
             landing = kit["Turn"](
                 ground,
-                kit["Side"](side, getattr(side, "team", []), shadow),
-                kit["Side"](foe_side, getattr(foe_side, "team", []), foe))
+                kit["Side"](Bystander(side), getattr(side, "team", []),
+                            shadow),
+                kit["Side"](Bystander(foe_side),
+                            getattr(foe_side, "team", []), mirror_foe))
             before = shadow.battle_stats[0]
             with suppress(Exception):
                 kit["character"](landing, probe, abilityphase=6)

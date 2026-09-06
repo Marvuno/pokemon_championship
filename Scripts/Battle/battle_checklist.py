@@ -210,8 +210,24 @@ def move_order_and_execution(turn, move, target_move):
                         # explosive / deduct HP moves
                         user.battle_stats[0] -= math.ceil(user.hp * move.deduct)
 
-                        narrator.say(f"{CBEIGE}{CBOLD}{move.damage} damage is dealt to {target.name} with {target.battle_stats[0]} HP left.\n"
-                              f"{user.name} took {move.recoil + math.ceil(user.hp * move.deduct)} recoil damage.\n{CEND}")
+                        # Two lines, and the second one only when there is
+                        # something to say. It used to be one f-string that
+                        # always ended with "<user> took N recoil damage",
+                        # printed on every damaging move -- so the overwhelming
+                        # majority of attacks in the game, which have no recoil
+                        # and no HP cost, announced "took 0 recoil damage"
+                        # anyway. It reads as the attacker hurting itself, and
+                        # it was reported as exactly that: a Hustle Durant
+                        # "damaging itself" with Iron Head, whose HP had not
+                        # moved at all.
+                        self_cost = move.recoil + math.ceil(user.hp
+                                                            * move.deduct)
+                        narrator.say(f"{CBEIGE}{CBOLD}{move.damage} damage is "
+                                     f"dealt to {target.name} with "
+                                     f"{target.battle_stats[0]} HP left.{CEND}")
+                        if self_cost > 0:
+                            narrator.say(f"{CBEIGE}{CBOLD}{user.name} took "
+                                         f"{self_cost} recoil damage.{CEND}")
 
                         # moves that directly cause fainted condition
                         if target.battle_stats[0] <= 0 and move.damage > 0:
@@ -271,6 +287,15 @@ def move_order_and_execution(turn, move, target_move):
             # the move is dodged
             else:
                 narrator.say(f"\nOpponent Pokemon avoided the attack!\n")
+
+            # The move has been spent either way. Fired here rather than on
+            # phase 7 so that it also answers a miss, and outside the
+            # multi-strike loop so a five-hit move counts as one use. Only
+            # character abilities are consulted: nothing in Data/abilities.py
+            # registers this phase, and firing it for both would be a lookup
+            # per move for no one.
+            UseCharacterAbility(turn.flip(), move,
+                                abilityphase=MOVE_SPENT_PHASE)
 
         if fail:
             move_fail_consequence_upon_execution(user, target, move)

@@ -128,6 +128,37 @@ def apply_weather_when(battleground, move):
 # -- fails_unless ----------------------------------------------------------
 #: name -> may this move go ahead? Takes what
 #: move_fail_checklist_before_execution already has.
+#: The conditions an AI may decide *before* the turn is played.
+#:
+#: Four of the six read only state that is already on the board -- who is
+#: asleep, what was used last turn, how much HP there is to spend -- so a move
+#: gated on one of them is knowably useless and an AI that picks it anyway is
+#: throwing the turn away.
+#:
+#: The other two are deliberately absent. `target_attacks` (Sucker Punch) and
+#: `hit_by_contact` (Shell Trap) read `target_move`, which is the opponent's
+#: *simultaneous* choice: both sides pick at the top of the turn and neither
+#: can see the other. Refusing those in the estimate would not be foresight,
+#: it would be cheating -- and it would stop the AI ever using either move,
+#: since the answer at scoring time is always "no".
+DECIDABLE_BEFORE_THE_TURN = ("target_asleep", "user_asleep",
+                             "not_used_last_turn",
+                             "can_pay_hp_and_still_boost")
+
+
+def certainly_fails(user, target, move):
+    """Would this move fail on what is already known, with no turn played?
+
+    The AI's counterpart to `refuses`, which needs the opponent's move and so
+    can only be asked once the turn is under way. Returns False for anything
+    whose condition depends on what the other side is about to do.
+    """
+    name = (getattr(move, "fails_unless", "") or "").strip()
+    if name not in DECIDABLE_BEFORE_THE_TURN:
+        return False
+    return not FAILS_UNLESS[name](user, target, move, None)
+
+
 FAILS_UNLESS = {
     "target_asleep":
         lambda user, target, move, target_move: target.status == "Sleep",

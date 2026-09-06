@@ -232,6 +232,38 @@ def road_mark(champion, field):
     return ""
 
 
+def match_rating_steps(me):
+    """What each of this competitor's matches was worth, in rating.
+
+    Only the player has one, and that is a fact about the design rather than
+    a gap: `elo_rating` applies an Elo step per match to the Protagonist,
+    while every other competitor's rating moves once per career in
+    `competitor_form` -- on the whole run, against what their rating
+    predicted. There is no per-round figure to report for them, so this
+    returns an empty list and the interface shows nothing.
+
+    Deterministic from the two ratings and the result, and `me.strength` is
+    not touched until every step has been added up -- so calling this from
+    `scoreboard`, which runs first, gets exactly the numbers `elo_rating`
+    will go on to apply.
+    """
+    if not getattr(me, "main", False):
+        return []
+    steps = []
+    faced = list(getattr(me, "opponent", None) or [])
+    results = list(getattr(me, "win_order", None) or [])
+    for index, opponent in enumerate(faced[:len(results)]):
+        won = results[index] == 1
+        match_rating = opponent.strength + me.strength
+        proportion = (opponent.strength if won else me.strength) / match_rating
+        step = int(round(math.sqrt(match_rating) * proportion
+                         * (1 if won else -1)))
+        # starter protection, as elo_rating has always applied it
+        step += 1 if step < 0 else 0
+        steps.append(step)
+    return steps
+
+
 def scoreboard():
 
     # calculating opponent stage as tiebreaks
@@ -281,9 +313,17 @@ def scoreboard():
         # order: both are appended once per battle, together, in
         # battle_win_condition. They are per-run, being rebuilt each launch
         # and never saved. run_defeated is still what the champion roll reads.
-        own = [[them.nickname, result == 1] for them, result
-               in zip(getattr(competitor, "opponent", None) or [],
-                      getattr(competitor, "win_order", None) or [])]
+        # A third element per step: what that match moved the rating by, so
+        # the Tournaments tab can show the run round by round rather than
+        # only as a finishing rank. None for everybody but the player -- see
+        # match_rating_steps. Older saves hold two-element steps and every
+        # reader of this list copes with both lengths.
+        steps = match_rating_steps(competitor)
+        own = [[them.nickname, result == 1,
+                steps[position] if position < len(steps) else None]
+               for position, (them, result)
+               in enumerate(zip(getattr(competitor, "opponent", None) or [],
+                                getattr(competitor, "win_order", None) or []))]
         competitor.history[attendance] = (champion.nickname + trophy,
                                           index + 1, competitor.strength,
                                           beaten, own)
@@ -410,18 +450,15 @@ def elo_rating():
     """
     me = list_of_competitors['Protagonist']
     rating_change = 0
+    # One copy of the arithmetic, in match_rating_steps, because `scoreboard`
+    # records the same numbers into the run history before this runs and two
+    # copies would be free to drift apart.
+    steps = match_rating_steps(me)
     with suppress(IndexError):
         narrator.say(f"\n{CBOLD}Opponent Journey:{CEND}", "result")
         for index, opponent in enumerate(me.opponent):
             won = me.win_order[index] == 1
-            match_rating = opponent.strength + me.strength
-            proportion = (opponent.strength if won else me.strength) \
-                / match_rating
-            individual_rating_change = int(round(math.sqrt(match_rating)
-                                                 * proportion
-                                                 * (1 if won else -1)))
-            # starter protection
-            individual_rating_change += 1 if individual_rating_change < 0 else 0
+            individual_rating_change = steps[index]
             rating_change += individual_rating_change
 
             narrator.say(

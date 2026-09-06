@@ -35,7 +35,8 @@ import random
 from contextlib import suppress
 from copy import deepcopy
 
-from Scripts.Battle.fastcopy import fast_copy
+from Scripts.Battle import move_rules
+from Scripts.Battle.fastcopy import Bystander, fast_copy
 from Scripts.Battle.context import Side, Turn
 
 from Scripts.Art.text_color import *
@@ -203,10 +204,15 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
         user.battle_stats = list(user_stats)
         move = fast_copy(list_of_moves[move])
 
+        # The two Pokemon here are already copies -- see the caller -- but
+        # the sides were the live trainers, and a side is writable: a hazard
+        # ability reaches for `entry_hazard` rather than for a Pokemon.
+        # Measured at 6 evaluations in 2,852 laying real Toxic Spikes.
         scoring = Turn(battleground,
-                       Side(user_side, getattr(user_side, 'team', []), user),
-                       Side(target_side, getattr(target_side, 'team', []),
-                            target))
+                       Side(Bystander(user_side),
+                            getattr(user_side, 'team', []), user),
+                       Side(Bystander(target_side),
+                            getattr(target_side, 'team', []), target))
         UseAbility(scoring, move, abilityphase=2)
         UseAbility(scoring.flip(), move, abilityphase=3)
         UseCharacterAbility(scoring, move, abilityphase=2)
@@ -219,6 +225,12 @@ def intelligent_move_selection(user_side, target_side, user, target, battlegroun
         move.accuracy = min(move.accuracy, 1)  # for calculation purpose
 
         move.damage = estimated_damage_calculation(user_side, target_side, user, target, battleground, move)
+        # ...and nothing at all if the move's own condition cannot be met.
+        # Same gap as the turn AI had: the engine checks this at execution
+        # time and the scorer never did, so Dream Eater was worth its full
+        # power against somebody awake. See move_rules.certainly_fails.
+        if move_rules.certainly_fails(user, target, move):
+            move.damage = 0
 
         UseCharacterAbility(scoring, move, abilityphase=4)
         UseCharacterAbility(scoring.flip(), move, abilityphase=5)

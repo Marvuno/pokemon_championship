@@ -53,9 +53,16 @@ path = list(me.history[0][4])
 want = [[list_of_competitors[n].nickname, bool(r)] for n, r in played]
 print("played:   %s" % [(list_of_competitors[n].nickname, "W" if r else "L")
                         for n, r in played])
-print("recorded: %s" % [(n, "W" if w else "L") for n, w in path])
+# A step is [name, won, rating change] since the Tournaments rating column
+# went in; older saves hold two. Read by index, the way GUI/bridge.py reads it.
+print("recorded: %s" % [(s[0], "W" if s[1] else "L") for s in path])
 print()
-check("the path is in the order the matches were played", path, want)
+# Name and result only. A step also carries what the match moved the rating
+# by, which is what the Tournaments tab draws under each opponent -- it is
+# not what this suite is about, and pinning it here would make an ordering
+# test fail whenever the Elo arithmetic is retuned.
+check("the path is in the order the matches were played",
+      [step[:2] for step in path], want)
 check("the loss is the second step, not the last",
       path.index([w for w in path if not w[1]][0]), 1)
 check("every match is on the path exactly once", len(path), len(played))

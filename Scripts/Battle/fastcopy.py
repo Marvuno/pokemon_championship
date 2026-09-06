@@ -110,3 +110,38 @@ def fast_copy(obj, memo=None):
                        else fast_copy(value, memo))
     clone.__dict__ = fresh
     return clone
+
+
+class Bystander:
+    """A trainer that can be written to without any of it counting.
+
+    `fast_copy` answers the same question for a Pokemon, and the AI already
+    hands every ability phase a copied Pokemon rather than the live one. The
+    *side* was still the real trainer, and a side is writable too: hazard
+    abilities set `entry_hazard`, screens set `in_battle_effects`. So an AI
+    thinking about a move could lay Toxic Spikes on a real field -- measured
+    at 6 in 2,852 evaluations before this.
+
+    A proxy rather than a copy, because a trainer owns its team and copying
+    one would copy six Pokemon per evaluated move. The two mutable mappings
+    an ability writes to are shadowed with copies; everything else is read
+    straight off the real trainer, and any other attribute written lands on
+    this object and is dropped with it.
+    """
+
+    #: the mappings an ability may write to during a damage estimate
+    SHADOWED = ("entry_hazard", "in_battle_effects")
+
+    def __init__(self, real):
+        object.__setattr__(self, "_real", real)
+        for name in self.SHADOWED:
+            value = getattr(real, name, None)
+            if isinstance(value, dict):
+                object.__setattr__(self, name, dict(value))
+
+    def __getattr__(self, name):
+        # only reached for names not shadowed above
+        return getattr(object.__getattribute__(self, "_real"), name)
+
+    def __repr__(self):
+        return "<Bystander %r>" % getattr(self._real, "nickname", "?")

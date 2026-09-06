@@ -1607,7 +1607,12 @@ class CareerDialog(QDialog):
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(self.PATH_GAP)
-        for position, (name, won) in enumerate(steps):
+        for position, step in enumerate(steps):
+            # two or three: (name, won) from the champion roll, (name, won,
+            # rating change) from a run path recorded since the Tournaments
+            # rating column went in
+            name, won = step[0], step[1]
+            change = step[2] if len(step) > 2 else None
             if position:
                 arrow = _label("→", getattr(self.fonts, self.PATH_FONT),
                                T.TEXT_FAINT)
@@ -1621,6 +1626,23 @@ class CareerDialog(QDialog):
             cell = ElidedLabel(str(name), getattr(self.fonts, self.PATH_FONT),
                                shade)
             cell.setFixedWidth(self.PATH_NAME_WIDTH)
+            if change is not None:
+                # What that round moved the rating by, under the name it was
+                # won or lost against. Green up, red down, and in the same
+                # weight RANK is set in so it reads as a figure rather than
+                # as a footnote. Stacked rather than placed beside the name
+                # because the name slot is a fixed width the row's alignment
+                # depends on -- see the note below on ElidedLabel.
+                stack = QVBoxLayout()
+                stack.setContentsMargins(0, 0, 0, 0)
+                stack.setSpacing(0)
+                stack.addWidget(cell)
+                delta = _label("%+d" % change, self.fonts.body_bold,
+                               T.PLAYER if change >= 0 else T.OPPONENT)
+                delta.setFixedWidth(self.PATH_NAME_WIDTH)
+                stack.addWidget(delta)
+                row.addLayout(stack)
+                continue
             # setFixedWidth is not enough on its own here. ElidedLabel is
             # horizontally Ignored by default -- that is the whole point of it
             # in the Pokedex rail, where a long name must not widen the row --
@@ -1698,8 +1720,11 @@ class CareerDialog(QDialog):
         cell.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         return cell
 
-    #: the four figures on a Records row, and how wide each column sits
-    RECORD_COLUMNS = ((72, "TITLES"), (72, "RUNS"),
+    #: the figures on a Records row, and how wide each column sits. RATING
+    #: leads because it is the number the rest of the game is indexed on --
+    #: the tier ladder and the IV floor both read it -- so a champion's
+    #: titles are read against it rather than on their own.
+    RECORD_COLUMNS = ((80, "RATING"), (72, "TITLES"), (72, "RUNS"),
                       (96, "WIN RATE"), (104, "TITLE RATE"))
 
     def _leader_head(self):
@@ -1720,7 +1745,7 @@ class CareerDialog(QDialog):
         return head
 
     def _leader_row(self, row):
-        """One title holder: who, then the four figures, right-aligned."""
+        """One title holder: who, then the figures, right-aligned."""
         entry = row["entry"]
         panel = RoundedPanel(None, bg=T.PANEL, border=T.LINE_SOFT,
                              radius=T.RADIUS_SM)
@@ -1732,7 +1757,8 @@ class CareerDialog(QDialog):
         line.addWidget(_label(str(entry.get("nickname", "?")),
                               self.fonts.body_bold, colour))
         line.addStretch(1)
-        figures = ("%d" % row["titles"], "%d" % row["runs"],
+        figures = ("%d" % (entry.get("rating", 0) or 0),
+                   "%d" % row["titles"], "%d" % row["runs"],
                    "%.1f%%" % (row["win_rate"] * 100),
                    "%.1f%%" % (row["title_rate"] * 100))
         for (width, _), text in zip(self.RECORD_COLUMNS, figures):
@@ -1951,7 +1977,7 @@ class CareerDialog(QDialog):
             if path:
                 line.addSpacing(12)
                 line.addLayout(self._path_row(
-                    [(name, won) for name, won in path],
+                    [tuple(step) for step in path],
                     stretch=not champion))
             elif not champion:
                 # Only when nothing follows -- a stretch beside the tail

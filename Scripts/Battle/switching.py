@@ -112,12 +112,42 @@ def switching_mechanism(user, opponent, battleground, user_team, opponent_team, 
     leaving = Turn(battleground,
                    Side(user, user_team, user_team[0]),
                    Side(opponent, opponent_team, opponent_team[0]))
-    UseAbility(leaving, "", abilityphase=9)
-    UseCharacterAbility(leaving, "", abilityphase=9)
-    user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
 
-    switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
-    narrator.switched_in(user.side_color, user.team[0].name)
+    # This function only ever performs a switch that is really happening --
+    # every one of its eight callers is the turn loop, a U-turn, a fainted
+    # Pokemon being replaced, or Tension Release; none of them is the AI
+    # weighing a candidate. So `reality` is held True across the departure
+    # and the arrival, and put back to whatever the caller had it on.
+    #
+    # It was not, and the turn loop is why: battle_cycle sets `reality` False
+    # before both sides choose, and back to True only *after* the switches
+    # those choices imply have been carried out. So every switch made as a
+    # turn's move ran its arrival hooks with the flag saying "this is only
+    # being imagined". Abilities that check the flag before acting -- most of
+    # the ones that announce themselves, and every one written since the flag
+    # was introduced -- therefore did nothing at all on a real switch-in,
+    # while the ones that never checked it worked by luck. Nimble was in the
+    # second group, which is how this surfaced: it was the only switch-in
+    # ability visibly firing.
+    was_real = getattr(battleground, "reality", True)
+    battleground.reality = True
+    try:
+        UseAbility(leaving, "", abilityphase=9)
+        UseCharacterAbility(leaving, "", abilityphase=9)
+        user_team[0], user_team[position_change] = user_team[position_change], user_team[0]  # switch pokemon
+
+        # Announced before the arrival abilities fire, not after.
+        #
+        # It is the natural order -- you walk in, then your ability does
+        # something -- and it is also what the interface reads: a switch is
+        # captured as one event, and whatever the capture starts with is the
+        # line the feed entry leads on. With the ability first, a switch card
+        # opened with "Lucario's Attack rose!" and never said Lucario had
+        # arrived at all.
+        narrator.switched_in(user.side_color, user_team[0].name)
+        switched_in_initialization(user, opponent, user_team[0], opponent_team[0], battleground)
+    finally:
+        battleground.reality = was_real
 
     # triggering entry hazard
     entry_hazard_effect(user, user_team[0])

@@ -121,13 +121,19 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         # advance -- and `round_end` walks all thirty-two seeded competitors,
         # so on a field that was never drawn it raises IndexError rather than
         # doing nothing.
-        if not battleground.exhibition:
+        if not getattr(battleground, "exhibition", False):
             round_end(GameSystem.stage)
             GameSystem.stage += 1
 
 
 def choose_pokemon(protagonist, opponent, battleground):
-    if battleground.verbose:
+    # An exhibition has nothing to keep. Custom Play deals both teams for the
+    # one battle out of the opponent's own recipe and throws them away
+    # afterwards -- there is no career for a kept Pokemon to go into, and the
+    # player is not even playing as themselves. Offering the screen anyway
+    # asked which of somebody else's Pokemon to add to a team that will not
+    # exist in a moment. See start_interface.custom_play.
+    if battleground.verbose or getattr(battleground, "exhibition", False):
         return
 
     def pokemon_init(pokemon):

@@ -37,6 +37,18 @@ ORDER_PHASE = 10
 #: rather than firing phase 1 for both sides, which would change all fifteen
 #: abilities already on phase 1.
 FOE_ARRIVAL_PHASE = 11
+#: "a move has been spent" -- it was not refused outright, and it either
+#: landed or missed. Fired once per move, after the accuracy roll is settled
+#: and outside the multi-strike loop.
+#:
+#: Torment needs this and phase 7 could not give it. Phase 7 is "after taking
+#: damage": it never fires on a miss, so a Torment holder watched an attack go
+#: past and then had it thrown at them again next turn -- while "you cannot
+#: use it twice in a row" is about having *used* the move, which a miss is.
+#: Phase 7 could not simply be fired on the miss path either, because Rough
+#: Skin and Anger Point sit on it and neither should answer an attack that
+#: never connected.
+MOVE_SPENT_PHASE = 12
 
 #: What `volatile_status['LeechSeed']` holds for a seed Sylvan Sprout planted
 #: rather than the move. Only the two lines in battle_checklist that drain it

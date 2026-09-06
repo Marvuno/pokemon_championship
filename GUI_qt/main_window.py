@@ -41,7 +41,7 @@ from GUI_qt.sprites import (DIR_OPPONENT, DIR_PLAYER, animate_switch,
 from GUI_qt.title import TitleView
 from GUI_qt import widgets as W
 from GUI_qt.widgets import (AbilityFlare, ActionButton, CombatantCard,
-                            ElidedLabel, FeedEntry, MoveCard,
+                            ElidedLabel, FeedEntry, FeedRow, MoveCard,
                             ResultOverlay, RoundedPanel, ScoutCard,
                             TurnDivider, clear_layout, shadow)
 from GUI_qt.widgets import label as _label
@@ -100,6 +100,10 @@ class MainWindow(QWidget):
         #: set when a run finishes, so the credits note knows if you won
         self._credits_state = {}
         self._last_career = {}         # per-view payloads of the HISTORY screen
+        #: arrivals the engine has already announced this match, so the
+        #: slower state-diff path does not say them a second time. See
+        #: _show_banner and _announce_switches.
+        self._announced_switch = set()
         self._career_shown = False     # window raised for this visit
         self._last_bracket = None
         self._last_view_pokemon_ping = None
@@ -111,6 +115,7 @@ class MainWindow(QWidget):
         self._last_auto_battle = False
         self._last_leaderboard = None
         self._fainted_seen = {"player": set(), "opponent": set()}
+        self._announced_switch = set()
         self._gated = False          # holding the screen on a battle result
         self._placed_once = False    # borderless: moved to the screen origin
         self._pending_answers = []
@@ -837,7 +842,11 @@ class MainWindow(QWidget):
 
     def _feed_add(self, kind, text, actor="", side=None):
         entry = FeedEntry(kind, text, self.fonts, actor=actor, side=side)
-        self.feed_layout.insertWidget(self.feed_layout.count() - 1, entry)
+        # Held to the column of the side it belongs to, so a turn reads as
+        # "what you did / what they did" rather than as one undifferentiated
+        # column. Anything belonging to neither side still spans the width.
+        row = FeedRow(entry, side=side)
+        self.feed_layout.insertWidget(self.feed_layout.count() - 1, row)
 
     def _feed_divider(self, turn):
         divider = TurnDivider(turn, self.fonts)
@@ -988,9 +997,19 @@ class MainWindow(QWidget):
             self._scout_token = None
             self.scout_card.hide()
 
-        self._track_feed_worthy_changes(field, state.get("phase"))
+        # Knockouts and switches first, the turn divider last, and the order
+        # is the whole of two bugs.
+        #
+        # Both of those are detected by diffing the published state, so they
+        # arrive on the *same* publish that carries the new turn number. With
+        # the divider drawn first, everything that happened at the end of a
+        # turn was filed under the next one -- a Togekiss sent out during turn
+        # 3 appeared beneath the TURN 4 rule -- and the summary for the turn
+        # being closed was computed before those events had been recorded, so
+        # it came out empty.
         self._track_knockouts(state)
         self._sync_field(state)
+        self._track_feed_worthy_changes(field, state.get("phase"))
         # Outside a live battle nothing is fainted, whatever the snapshot
         # still says: the engine leaves last round's zeroed HP on record
         # until the next battle rebuilds it (see snap_team in bridge.py).
@@ -1252,6 +1271,9 @@ class MainWindow(QWidget):
         self._last_weather = None
         self._last_auto_battle = False   # per-match, like the engine's flag
         self._fainted_seen = {"player": set(), "opponent": set()}
+        # Per match, like the line above: an arrival claimed by a banner in
+        # one match must not silence the same Pokemon arriving in the next.
+        self._announced_switch = set()
 
     def _condition(self, team, in_battle):
         """Team pips, with fainted suppressed while no match is running."""
@@ -1337,11 +1359,40 @@ class MainWindow(QWidget):
             who = "You" if side == "player" else (state.get("opponent_side")
                                                   or {}).get("nickname",
                                                              "Opponent")
-            self._feed_add("switch", "%s sent out %s." % (who, name),
-                           actor=name, side=side)
+            # The engine announces a real switch as it happens (see the
+            # wrapper in GUI/bridge.py), which is the only way to get it into
+            # the feed *before* the move that followed it -- this path runs
+            # off a state diff and a publish only happens once the turn's
+            # work is done.
+            #
+            # It still has to be able to announce, though, for the two cases
+            # a banner never covers: the opening send-out, which is not a
+            # switch and never goes through switching_mechanism, and any
+            # harness driving the window with no bridge attached. So it says
+            # it only when nobody already has.
+            already = (side, name) in self._announced_switch
+            self._announced_switch.discard((side, name))
+            if not already:
+                self._feed_add("switch", "%s sent out %s." % (who, name),
+                               actor=name, side=side)
+                self._beat(side, name, "%s came in." % name, tag="SWITCH")
             card.flash_switch()
             if not auto:
                 animate_switch(label, stills.get(side), self._place_sprites)
+
+    def _beat(self, side, actor, text, tag="TURN"):
+        """Say something briefly over the arena itself.
+
+        Not an animation: the AbilityFlare a character ability already
+        uses, so it costs the arena no height and nothing has to be timed
+        against the sprites. It exists because the feed is a *record* while
+        the arena is what a player actually watches -- a Pokemon that came in
+        and went down inside one turn scrolled past in the log while the
+        field showed only the end state.
+        """
+        flare = self.flares.get(side)
+        if flare is not None:
+            flare.flare(actor, text, tag=tag)
 
     def _track_knockouts(self, state):
         """Call out each Pokemon as it goes down.
@@ -1367,11 +1418,15 @@ class MainWindow(QWidget):
                 if name in self._fainted_seen[side]:
                     continue
                 self._fainted_seen[side].add(name)
-                self._feed_add(
-                    "faint",
-                    "%s fainted!" % name if side == "opponent"
-                    else "Your %s fainted." % name,
-                    actor=name, side=side)
+                text = ("%s fainted!" % name if side == "opponent"
+                        else "Your %s fainted." % name)
+                self._feed_add("faint", text, actor=name, side=side)
+                # ...and over the arena. A Pokemon that came in and went down
+                # inside one turn was previously invisible on the battle
+                # screen -- the feed carried it, but nothing on the field
+                # did, so unless you were reading the log you never saw it
+                # happen. The card flash is the same one a switch uses.
+                self._beat(side, name, text, tag="KNOCKED OUT")
 
     def _track_feed_worthy_changes(self, field, phase=None):
         """Turn dividers and weather-change lines, derived purely from
@@ -2177,6 +2232,19 @@ class MainWindow(QWidget):
             flare = self.flares.get(side)
             if flare is not None:
                 flare.flare(actor, text)
+        # A switch gets the same on-field callout, raised from the banner so
+        # it lands with the feed line rather than a publish later.
+        elif kind == "faint" and actor:
+            # Claimed so the state-diff sweep below does not say it again a
+            # publish later, underneath the replacement it caused.
+            self._fainted_seen["player"].add(actor)
+            self._fainted_seen["opponent"].add(actor)
+        elif kind == "switch" and actor:
+            self._beat(side, actor, "%s came in." % actor, tag="SWITCH")
+            # The state diff will notice this same arrival a publish later.
+            # It is the slower of the two and must not say it twice -- see
+            # _announce_switches, which claims this entry and stays quiet.
+            self._announced_switch.add((side, actor))
 
     # --------------------------------------------------------------- endings
     def _show_done(self, payload):

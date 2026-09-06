@@ -935,8 +935,54 @@ class FeedEntry(RoundedPanel):
         _build_event_body(self, kind, text, fonts, actor, side)
 
 
+class FeedRow(QWidget):
+    """One feed entry, held to the column of the side it belongs to.
+
+    Yours sit left, theirs sit right, and anything belonging to neither --
+    weather, the field, run summaries -- spans the width. A turn then reads
+    as two columns: what you did, what they did, and the outcomes underneath
+    each.
+
+    A wrapper rather than an alignment on the entry itself, because the entry
+    is a panel whose background is the thing being read; giving it a smaller
+    width and a stretch on one side is what puts it in a column without
+    making it look truncated.
+    """
+
+    #: how much of the width a one-sided entry takes. Two of them plus the
+    #: gutter should not add up to more than the panel, or the columns touch.
+    SHARE = 0.78
+
+    def __init__(self, entry, side=None, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("background: transparent;")
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(0)
+        # Stretch factors are a *ratio*, not a fraction of the width. The
+        # first version gave the entry `SHARE * 100` against a stretch of 1,
+        # which is 82:1 -- the entry took 98.8% of the row and the column was
+        # invisible. The gutter has to be the remainder.
+        share = int(self.SHARE * 100)
+        gutter = 100 - share
+        if side == "opponent":
+            row.addStretch(gutter)
+            row.addWidget(entry, share)
+        elif side == "player":
+            row.addWidget(entry, share)
+            row.addStretch(gutter)
+        else:
+            row.addWidget(entry, 1)
+
+
 class TurnDivider(QWidget):
-    """A slim 'Turn N' rule between one turn's events and the next."""
+    """A slim 'Turn N' rule between one turn's events and the next.
+
+    It carried a one-line summary of the turn just closed for a while -- who
+    came in, the exchange, who fainted. It read as a second, competing account
+    of events the feed had already given in full three lines above, and was
+    removed for that. The rule itself is the whole widget again.
+    """
 
     def __init__(self, turn, fonts, parent=None):
         super().__init__(parent)
@@ -1175,6 +1221,9 @@ FIELD_LAYERS = (
     ("weather", "WEATHER", T.CYAN),
     ("terrain", "TERRAIN", T.PLAYER),
     ("room", "ROOM", T.VIOLET),
+    # Quantum Roll's three sealed types. Gold, because it is a restriction on
+    # what you may do rather than a property of the ground.
+    ("sealed", "SEALED", T.ACCENT),
 )
 
 #: what each condition's emblem is drawn as, and in what colour. Drawn
@@ -1306,9 +1355,16 @@ def field_emblem(shape, colour, size, ratio=1.0):
 
 
 class FieldChip(RoundedPanel):
-    """One field layer, as an emblem, a caption and what is up right now."""
+    """One field layer, as an emblem, a caption and what is up right now.
 
-    ICON = 22
+    Deliberately small. There are four of these now rather than three, and
+    they are an *overlay* on the arena rather than a strip beneath it -- so
+    every pixel one of them takes is a pixel of battlefield covered. At the
+    old size the fourth pushed the row into the sprites and the boxes ran
+    into each other.
+    """
+
+    ICON = 16
 
     def set_note(self, text, heading="", body=""):
         """Put the hover text on this box *and on everything inside it*.
@@ -1342,8 +1398,8 @@ class FieldChip(RoundedPanel):
         self.note_body = ""
         self.setAttribute(Qt.WA_Hover, True)
         row = QHBoxLayout(self)
-        row.setContentsMargins(8, 5, 10, 5)
-        row.setSpacing(8)
+        row.setContentsMargins(6, 3, 7, 3)
+        row.setSpacing(6)
 
         self.emblem = QLabel(self)
         self.emblem.setFixedSize(self.ICON, self.ICON)
@@ -1358,7 +1414,7 @@ class FieldChip(RoundedPanel):
                                    % T.TEXT_FAINT)
         text.addWidget(self.caption)
         self.value = QLabel("—", self)
-        self.value.setFont(fonts.body_bold)
+        self.value.setFont(fonts.small_bold)
         self.value.setStyleSheet("color: %s; background: transparent;"
                                  % T.TEXT)
         text.addWidget(self.value)
@@ -1487,13 +1543,13 @@ class FieldStrip(QWidget):
         self.setStyleSheet("background: transparent;")
         row = QHBoxLayout(self)
         row.setContentsMargins(0, 0, 0, 0)
-        row.setSpacing(6)
+        row.setSpacing(4)
         self.chips = {}
         for key, caption, colour in FIELD_LAYERS:
             chip = FieldChip(caption, colour, fonts, self)
             self.chips[key] = chip
             row.addWidget(chip)
-        for key in ("terrain", "room"):
+        for key in ("terrain", "room", "sealed"):
             self.chips[key].setVisible(False)
         self._signature = None
 
@@ -1519,8 +1575,14 @@ class FieldStrip(QWidget):
         # reads plain dicts and never calls into the game.
         terrain_note = field.get("terrain_note") or ""
 
+        # Quantum Roll. `sealed` is what cannot be used this turn; `upcoming`
+        # is next turn's three, which the ability announces a turn ahead --
+        # being told early is the whole point of it, so the box says both.
+        sealed = list(field.get("sealed") or ())
+        upcoming = list(field.get("sealed_next") or ())
+
         signature = (weather, turns, room, room_turns, terrain, terrain_turns,
-                     terrain_note)
+                     terrain_note, tuple(sealed), tuple(upcoming))
         if signature == self._signature:
             return
         self._signature = signature
@@ -1553,6 +1615,42 @@ class FieldStrip(QWidget):
             self.chips["terrain"].set_note(
                 "%s\n%s" % (heading, terrain_note) if terrain_note
                 else heading)
+
+        # The sealed box appears only while somebody on the field is doing
+        # the sealing -- on turn one there is nothing sealed yet and only the
+        # announcement, which is still worth showing, so either half brings
+        # the box up.
+        self.chips["sealed"].setVisible(bool(sealed or upcoming))
+        if sealed or upcoming:
+            # The box shows the types sealed for the turn the player is about
+            # to play, not the one that has just resolved.
+            #
+            # It showed "now" first, and that is a box describing the past:
+            # the roll for a turn happens after both sides have chosen, so by
+            # the time anyone can read the strip and pick a move, "this turn"
+            # is the turn already gone. What a player needs while choosing is
+            # what will be sealed when the choice lands, which is `next`.
+            #
+            # Three type names is the widest thing this strip ever holds and
+            # it sits over the field, so they are cut to three letters each.
+            # The hover says them in full, and says the resolved turn too for
+            # anyone reading back.
+            self.chips["sealed"].show_condition(
+                " ".join(name[:3].upper() for name in upcoming)
+                if upcoming else "none yet")
+            lines = []
+            if upcoming:
+                lines.append("Sealed for your next move: %s."
+                             % ", ".join(upcoming))
+            else:
+                lines.append("Nothing is sealed for your next move.")
+            # Deliberately not naming the set that was in force on the turn
+            # just played: it is spent, nobody can act on it, and carrying it
+            # here left two sets of three types on screen with only one of
+            # them worth reading.
+            lines.append("Status moves are never sealed.")
+            self.chips["sealed"].set_note(
+                "Quantum Roll\n" + " ".join(lines))
 
     def reset(self):
         self._signature = None
@@ -1600,7 +1698,16 @@ class AbilityFlare(RoundedPanel):
         self._hide_timer.timeout.connect(self.hide)
         self.hide()
 
-    def flare(self, actor, text, lifetime_ms=4200):
+    def flare(self, actor, text, lifetime_ms=4200, tag="CHARACTER ABILITY"):
+        """Say something over one side of the arena, briefly.
+
+        `tag` is the eyebrow above it. It used to be the fixed words
+        "CHARACTER ABILITY", which was right while abilities were the only
+        thing that used this -- a switch-in or a knockout announced through
+        the same widget then claimed to be an ability, which is worse than
+        not announcing it.
+        """
+        self.tag.setText(tag)
         self.who.setText(actor or "")
         self.who.setVisible(bool(actor))
         # first sentence only: the full transcript is in the battle log, and

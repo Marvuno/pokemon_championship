@@ -154,6 +154,13 @@ def custom_play():
         _custom_play_loop(battle_setup)
     finally:
         GameSystem.stage = was_stage
+        # Back to the title screen's own music. A battle swaps the track for
+        # the opponent's (battle_cycle) and a win swaps it again for the
+        # victory sting, and neither puts anything back -- in a career that
+        # is right, because the next thing is another round. Custom Play
+        # returns to the menu instead, so it was left sitting under whichever
+        # competitor was just fought. Same track start_game opens on.
+        music(audio="Assets/music/intro.mp3", loop=True)
 
 
 def _custom_play_loop(battle_setup):

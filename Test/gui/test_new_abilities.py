@@ -193,7 +193,11 @@ def blocked(ground, me, them, mine, foe, move_name):
 ground, me, them, mine, foe, said = quantum_battle(1)
 check("turn 1 seals nothing", ground.quantum["now"], set())
 check("...but announces the three to come", len(ground.quantum["next"]), 3)
-check("...and says so out loud", "refuses" in said[0])
+# "seal", not "refuse": the ability seals types, and a box or a line saying
+# "refuses" was describing the same thing in a second vocabulary. Turn one
+# says "will seal X next turn. Nothing is sealed yet" -- naming only the
+# coming set, because that is the one the next choice runs into.
+check("...and says so out loud", "seal" in said[0])
 
 ground, me, them, mine, foe, said = quantum_battle(2)
 check("turn 2 seals what turn 1 announced", len(ground.quantum["now"]), 3)
@@ -217,11 +221,18 @@ if free:
     check("an unsealed type is untouched (%s)" % free,
           blocked(ground, me, them, mine, foe, free), False)
 
-# nobody is ever left with nothing to do
+# The seal is total: every eligible move of a sealed type is refused.
+#
+# There used to be a carve-out here -- if every attack the opponent held was
+# of a sealed type, one was spared -- and it was removed for being invisible.
+# From the far side of the field a spared move looks exactly like the ability
+# failing: the log says Ground is sealed and a Ground move lands for full
+# damage. Being locked out of attacking is not being locked out of a turn:
+# status moves are never sealed and switching is always there.
 print()
-print("-- and never a complete lockout --")
+print("-- and the seal is total --")
 locked = 0
-spared_ok = 0
+leaked = 0
 for seed in range(200):
     random.seed(seed)
     me, them = sides("Quantum Roll")
@@ -247,9 +258,10 @@ for seed in range(200):
              if not blocked(ground, me, them, mine, foe, n)]
     locked += 1
     if still:
-        spared_ok += 1
-check("with every attack sealed, one is always left open (%d of %d)"
-      % (spared_ok, locked), spared_ok == locked and locked > 0, True)
+        leaked += 1
+check("with every attack sealed, none of them gets through (%d of %d "
+      "positions leaked)" % (leaked, locked),
+      leaked == 0 and locked > 0, True)
 
 # -------------------------------------------------------------- Pixelate
 print()

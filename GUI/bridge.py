@@ -905,6 +905,11 @@ def snap_field(battleground):
     artificial = bool(_g(battleground, "artificial_weather", False))
     elapsed = _g(battleground, "weather_turn", 0) or 0
     terrain = _g(battleground, "terrain", "None")
+    # Quantum Roll seals three types a turn and announces the next three a
+    # turn ahead. Both go on screen: the announcement is the ability rather
+    # than a courtesy, and it was only ever said in the battle log -- which
+    # made it a 1-in-6 fizzle for anybody who does not read it.
+    quantum = _g(battleground, "quantum", None) or {}
     try:
         from Scripts.Battle.constants import WEATHER_EFFECT_TURNS as limit
     except Exception:
@@ -932,6 +937,9 @@ def snap_field(battleground):
         "terrain_note": _terrain_note(terrain),
         "sudden_death": bool(_g(battleground, "sudden_death", False)),
         "auto_battle": bool(_g(battleground, "auto_battle", False)),
+        # sorted, so the chip does not reshuffle itself between publishes
+        "sealed": sorted(quantum.get("now") or ()),
+        "sealed_next": sorted(quantum.get("next") or ()),
     }
 
 
@@ -1184,6 +1192,94 @@ def install_hooks(bridge, game_main):
 
     patch_everywhere("switching_criteria", original_switch, switching_criteria)
 
+    # The switch itself, announced as it happens.
+    #
+    # Switching resolves *first* in a turn -- it outranks every move -- so the
+    # feed has to show it before the move that follows it. It could not: the
+    # window found switches by diffing the published state, and a publish only
+    # happens once the turn's work is done, so the line always arrived after
+    # the move banner and often after the next turn's divider. A Togekiss sent
+    # out at the top of turn 3 was drawn below the TURN 4 rule, having already
+    # taken damage on screen in turn 3.
+    #
+    # Wrapping it here puts it in the same queue as everything else, stamped
+    # at the moment the engine does it, so the order in the feed is the order
+    # it happened. `user_team[0]` is the Pokemon that has just arrived --
+    # the swap is done by the time this returns.
+    original_mechanism = switching.switching_mechanism
+
+    #: things that happened *inside* a move, waiting for that move to be
+    #: announced first. See below. Knockouts sit here too and are released
+    #: ahead of switches, because a Pokemon faints during the move and its
+    #: replacement is sent out after it.
+    held_switches = []
+    held_faints = []
+
+    # A knockout, heard from the engine rather than found by diffing the
+    # published state a moment later.
+    #
+    # The window used to notice knockouts by comparing snapshots, which is a
+    # publish behind: a Pokemon fainted, its replacement was announced from
+    # `switching_mechanism` straight away, and only then did the "X fainted!"
+    # line arrive -- underneath the arrival it had caused. Hearing the
+    # narrator puts it back in the order it happened.
+    def hear_faint(kind, text, facts):
+        if kind != "faint" or not facts.get("pokemon"):
+            return
+        event = ("faint", text, None, facts["pokemon"])
+        if bridge._capture_stack:
+            held_faints.append(event)
+        else:
+            bridge.emit_banner(event[0], event[1], side=event[2],
+                               actor=event[3])
+
+    narrator.listen(hear_faint)
+
+    def switching_mechanism(user, opponent, battleground, user_team,
+                            opponent_team, position_change, transfer,
+                            *a, **kw):
+        # Nested means this switch is part of a move that is still running --
+        # U-turn, Volt Switch, Baton Pass. The move's own banner is emitted
+        # when the move *finishes*, so announcing the switch here would put
+        # the arrival above the move that caused it: "Togekiss came in", then
+        # "Kokushibo used U-turn". Held instead, and released once the move
+        # has spoken.
+        #
+        # A switch outside a move -- one chosen as the turn's action, or a
+        # replacement after a knockout -- has nothing to wait for and is
+        # announced immediately, which is what puts it ahead of the move that
+        # follows it in the same turn. Switching outranks every move, and the
+        # feed has to read that way round.
+        nested = bool(bridge._capture_stack)
+        result, text = bridge.capture(
+            original_mechanism, user, opponent, battleground, user_team,
+            opponent_team, position_change, transfer, *a, **kw)
+        arrived = _g(result, "name", "") or _g(user_team[0], "name", "")
+        if not text.strip():
+            return result
+        event = ("switch", text, side_of(user), arrived)
+        if nested:
+            held_switches.append(event)
+        else:
+            bridge.emit_banner(event[0], event[1], side=event[2],
+                               actor=event[3])
+        return result
+
+    def release_held_switches():
+        """Announce what a move did, now that the move itself has spoken.
+
+        Knockouts first: a Pokemon faints partway through a move and anything
+        replacing it arrives afterwards, so releasing them the other way round
+        would reintroduce the ordering this exists to fix.
+        """
+        for held in (held_faints, held_switches):
+            while held:
+                kind, text, side, actor = held.pop(0)
+                bridge.emit_banner(kind, text, side=side, actor=actor)
+
+    patch_everywhere("switching_mechanism", original_mechanism,
+                     switching_mechanism)
+
     # -- move resolution: one banner per Pokemon acting this turn -----------
     # move_order_and_execution runs everything about one side's move --
     # the "X used Y" line, damage, status/stat effects, any ability it
@@ -1217,6 +1313,10 @@ def install_hooks(bridge, game_main):
             bridge.emit_banner("move", text,
                                side=side_of(turn.user.trainer),
                                actor=_g(turn.user.active, "name", ""))
+        if outermost:
+            # A U-turn's switch was held back so it could not be announced
+            # above the move that caused it. The move has spoken; let it go.
+            release_held_switches()
         return result
 
     patch_everywhere("move_order_and_execution", original_move_exec,
@@ -1682,8 +1782,14 @@ def install_hooks(bridge, game_main):
                 # their own path: [[nickname, won], ...] in round order. A
                 # fifth element added when per-run tracking went in, so runs
                 # recorded before that have nothing here.
-                "path": [[str(name), bool(won)] for name, won
-                         in (entry[4] or [])]
+                # [name, won, rating change]. The third element arrived
+                # with the Tournaments rating column, so a run recorded
+                # before that has two -- read by index rather than unpacked,
+                # which is what keeps an older save loadable.
+                "path": [[str(step[0]), bool(step[1]),
+                          (int(step[2]) if len(step) > 2
+                           and step[2] is not None else None)]
+                         for step in (entry[4] or [])]
                         if entry and len(entry) > 4 else [],
                 # who actually won it, which is known even for a run this
                 # competitor sat out

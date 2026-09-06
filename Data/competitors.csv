@@ -14,7 +14,7 @@ Ability: Procrastination
 Procrastination: inverse the priority of the moves."
 5,Solanum,Solanum,9,Quantum Roll,"Solanum has finally built a spaceship to escape from the Quantum Moon, so that he can participate into the Pokemon World Championship just in time.",Low,Alakazam,,,,,,low.mp3,ace.mp3,"We do not have much connection, you and I. Still, this encounter feels special. I hope you won't mind if I think of you as a friend.","Ace: Alakazam
 Ability: Quantum Roll
-Quantum Roll: 3 of the 18 types cannot reach her pokemon for a turn, and the next turn's three are announced a turn ahead. Attacking moves only - status moves always land. From turn 2 onwards, and if every attack the opponent has would be sealed, one is left open."
+Quantum Roll: 3 of the 18 types cannot reach her pokemon for a turn, and the next turn's three are announced a turn ahead. Attacking moves only - status moves always land. From turn 2 onwards."
 6,President Rose,President Rose,12,Energy Imbalance,President Rose is a moronic person in Pokemon Sword & Shield who seeks to obtain infinite energy from a legendary pokemon but backfired hard.,Low,Copperajah,,,,,,low.mp3,ace.mp3,"1000 years later, I predict that there will be an energy crisis wiping the humanity.","Ace: Copperajah
 Ability: Energy Imbalance
 Energy Imbalance: trigger Sudden Death at the last pokemon."
@@ -54,45 +54,45 @@ Heavy Blow: increase attack by 2 stages but decrease speed by 2 stages."
 18,Bojji,Bojji,62,Nimble,"Bojji is a cursed giant with no physical strength. In compensation, he is extremely nimble, allowing him to dodge attack, and he is good at hitting the vital point of the opponent to win over them.",Low,Scorchrome,,,,,,low.mp3,ace.mp3,...................,"Ace: Scorchrome (Custom)
 Ability: Nimble
 Nimble: decrease attack by 2 stages, but increase speed by 2 stages."
-19,Shuka,Shuka,67,String Manipulation,Karino Shuka is a main character of Darwin's Game as well as a member of Sunset Ravens. Shuka is typically friendly with people but can become deadly if needed.,Intermediate,Nidoqueen,Nidoking,,,,,intermediate.mp3,ace.mp3,"If I didn't want to die, I shouldn't have been born, right?","Ace: Nidoqueen
-Ability: String Manipulation
-String Manipulation: decrease target Pokemon speed by 1 stage (20%)."
-20,Rum,Rum,70,Impatient,"Rum is the second-in-hand of the Black Organization. He is known to be ruthless and crafty, but he is also impatient.",Intermediate,Crobat,,,,,,intermediate.mp3,ace.mp3,"I am the Second-in-hand of the Black Organization, and my hobby is making sushi and stalking an old man.","Ace: Crobat
-Ability: Impatient
-Impatient: trigger Sudden Death (1%), decrease own Pokemon HP by 12.5% and target Pokemon HP by 25% (20%)."
-21,Misty,Misty,73,Soak,"Misty is the Gym Leader of Cerulean City's Gym. She is once specialized in Water-type Pokemon. She got bored of her Gym Leader life and decided to take a break to look for Ash Ketchum, thereby participating in the World Pokemon Championship.",Intermediate,Starmie,,,,,,intermediate.mp3,ace.mp3,Sometimes I look at that Psyduck's face and I get a headache.,"Ace: Starmie
-Ability: Soak
-Soak: add Water type to pokemon."
-22,Mount,Mount,77,Ball Trick,Mount is a prominent talent currently playing the position of CAM for the Chelsea Football Club.,Intermediate,Cinderace,,,,,,intermediate.mp3,ace.mp3,You don't need eleven people when one is enough.,"Ace: Cinderace
-Ability: Ball Trick
-Ball Trick: increase power by 50% for ball/bomb moves."
-23,Diantha,Diantha,80,Champion,"Diantha is the Champion of the Kalos region. However, she is well known to be the weakest champion in the Pokemon main series franchise.",Intermediate,Gardevoir,,,,,,intermediate.mp3,ace.mp3,Witnessing the noble spirits of you and your Pokemon in battle has really touched my heart...,"Ace: Gardevoir
-Ability: Champion
-Champion: increase Atk and SpA by 1 stage for Ace."
-24,Devoltorm,Devoltorm,82,Tenebrous,"Devoltorm is a sorcerer who traded his name away for power and now insists everyone use the one he chose himself. He keeps an angelic face and a courtier's manners, and speaks of cruelty as though it were simply good sense.",Intermediate,Nightdaunter,,,,,,intermediate.mp3,ace.mp3,"There is no good and evil, there is only power and those too weak to seek it.","Ace: Nightdaunter (Custom)
-Ability: Tenebrous
-Tenebrous: increase damage by 30% and additional effect chance by 30% for dark-type and ghost-type moves."
-25,Mordekaiser,Mordekaiser,85,Death Realm,Mordekaiser is tired of battling with the other champions in League of Legends. He wants a change of his life.,Intermediate,Boneknight,,,,,,intermediate.mp3,ace.mp3,I will silence the incessant thrum of mortal hearts.,"Ace: Boneknight (Custom)
-Ability: Death Realm
-Death Realm: randomly increase stats by one stage when causing Pokemon to faint."
-26,Therion,Therion,100,Thief,"Therion is a master thief known throughout the realm thanks to his multiple exploits in stealing. It is mentioned that almost no one knows of Therion's face despite his infamy,  and that he is the enemy of every wealthy home and person.",Intermediate,Gengar,,,,,,intermediate.mp3,ace.mp3,Like a thief in the night.,"Ace: Gengar
-Ability: Thief
-Thief: steal target pokemon positive stat stages (20%)."
-27,Berserker,Berserker,108,Barbaric,Berserker is a ruthless crazy barbarian who is more resilient when in danger. He is not good at capturing a lead but he is very good at comebacks.,Intermediate,Vindaxe,,,,,,intermediate.mp3,ace.mp3,BUWARKKKKKKKKKKKKK!!!!!,"Ace: Vindaxe (Custom)
-Ability: Barbaric
-Barbaric: drain 30% damage as HP at 50% HP or below."
-28,Fae,Fae,116,Pixelate,"A playful pure pixie fairy who dances through the moonlit glades. Despite her tiny size and cheerful demeanor, Fae commands potent fairy magic, weaving light barriers to keep unwelcome intruders at bay.",Intermediate,Maruka,,,,,,intermediate.mp3,ace.mp3,"Shed no tear! oh, shed no tear! The flower will bloom another year!","Ace: Maruka
-Ability: Pixelate
-Pixelate: starts with misty terrain, and all normal-type moves become fairy-type moves. Her normal and fairy moves hit 1.2x harder."
-29,Takagi,Takagi,118,Charm,Takagi is a crafty girl who has many small tricks and pranks. She still seeks Pokemon Battle as stress relief.,Intermediate,Charmorin,,,,,,intermediate.mp3,ace.mp3,You finally look at me. Hehehe,"Ace: Charmorin (Custom)
+19,Takagi,Takagi,65,Charm,Takagi is a crafty girl who has many small tricks and pranks. She still seeks Pokemon Battle as stress relief.,Intermediate,Charmorin,,,,,,intermediate.mp3,ace.mp3,You finally look at me. Hehehe,"Ace: Charmorin (Custom)
 Ability: Charm
 Charm: distracting opponent and opposing pokemon, causing it to miss its move."
-30,Yagami Light,Yagami Light,123,Death Note,"Light is characterized as hardworking, talented, and a natural genius. Highly perceptive and good with problem solving skills, Light is a skilled planner and good at mapping out scenarios. Furthermore, Light is very popular among peers and adored by his family members. He often carries a notebook on his hand for no reason.",Intermediate,Xurkitree,,,,,,intermediate.mp3,ace.mp3,May I ask what is your name? ^_^,"Ace: Xurkitree
-Ability: Death Note
-Death Note: opposing pokemon with >1 stat stages will automatically suffer from Perish Count."
-31,Makise Kurisu,Makise Kurisu,129,Time Travel,"Kurisu Makise is the daughter of Shouichi Makise, a genius girl who graduated from university at the age of seventeen, and a member of the Brain Science Institute at Viktor Chondria University and the Future Gadget Lab.",Intermediate,Tsareena,,,,,,intermediate.mp3,ace.mp3,I don't want to deny who I've been. Because even my failures are a part of who I am today.,"Ace: Tsareena
+20,Shuka,Shuka,67,String Manipulation,Karino Shuka is a main character of Darwin's Game as well as a member of Sunset Ravens. Shuka is typically friendly with people but can become deadly if needed.,Intermediate,Nidoqueen,Nidoking,,,,,intermediate.mp3,ace.mp3,"If I didn't want to die, I shouldn't have been born, right?","Ace: Nidoqueen
+Ability: String Manipulation
+String Manipulation: decrease target Pokemon speed by 1 stage (20%)."
+21,Rum,Rum,70,Impatient,"Rum is the second-in-hand of the Black Organization. He is known to be ruthless and crafty, but he is also impatient.",Intermediate,Crobat,,,,,,intermediate.mp3,ace.mp3,"I am the Second-in-hand of the Black Organization, and my hobby is making sushi and stalking an old man.","Ace: Crobat
+Ability: Impatient
+Impatient: trigger Sudden Death (1%), decrease own Pokemon HP by 12.5% and target Pokemon HP by 25% (20%)."
+22,Misty,Misty,73,Soak,"Misty is the Gym Leader of Cerulean City's Gym. She is once specialized in Water-type Pokemon. She got bored of her Gym Leader life and decided to take a break to look for Ash Ketchum, thereby participating in the World Pokemon Championship.",Intermediate,Starmie,,,,,,intermediate.mp3,ace.mp3,Sometimes I look at that Psyduck's face and I get a headache.,"Ace: Starmie
+Ability: Soak
+Soak: add Water type to pokemon."
+23,Mount,Mount,77,Ball Trick,Mount is a prominent talent currently playing the position of CAM for the Chelsea Football Club.,Intermediate,Cinderace,,,,,,intermediate.mp3,ace.mp3,You don't need eleven people when one is enough.,"Ace: Cinderace
+Ability: Ball Trick
+Ball Trick: increase power by 50% for ball/bomb moves."
+24,Diantha,Diantha,80,Champion,"Diantha is the Champion of the Kalos region. However, she is well known to be the weakest champion in the Pokemon main series franchise.",Intermediate,Gardevoir,,,,,,intermediate.mp3,ace.mp3,Witnessing the noble spirits of you and your Pokemon in battle has really touched my heart...,"Ace: Gardevoir
+Ability: Champion
+Champion: increase Atk and SpA by 1 stage for Ace."
+25,Devoltorm,Devoltorm,82,Tenebrous,"Devoltorm is a sorcerer who traded his name away for power and now insists everyone use the one he chose himself. He keeps an angelic face and a courtier's manners, and speaks of cruelty as though it were simply good sense.",Intermediate,Nightdaunter,,,,,,intermediate.mp3,ace.mp3,"There is no good and evil, there is only power and those too weak to seek it.","Ace: Nightdaunter (Custom)
+Ability: Tenebrous
+Tenebrous: increase damage by 30% and additional effect chance by 30% for dark-type and ghost-type moves."
+26,Mordekaiser,Mordekaiser,85,Death Realm,Mordekaiser is tired of battling with the other champions in League of Legends. He wants a change of his life.,Intermediate,Boneknight,,,,,,intermediate.mp3,ace.mp3,I will silence the incessant thrum of mortal hearts.,"Ace: Boneknight (Custom)
+Ability: Death Realm
+Death Realm: randomly increase stats by one stage when causing Pokemon to faint."
+27,Therion,Therion,100,Thief,"Therion is a master thief known throughout the realm thanks to his multiple exploits in stealing. It is mentioned that almost no one knows of Therion's face despite his infamy,  and that he is the enemy of every wealthy home and person.",Intermediate,Gengar,,,,,,intermediate.mp3,ace.mp3,Like a thief in the night.,"Ace: Gengar
+Ability: Thief
+Thief: steal target pokemon positive stat stages (20%)."
+28,Makise Kurisu,Makise Kurisu,105,Time Travel,"Kurisu Makise is the daughter of Shouichi Makise, a genius girl who graduated from university at the age of seventeen, and a member of the Brain Science Institute at Viktor Chondria University and the Future Gadget Lab.",Intermediate,Tsareena,,,,,,intermediate.mp3,ace.mp3,I don't want to deny who I've been. Because even my failures are a part of who I am today.,"Ace: Tsareena
 Ability: Time Travel
 Time Travel: immune to increased-priority moves."
+29,Berserker,Berserker,108,Barbaric,Berserker is a ruthless crazy barbarian who is more resilient when in danger. He is not good at capturing a lead but he is very good at comebacks.,Intermediate,Vindaxe,,,,,,intermediate.mp3,ace.mp3,BUWARKKKKKKKKKKKKK!!!!!,"Ace: Vindaxe (Custom)
+Ability: Barbaric
+Barbaric: drain 30% damage as HP at 50% HP or below."
+30,Fae,Fae,116,Pixelate,"A playful pure pixie fairy who dances through the moonlit glades. Despite her tiny size and cheerful demeanor, Fae commands potent fairy magic, weaving light barriers to keep unwelcome intruders at bay.",Intermediate,Maruka,,,,,,intermediate.mp3,ace.mp3,"Shed no tear! oh, shed no tear! The flower will bloom another year!","Ace: Maruka
+Ability: Pixelate
+Pixelate: starts with misty terrain, and all normal-type moves become fairy-type moves. Her normal and fairy moves hit 1.2x harder."
+31,Yagami Light,Yagami Light,123,Death Note,"Light is characterized as hardworking, talented, and a natural genius. Highly perceptive and good with problem solving skills, Light is a skilled planner and good at mapping out scenarios. Furthermore, Light is very popular among peers and adored by his family members. He often carries a notebook on his hand for no reason.",Intermediate,Xurkitree,,,,,,intermediate.mp3,ace.mp3,May I ask what is your name? ^_^,"Ace: Xurkitree
+Ability: Death Note
+Death Note: opposing pokemon with >1 stat stages will automatically suffer from Perish Count."
 32,Kurtosis,Kurtosis,135,Outliers,Kurtosis is an outlier. A black horse.,Intermediate,Spectrier,,,,,,intermediate.mp3,ace.mp3,Kurtosis is a measure of the combined weight of a distribution's tails relative to the center of the distribution.,"Ace: Spectrier
 Ability: Outliers
 Outliers: his attacks deal anywhere from 0.8x to 1.4x their damage, at random. The average is ordinary; the tails are not."
@@ -189,13 +189,13 @@ Frighten: inflict Frighten condition (halved damage dealt) to all opponent pokem
 63,King Bradley,King Bradley,312,Tenebrous,"King Bradley is the Wrath. He displays superhuman abilities when enraged. However, he is often perceived as a calm and humorous fuhrer. He is also the main antagonist in Fullmetal Alchemist.",Advanced,Marshadow,,,,,,advanced.mp3,ace.mp3,"All power tends to corrupt, and absolute power corrupts absolutely. Great men are almost always bad men.","Ace: Marshadow
 Ability: Tenebrous
 Tenebrous: increase damage by 30% and additional effect chance by 30% for dark-type and ghost-type moves."
-64,Magnus Carlsen,Magnus Carlsen,402,Blunders,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history. While preparing his openings for the next World Chess Championship, he got addicted into Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,Sworphin,,,,,lower_elite_battle.mp3,elite_ace.mp3,"Without the element of enjoyment, it is not worth trying to excel at anything.","Ace: Chesiquen (Custom)
+64,Magnus Carlsen,Magnus Carlsen,374,Blunders,"One of the Lower Elite Four. Magnus Carlsen is known as the greatest chess player in history. While preparing his openings for the next World Chess Championship, he got addicted into Pokemon battle instead. Hence, he is actively looking to delay the Championship for it.",Elite,Chesiquen,Sworphin,,,,,lower_elite_battle.mp3,elite_ace.mp3,"Without the element of enjoyment, it is not worth trying to excel at anything.","Ace: Chesiquen (Custom)
 Ability: Blunders
 Blunders: target pokemon damages itself instead (10%)."
-65,Animenz,Animenz,438,Musical,One of the Lower Elite Four. Animenz is greatest anime pianist in the history. His masterful piano technique allows him to master Pokemon battle in a short time.,Elite,Pianotic,Toxtricity,,,,,lower_elite_battle.mp3,elite_ace.mp3,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?","Ace: Pianotic (Custom)
+65,Animenz,Animenz,402,Musical,One of the Lower Elite Four. Animenz is greatest anime pianist in the history. His masterful piano technique allows him to master Pokemon battle in a short time.,Elite,Pianotic,Toxtricity,,,,,lower_elite_battle.mp3,elite_ace.mp3,"How is it that music can, without words, evoke our laughter, our fears, our highest aspirations?","Ace: Pianotic (Custom)
 Ability: Musical
 Musical: may induce Freeze (1/6), Paralysis (1/2) or Sleep (1/3) to target pokemon when using Special moves (20%)."
-66,Elias Ainsworth,Elias Ainsworth,464,Curse of Forest,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride. Although he is scary-looking, he is actually kind and straightforward. Without Chise by his side, he got lonely and looked for other partners. That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,Dreadigo,Brambleblood,,,,,lower_elite_battle.mp3,elite_ace.mp3,It is the instinct of the weak to be afraid of the strange.,"Ace: Dreadigo (Custom)
+66,Elias Ainsworth,Elias Ainsworth,447,Curse of Forest,"One of the Lower Elite Four. Elias Ainsworth is a Wendigo in Ancient Magus' Bride. Although he is scary-looking, he is actually kind and straightforward. Without Chise by his side, he got lonely and looked for other partners. That is when he found Pokemon and eventually the beauty of Pokemon battle.",Elite,Dreadigo,Brambleblood,,,,,lower_elite_battle.mp3,elite_ace.mp3,It is the instinct of the weak to be afraid of the strange.,"Ace: Dreadigo (Custom)
 Ability: Curse of Forest
 Curse of Forest: apply Grass type to target pokemon and may flinch with attacking moves (10%)."
 67,Mivy Wenceslas,Mivy Wenceslas,480,Wizardry,"One of the Lower Elite Four. Mivy Wenceslas was a retired wizard living in an ancient wizard tower in Scotland. He was once known as the greatest trainer in the decade, but gradually he craved for happy and peaceful life, and slowly further himself away from pokemon trainings. After the announcement of the First World Championship, he was motivated to see it as a retirement interest than a serious grind.",Elite,Victini,Psyvinstry,,,,,lower_elite_battle.mp3,elite_ace.mp3,The Wizard's First Rule: People are stupid; given proper motivation almost anyone will believe almost anything.,"Ace: Victini
