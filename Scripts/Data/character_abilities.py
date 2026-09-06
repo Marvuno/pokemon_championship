@@ -62,6 +62,20 @@ MOODY_FRACTION = 0.10
 MOODY_HEAL_CHANCE = 0.10
 MOODY_HURT_CHANCE = 0.20
 
+#: How often Charm distracts the opponent into missing. Read twice: as a roll
+#: when the turn is real, and as an expectation when the AI is only weighing
+#: candidates -- see charm() for why those must differ.
+CHARM_CHANCE = 0.1
+
+#: How often Curse of Forest steals the turn outright.
+#:
+#: Was 0.2. A flinch costs the target a whole turn, which is the most valuable
+#: thing there is in an AI that counts turns -- and once the ability started
+#: firing during move scoring (it is phase 4, which went unfired until this
+#: session) Elias jumped from 49.7% to 81.0% on ability alone, the largest
+#: single move in the game and the strongest ability in it. Halved.
+CURSE_FLINCH_CHANCE = 0.1
+
 #: What fraction of the damage dealt Blood Magic drains back as HP.
 BLOOD_MAGIC_DRAIN = 0.33
 
@@ -79,11 +93,18 @@ BLOOD_MAGIC_DRAIN = 0.33
 #: lose to and folds against people he should beat" -- which is right, and
 #: nets to zero.
 #:
-#: 0.8-1.5 averages 1.15, so the tails still swing wildly (a 1.9x spread
+#: 0.8-1.4 averages 1.10, so the tails still swing wildly (a 1.75x spread
 #: between his worst roll and his best, against the engine's own 1.18x) but
-#: the mean now favours him. The flavour was never the problem; being
+#: the mean still favours him. The flavour was never the problem; being
 #: centred on 1.0 was.
-OUTLIERS_BAND = (0.8, 1.5)
+#:
+#: Widened to 0.8-1.5 first, which averages 1.15 and is a flat 15% damage
+#: bonus with extra variance on top -- enough that he finished 31st in a
+#: field where his rating puts him 41st, the largest mismatch on the board.
+#: Trimmed to 1.4 rather than back to 1.35 because the mean is what moved
+#: him and the spread is what he is for: this gives back about half the
+#: bonus and keeps nearly all of the swing.
+OUTLIERS_BAND = (0.8, 1.4)
 
 #: How many of the 18 types Quantum Roll seals at a time. Three of eighteen is
 #: 16.7% of any one move -- measured against real movesets that leaves at
@@ -759,8 +780,28 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
     # gone with it -- notice() still names the ability when it fires, and Charm
     # still costs the opponent their move, so nothing mechanical was lost.
     def charm(*args):
-        # charm causes opponent and its pokemon to get distracted and misses its move
-        if random.random() <= 0.1:
+        """The opponent is distracted, and misses. One turn in ten.
+
+        The roll only happens for real. `battleground.reality` is False while
+        the AI weighs its candidates, and rolling there let a coin flip that
+        had not happened leak into the estimate -- twice over, because phase 3
+        fires on both sides' scoring passes:
+
+          * the opponent saw a move at zero accuracy and quietly stopped
+            choosing it, dodging a Charm that was never going to land
+          * worse, Takagi's own read of the *incoming* damage was rolled the
+            same way, so one turn in ten she under-estimated what was about to
+            hit her and played as though she were safer than she was
+
+        Neither was visible while `_accuracy` was turning a deliberate zero
+        back into 1.0; fixing that exposed both. The estimate now gets the
+        expectation -- nine tenths of the accuracy -- which is what a scorer
+        should know: that this trainer makes moves miss, but not which ones.
+        """
+        if not battleground.reality:
+            move.accuracy *= 1.0 - CHARM_CHANCE
+            return
+        if random.random() <= CHARM_CHANCE:
             move.accuracy = 0
             if target_side.main and not battleground.auto_battle:
                 notice(battleground, user_side)
@@ -1412,7 +1453,8 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
                 target.type += ['Grass']
                 notice(battleground, user_side)
         elif abilityphase == 4:
-            if move.damage > 0 and user_side.faster and random.random() <= 0.2:
+            if (move.damage > 0 and user_side.faster
+                    and random.random() <= CURSE_FLINCH_CHANCE):
                 target.volatile_status['Flinch'] = 1
                 notice(battleground, user_side)
 
@@ -1427,12 +1469,30 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
 
         It used to redirect the whole hit onto the target instead, which
         was far stronger than a fumble should be.
+
+        The roll only happens for real, the same way `charm` does and for the
+        same reason: `battleground.reality` is False while either AI weighs
+        its candidates, so rolling there let an unhappened coin flip decide a
+        move choice. One evaluation in ten, whoever was facing Magnus saw a
+        super effective hit come back flattened and quietly picked something
+        else -- and Magnus's own read of the incoming damage was rolled the
+        same way, so nine times in ten he planned as though he did not have
+        the ability at all. A scorer should know that this trainer fumbles
+        some of what lands on him, not which particular hit, so the estimate
+        gets the expectation instead.
         """
-        if random.random() > BLUNDERS_CHANCE:
-            return
         effectiveness = getattr(move, "type_effectiveness", 1) or 1
         if effectiveness == 1 or move.damage <= 0:
             return                       # nothing to flatten
+        if not battleground.reality:
+            # the mean of "flattened one time in ten", clamped the same way
+            # the real branch is so it can still only ever take damage away
+            flattened = min(move.damage, move.damage / effectiveness)
+            move.damage = int(move.damage
+                              + BLUNDERS_CHANCE * (flattened - move.damage))
+            return
+        if random.random() > BLUNDERS_CHANCE:
+            return
         # Clamped so it can only ever take damage away. Flattening to 1x cuts
         # both ways on its own -- a resisted hit would come out *stronger* --
         # and a fumble that sometimes helps the attacker is not a fumble.
@@ -1440,8 +1500,29 @@ def UseCharacterAbility(turn, move="", abilityphase=1, verbose=False):
         notice(battleground, user_side)
 
     def musical(*args):
-        # random chance for special moves to paralyze, freeze and hypnotize target
-        if random.random() <= 0.2:
+        """A special attack carries a chance of freeze, sleep or paralysis.
+
+        Only for real. This is a phase-6 ability that writes straight to
+        `target`, and phase 6 is fired by `ai_turns._hits` to find out what an
+        attack gives back -- so the roll was happening once per evaluated
+        turn, against the live opponent, with no turn played. `_hits` copies
+        the *attacker* before firing phase 6, because blood_magic writes to
+        the holder; the target is not copied, and `believed()` hands back the
+        real Pokemon rather than a shadow for every trainer at Advanced or
+        above, which Animenz is.
+
+        Measured before the guard: 81 of 405 evaluations, 20.0% -- exactly the
+        roll below -- left the opponent asleep or paralysed purely from being
+        thought about. One free status a turn in five, on top of the ability
+        working normally, which is most of what put a competitor rated 402
+        third in the field.
+
+        There is no expectation to substitute the way `charm` substitutes nine
+        tenths of an accuracy: a status either lands or it does not, and half
+        a sleep is not a thing. So the estimate simply does without it, and
+        Animenz's AI values its special moves at what they do unaided.
+        """
+        if battleground.reality and random.random() <= 0.2:
             if target.status == "Normal" and move.attack_type == "Special":
                 temporary_effect = random.choices([Freeze(1), Sleep(1), Paralysis(1)], weights=[1, 2, 3], k=1)[0]
                 target.status = status_effect_immunity_check(user, target, move, temporary_effect[0])

@@ -1175,9 +1175,21 @@ frames were decoded at exactly one size — scaling it would soften the pixel ar
 honours `_switch_busy` to keep it hidden, since state updates land there many
 times a second. Auto battle gets the feed line and card flash but no animation.
 
-**The start menu is NEW GAME / CONTINUE / HISTORY.** OPTIONS only ever printed
-"feature not available yet" (Settings is the real thing, reachable any time)
-and QUIT is what the window's close button is for. The swap window has no close
+**The start menu is NEW GAME / CONTINUE / HISTORY / AUTO RUN / CUSTOM PLAY.**
+OPTIONS only ever printed "feature not available yet" (Settings is the real
+thing, reachable any time) and QUIT is what the window's close button is for.
+
+CUSTOM PLAY is one battle against a competitor you pick, and it sits *beside*
+the career rather than in it: no save is read or written, no bracket is drawn,
+and both sides are deep copies, so it is reachable with no save at all. The
+player is dealt in as the opponent -- same rating, so the same IV floor and the
+same shelf of Pokemon, and the same pinned aces -- which is what makes it a
+practice mode rather than a handicap match. Two things it has to put back on
+the way out, and both have bitten already: `GameSystem.stage`, which it borrows
+because ROUND_LIMIT is read off it, and the tournament tail in
+`battle_win_condition.end_battle`, which is skipped via
+`battleground.exhibition` -- `round_end` walks all thirty-two seeded
+competitors and raises IndexError on a field that was never drawn. The swap window has no close
 button either, and swallows Escape while a question is live — its own buttons
 are the way out. `closeEvent`/`reject()` still decline rather than say nothing,
 because a window manager can close a window whatever its flags say.

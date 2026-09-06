@@ -30,78 +30,78 @@ see the note below the table.
 
 RANK COMPETITOR          ABILITY                WIN%    ACE  ACES    PER
 ------------------------------------------------------------------------------
-1    Mivy Wenceslas      Wizardry              77.3%    600     2  +1.87
-2    Reaper Conan        Silhouette            75.9%    681     6  +1.85
-3    Evonne              Frighten              72.1%    506     1  +1.04
-4    Expert Cynthia      Old Legends           71.4%    600     6  +1.38
-5    Elowen              Sylvan Sprout         70.4%    535     1  +1.42
-6    Champion Marvin     Last Stand            68.7%    730     6  +0.66
-7    Cristalla           Reflection            66.2%    540     1  +1.10
-8    Solanum             Quantum Roll          64.1%    500     1  +0.99
-9    Emperor Marvuno     Primordial            63.8%    700     6  +1.02
-10   Takagi              Charm                 62.1%    516     1  +0.81
-11   Demon Muzan         Blood Magic           60.4%    684     6  +0.79
-12   Celeste             Celestial             60.4%    570     1  +0.74
-13   Rudolf              Memento               59.2%    558     1  +0.48
-14   Lusamine            Ultra Boost           58.9%    570     2  +0.50
-15   Ash Ketchum         Plot Armor            58.2%    320     1  +0.31
-16   Petra               Groundwork            58.0%    535     1  +0.61
-17   Lillie              Aurora Borealis       57.3%    505     1  +0.64
-18   Libelle             Field Study           56.5%    515     1  +0.37
-19   Jack the Ripper     Irrational            55.5%    600     1  +0.44
-20   The Trio            Overloaded            54.9%    520     1  +0.44
-21   Ginko               Wanderer              54.4%    550     2  +0.37
-22   Yor Forger          Assassination         53.1%    525     1  +0.25
-23   Titan               Gargantuan            52.7%    600     1  +0.19
-24   Privy               Helper                52.3%    600     1  +0.17
-25   Kurtosis            Outliers              52.1%    580     1  +0.12
-26   Berserker           Barbaric              52.0%    530     1  +0.06
-27   Abota               Violence              51.1%    500     1  +0.14
-28   Big Bryan           Gluttony              50.0%    540     1  -0.09
-29   Elias Ainsworth     Curse of Forest       49.7%    600     2  +0.11
-30   Serena              Synchronize           49.4%    534     1  +0.03
-31   Albert Einstein     Light Speed           48.9%    535     1  -0.06
-32   Mordekaiser         Death Realm           48.7%    495     1  -0.06
-33   Paul                Calm                  48.6%    540     1  -0.05
-34   Devoltorm           Tenebrous             48.6%    490     1  -0.08
-35   Samantha            Anger Point           48.6%    555     1  -0.14
-36   Faker               Killer Instinct       48.5%    640     1  -0.06
-37   Sterling            Cross Court           48.5%    500     1  -0.06
-38   Rum                 Impatient             48.2%    535     1  -0.07
-39   Coco                Sparking Cascade      48.0%    485     1  -0.05
-40   Vex                 Torment               48.0%    550     1  -0.22
-41   Therion             Thief                 47.5%    500     1  -0.11
-42   Magnus Carlsen      Blunders              47.0%    580     2  -0.10
-43   Alton               Calibration           46.9%    320     1  -0.17
-44   Misty               Soak                  46.2%    520     1  -0.33
-45   Violet Evergarden   Motivator             45.8%    600     1  -0.21
-46   Clown Marcus        Moody                 45.8%    540     1  -0.28
-47   Shuka               String Manipulation   45.6%    505     2  -0.18
-48   King Bradley        Tenebrous             45.4%    600     1  -0.33
-49   Mindfield           Brain Wave            45.1%    475     1  -0.34
-50   Diantha             Champion              44.6%    518     1  -0.42 (*)
-51   Aphelios            Fireworks             44.2%    570     1  -0.35
-52   Fae                 Pixelate              44.1%    490     1  -0.31
-53   Mount               Ball Trick            44.1%    530     1  -0.38
-54   Gin                 Ruthless              43.8%    540     1  -0.40
-55   Makise Kurisu       Time Travel           43.5%    510     1  -0.45
-56   Pudding             Naive                 43.4%    535     1  -0.21
-57   Animenz             Musical               43.0%    609     2  -0.33
-58   Leon                Champion              43.0%    534     1  -0.47 (*)
-59   Bojji               Nimble                43.0%    509     1  -0.65
-60   Lance               Champion              42.4%    600     1  -0.41 (*)
-61   Ophelia             Lamplighter           42.4%    520     1  -0.50
-62   President Rose      Energy Imbalance      42.4%    500     1  -0.64
-63   Yagami Light        Death Note            42.3%    570     1  -0.41
-64   Steven              Champion              42.3%    600     1  -0.53 (*)
-65   Velvet              Infiltration          41.5%    530     1  -0.54
-66   Trasher             Trashy                39.6%    474     1  -0.52
-67   Auraia              Serene Grace          39.6%    600     1  -0.58
-68   Dulunga             Desert Wind           37.6%    515     2  -0.76
-69   Jason               Procrastination       36.9%    484     1  -0.84
-70   King Bosse          Heavy Blow            30.8%    530     1  -1.25
-71   Goblin              Dim                   17.0%    510     1  -2.32
-72   Beatrice            Tension Release       14.8%    485     1  -2.64
+1    Elias Ainsworth     Curse of Forest       81.0%    600     2  +2.68
+2    Reaper Conan        Silhouette            76.1%    681     6  +1.96
+3    Celeste             Celestial             75.9%    570     1  +1.94
+4    Expert Cynthia      Old Legends           73.8%    600     6  +1.80
+5    Mivy Wenceslas      Wizardry              73.8%    600     2  +1.75
+6    Elowen              Sylvan Sprout         69.7%    535     1  +1.55
+7    Champion Marvin     Last Stand            68.2%    730     6  +0.61
+8    Emperor Marvuno     Primordial            68.0%    700     6  +1.43
+9    Cristalla           Reflection            67.2%    540     1  +1.19
+10   Evonne              Frighten              65.6%    506     1  +0.82
+11   Lillie              Aurora Borealis       60.7%    505     1  +0.78
+12   Ash Ketchum         Plot Armor            60.7%    320     1  +0.35
+13   Petra               Groundwork            60.4%    535     1  +0.84
+14   Solanum             Quantum Roll          59.0%    500     1  +0.68
+15   Demon Muzan         Blood Magic           58.9%    684     6  +0.68
+16   Lusamine            Ultra Boost           58.9%    570     2  +0.66
+17   Rudolf              Memento               58.0%    558     1  +0.48
+18   Albert Einstein     Light Speed           55.8%    535     1  +0.48
+19   Jack the Ripper     Irrational            55.6%    600     1  +0.47
+20   Takagi              Charm                 55.5%    516     1  +0.30
+21   The Trio            Overloaded            54.1%    520     1  +0.38
+22   Yor Forger          Assassination         53.9%    525     1  +0.27
+23   Libelle             Field Study           53.9%    515     1  +0.18
+24   Therion             Thief                 53.7%    500     1  +0.34
+25   Privy               Helper                51.8%    600     1  +0.26
+26   Berserker           Barbaric              51.8%    530     1  +0.15
+27   Ginko               Wanderer              51.5%    550     2  +0.18
+28   Auraia              Serene Grace          51.1%    600     1  +0.07
+29   Faker               Killer Instinct       50.8%    640     1  +0.07
+30   Sterling            Cross Court           50.1%    500     1  +0.06
+31   Serena              Synchronize           49.9%    534     1  +0.04
+32   Kurtosis            Outliers              49.9%    580     1  -0.13
+33   Vex                 Torment               49.6%    550     1  -0.02
+34   Titan               Gargantuan            49.2%    600     1  +0.03
+35   Animenz             Musical               48.9%    609     2  -0.02
+36   Paul                Calm                  48.5%    540     1  -0.10
+37   Magnus Carlsen      Blunders              48.3%    580     2  -0.10
+38   Samantha            Anger Point           48.3%    555     1  -0.15
+39   King Bradley        Tenebrous             48.2%    600     1  -0.06
+40   Devoltorm           Tenebrous             48.0%    490     1  -0.15
+41   Abota               Violence              47.9%    500     1  -0.08
+42   Rum                 Impatient             47.7%    535     1  -0.07
+43   Shuka               String Manipulation   46.1%    505     2  -0.28
+44   Violet Evergarden   Motivator             45.9%    600     1  -0.21
+45   Leon                Champion              45.9%    534     1  -0.48 (*)
+46   Gin                 Ruthless              45.5%    540     1  -0.40
+47   Mordekaiser         Death Realm           45.1%    495     1  -0.28
+48   Steven              Champion              44.9%    600     1  -0.39 (*)
+49   Diantha             Champion              44.9%    518     1  -0.47 (*)
+50   Yagami Light        Death Note            44.8%    570     1  -0.31
+51   Fae                 Pixelate              44.6%    490     1  -0.35
+52   Misty               Soak                  44.5%    520     1  -0.41
+53   Mount               Ball Trick            44.1%    530     1  -0.41
+54   Lance               Champion              43.8%    600     1  -0.44 (*)
+55   Makise Kurisu       Time Travel           43.8%    510     1  -0.48
+56   Coco                Sparking Cascade      43.2%    485     1  -0.49
+57   Velvet              Infiltration          41.5%    530     1  -0.70
+58   Alton               Calibration           41.1%    320     1  -0.51
+59   Clown Marcus        Moody                 41.1%    540     1  -0.53
+60   Bojji               Nimble                39.7%    509     1  -0.82
+61   Mindfield           Brain Wave            39.6%    475     1  -0.66
+62   President Rose      Energy Imbalance      39.4%    500     1  -0.71
+63   Pudding             Naive                 38.3%    535     1  -0.46
+64   Trasher             Trashy                37.9%    474     1  -0.87
+65   Aphelios            Fireworks             36.9%    570     1  -0.86
+66   Ophelia             Lamplighter           35.9%    520     1  -0.93
+67   Big Bryan           Gluttony              35.8%    540     1  -0.93
+68   Dulunga             Desert Wind           35.8%    515     2  -0.98
+69   Jason               Procrastination       32.7%    484     1  -1.24
+70   King Bosse          Heavy Blow            30.4%    530     1  -1.43
+71   Goblin              Dim                   16.2%    510     1  -2.61
+72   Beatrice            Tension Release       13.5%    485     1  -2.96
 
 
 Abilities this mode cannot measure
@@ -112,10 +112,10 @@ holder's own ace -- so with the aces stripped they do
 nothing except by lucky draw. Their rows are a floor, not
 a reading. Run --keep-aces to score them.
 
-    Diantha             Champion              44.6%
-    Leon                Champion              43.0%
-    Lance               Champion              42.4%
-    Steven              Champion              42.3%
+    Leon                Champion              45.9%
+    Steven              Champion              44.9%
+    Diantha             Champion              44.9%
+    Lance               Champion              43.8%
 
 
 The same ability, more than once
@@ -125,6 +125,6 @@ nothing separates those holders at all, so the gap between
 them is pure variance and sets the floor for reading every
 other gap in the table.
 
-    Champion             spread  2.4 points  Diantha 44.6%, Leon 43.0%, Lance 42.4%, Steven 42.3%
-    Tenebrous            spread  3.2 points  Devoltorm 48.6%, King Bradley 45.4%
+    Champion             spread  2.1 points  Leon 45.9%, Steven 44.9%, Diantha 44.9%, Lance 43.8%
+    Tenebrous            spread  0.1 points  King Bradley 48.2%, Devoltorm 48.0%
 ```

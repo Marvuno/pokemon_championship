@@ -103,7 +103,7 @@ check("it touches only Attack and SpA",
 # ------------------------------------------------------------------ Outliers
 print()
 print("-- Outliers: the band is wide and the mean now leans his way --")
-check("the band is 0.8 to 1.5", OUTLIERS_BAND, (0.8, 1.5))
+check("the band is 0.8 to 1.4", OUTLIERS_BAND, (0.8, 1.4))
 check("...which is wider than the engine's own 0.85-1.00",
       (OUTLIERS_BAND[1] - OUTLIERS_BAND[0]) > 0.15, True)
 # The mean is deliberately above 1.0 now. Centred on it the ability measured
@@ -112,8 +112,12 @@ check("...which is wider than the engine's own 0.85-1.00",
 # around an unchanged mean wins the battles it would have lost and loses the
 # ones it would have won. The tilt is what makes it worth holding; the range
 # either side of it is what makes it Kurtosis.
-check("...and the mean now favours him rather than sitting on 1.0",
-      1.10 < sum(OUTLIERS_BAND) / 2 < 1.20, True)
+# Trimmed from 1.5 after the widened band put him 31st in a field where his
+# rating puts him 41st -- the largest mismatch on the board. 1.4 gives back
+# about half the bonus and keeps nearly all of the spread, which is the half
+# that is actually the character.
+check("...and the mean still favours him rather than sitting on 1.0",
+      1.05 < sum(OUTLIERS_BAND) / 2 < 1.15, True)
 
 rolled = []
 for seed in range(400):

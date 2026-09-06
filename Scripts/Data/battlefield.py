@@ -6,6 +6,11 @@ class Battleground:
         self.turn = 0
         self.verbose = False
         self.auto_battle = False
+        #: A one-off battle outside the tournament -- Custom Play. The battle
+        #: itself is ordinary; what an exhibition skips is the bracket
+        #: machinery that normally runs when one ends. See
+        #: battle_win_condition.end_battle.
+        self.exhibition = False
         # weather
         self.starting_weather_effect = 'Clear'
         self.weather_effect = 'Clear'

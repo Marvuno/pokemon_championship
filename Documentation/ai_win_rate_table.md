@@ -6,7 +6,7 @@ Generated. Do not edit by hand.
 Win rate and knockout score -- no rating arithmetic
 ==============================================================================
 
-Every competitor except the player played every other 10 times.
+Every competitor except the player played every other 20 times.
 Ranked by win rate, ties broken by margin. Nothing here is
 weighted by who the opponent was, and no rating was changed.
 
@@ -21,78 +21,78 @@ rating, negative means the rating flatters them.
 
 RANK COMPETITOR                WIN%     W     L  RATING   RANK    MOVE   MARGIN    PER
 ----------------------------------------------------------------------------------------
-1    Champion Marvin          98.5%   699    11    1000      1      +0    +2999  +4.22
-2    Emperor Marvuno          97.5%   692    18     833      2      +0    +3288  +4.63
-3    Mivy Wenceslas           88.0%   625    84     374      9      +6    +2292  +3.23
-4    Expert Cynthia           86.5%   614    96     593      4      +0    +1924  +2.71
-5    Animenz                  85.5%   607   103     447      7      +2    +2171  +3.06
-6    Demon Muzan              85.1%   604   106     689      3      -3    +2269  +3.20
-7    Reaper Conan             82.8%   588   119     535      5      -2    +1774  +2.50
-8    Magnus Carlsen           81.8%   581   128     480      6      -2    +1718  +2.42
-9    Evonne                   79.7%   566   142     299     11      +2    +1311  +1.85
-10   Elias Ainsworth          79.6%   565   145     402      8      -2    +1781  +2.51
-11   King Bradley             74.9%   532   177     312     10      -1    +1449  +2.04
-12   Ash Ketchum              74.6%   530   180     258     15      +3    +1020  +1.44
-13   Cristalla                73.9%   525   185     250     16      +3    +1230  +1.73
-14   Lillie                   71.8%   510   199     271     13      -1    +1285  +1.81
-15   Faker                    71.0%   504   206     288     12      -3    +1204  +1.70
-16   Violet Evergarden        69.3%   492   218     264     14      -2    +1193  +1.68
-17   Titan                    69.0%   490   219     245     18      +1    +1013  +1.43
-18   Yor Forger               68.9%   489   219     244     19      +1     +957  +1.35
-19   Privy                    67.7%   481   229     249     17      -2    +1029  +1.45
-20   Vex                      66.1%   469   241     231     22      +2     +814  +1.15
-21   Lusamine                 65.8%   467   243     222     24      +3     +855  +1.20
-22   Leon                     65.1%   462   245     237     21      -1     +857  +1.21
-23   Ginko                    64.9%   461   248     240     20      -3     +929  +1.31
-24   Celeste                  63.8%   453   256     225     23      -1     +773  +1.09
-25   Elowen                   62.8%   446   263     188     31      +6     +704  +0.99
-26   Serena                   60.7%   431   278     216     25      -1     +562  +0.79
-27   Jack the Ripper          60.7%   431   278     193     29      +2     +540  +0.76
-28   Rudolf                   60.3%   428   280     177     33      +5     +566  +0.80
-29   Petra                    59.9%   425   285     210     26      -3     +518  +0.73
-30   The Trio                 56.2%   399   311     190     30      +0     +365  +0.51
-31   Sterling                 54.5%   387   323     200     27      -4     +284  +0.40
-32   Albert Einstein          54.1%   384   323     199     28      -4     +236  +0.33
-33   Gin                      53.8%   382   326     182     32      -1     +250  +0.35
-34   Libelle                  53.1%   377   333     150     37      +3      +90  +0.13
-35   Lance                    52.8%   375   333     161     35      +0     +169  +0.24
-36   Steven                   51.4%   365   345     150     37      +1     +114  +0.16
-37   Auraia                   50.4%   358   351     154     36      -1      +89  +0.13
-38   Samantha                 49.4%   351   358     145     39      +1      -84  -0.12
-39   Velvet                   47.7%   339   369     167     34      -5     -101  -0.14
-40   Kurtosis                 44.2%   314   395     120     42      +2     -320  -0.45
-41   Yagami Light             44.1%   313   397     123     41      +0     -304  -0.43
-42   Paul                     42.7%   303   406     141     40      -2     -385  -0.54
-43   Berserker                41.5%   295   413     108     44      +1     -411  -0.58
-44   Takagi                   41.0%   291   418      63     54     +10     -501  -0.71
-45   Devoltorm                40.0%   284   423      82     48      +3     -554  -0.78
-46   Fae                      38.9%   276   433     120     42      -4     -610  -0.86
-47   Mount                    38.6%   274   434      77     50      +3     -556  -0.78
-48   Therion                  38.3%   272   436     100     45      -3     -582  -0.82
-49   Mordekaiser              38.3%   272   435      85     47      -2     -625  -0.88
-50   Clown Marcus             35.8%   254   454      50     58      +8     -639  -0.90
-51   Bojji                    35.5%   252   457      62     55      +4     -728  -1.03
-52   Diantha                  35.2%   250   458      80     49      -3     -740  -1.04
-53   Misty                    34.1%   242   466      73     51      -2     -965  -1.36
-54   Shuka                    32.7%   232   477      65     53      -1     -915  -1.29
-55   Makise Kurisu            32.7%   232   475      91     46      -9     -970  -1.37
-56   Rum                      31.7%   225   481      70     52      -4     -854  -1.20
-57   Aphelios                 30.4%   216   494      53     57      +0    -1063  -1.50
-58   King Bosse               30.1%   214   496      55     56      -2    -1040  -1.46
-59   Mindfield                29.9%   212   498      45     59      +0    -1110  -1.56
-60   Alton                    24.8%   176   533      20     65      +5    -1324  -1.86
-61   Big Bryan                22.7%   161   548      37     60      -1    -1469  -2.07
-62   Pudding                  21.7%   154   555      21     64      +2    -1450  -2.04
-63   Coco                     21.7%   154   554      30     61      -2    -1583  -2.23
-64   Abota                    21.0%   149   560      26     62      -2    -1593  -2.24
-65   Solanum                  19.4%   138   571       9     68      +3    -1699  -2.39
-66   Ophelia                  16.1%   114   595      23     63      -3    -1899  -2.67
-67   President Rose           14.2%   101   606      12     67      +0    -2152  -3.03
-68   Dulunga                  12.7%    90   618      18     66      -2    -2111  -2.97
-69   Jason                    12.5%    89   621       7     69      +0    -2184  -3.08
-70   Trasher                   9.0%    64   645       5     70      +0    -2500  -3.52
-71   Beatrice                  2.3%    16   694       3     71      +0    -3316  -4.67
-72   Goblin                    1.1%     8   702       1     72      +0    -3285  -4.63
+1    Champion Marvin          96.3%  1368    52    1000      1      +0    +6435  +4.53
+2    Emperor Marvuno          94.0%  1335    85     833      2      +0    +6787  +4.78
+3    Mivy Wenceslas           89.9%  1276   144     480      6      +3    +5289  +3.72
+4    Elias Ainsworth          88.2%  1253   166     447      7      +3    +5469  +3.85
+5    Expert Cynthia           84.5%  1200   219     593      4      -1    +4397  +3.10
+6    Demon Muzan              81.0%  1150   270     689      3      -3    +4575  +3.22
+7    Animenz                  80.7%  1146   274     402      8      +1    +4207  +2.96
+8    Celeste                  78.0%  1107   313     268     14      +6    +3451  +2.43
+9    Reaper Conan             76.4%  1085   331     535      5      -4    +3388  +2.39
+10   Evonne                   75.5%  1072   344     299     11      +1    +2540  +1.79
+11   Vex                      74.6%  1059   360     262     16      +5    +2856  +2.01
+12   King Bradley             72.3%  1026   393     312     10      -2    +2935  +2.07
+13   Magnus Carlsen           72.3%  1026   393     374      9      -4    +2834  +2.00
+14   Cristalla                72.1%  1024   396     268     14      +0    +2740  +1.93
+15   Faker                    70.8%  1005   414     288     12      -3    +2516  +1.77
+16   Lillie                   70.5%  1001   416     271     13      -3    +2635  +1.86
+17   Titan                    69.7%   990   429     245     19      +2    +2484  +1.75
+18   Ash Ketchum              69.1%   981   437     258     17      -1    +1867  +1.31
+19   Elowen                   68.1%   967   453     220     25      +6    +2324  +1.64
+20   Ginko                    67.2%   954   463     240     21      +1    +2172  +1.53
+21   Privy                    66.8%   949   470     249     18      -3    +2212  +1.56
+22   Yor Forger               66.7%   947   473     244     20      -2    +1929  +1.36
+23   Leon                     64.9%   921   498     237     22      -1    +1855  +1.31
+24   Lusamine                 64.0%   909   511     222     24      +0    +1715  +1.21
+25   Petra                    63.7%   905   512     210     27      +2    +1683  +1.19
+26   Violet Evergarden        62.3%   884   534     231     23      -3    +1627  +1.15
+27   Jack the Ripper          58.7%   833   584     193     29      +2    +1099  +0.77
+28   Albert Einstein          58.5%   831   587     199     28      +0    +1083  +0.76
+29   Serena                   58.3%   828   589     216     26      -3    +1099  +0.77
+30   Rudolf                   56.9%   808   608     177     32      +2     +660  +0.46
+31   Kurtosis                 56.0%   795   624     135     41     +10     +699  +0.49
+32   Auraia                   55.0%   781   635     154     36      +4     +656  +0.46
+33   The Trio                 54.0%   767   653     190     30      -3     +627  +0.44
+34   Gin                      52.5%   745   672     182     31      -3     +226  +0.16
+35   Makise Kurisu            52.0%   738   680     105     45     +10      +80  +0.06
+36   Libelle                  50.8%   722   695     159     35      -1     -192  -0.14
+37   Steven                   49.9%   708   710     150     37      +0      -43  -0.03
+38   Lance                    49.2%   698   720     161     34      -4      -13  -0.01
+39   Velvet                   48.6%   690   726     167     33      -6     -243  -0.17
+40   Sterling                 48.5%   689   728     137     40      +0     -159  -0.11
+41   Samantha                 47.3%   672   745     145     38      -3     -417  -0.29
+42   Berserker                46.9%   666   753     108     44      +2     -486  -0.34
+43   Paul                     43.5%   618   798     141     39      -4     -836  -0.59
+44   Yagami Light             43.2%   614   804     123     42      -2     -735  -0.52
+45   Therion                  43.1%   612   803     100     46      +1     -869  -0.61
+46   Mount                    42.2%   599   819      77     50      +4    -1013  -0.71
+47   Fae                      40.4%   573   846     116     43      -4    -1272  -0.90
+48   Mordekaiser              39.4%   559   859      85     47      -1    -1377  -0.97
+49   Takagi                   37.7%   536   883      65     54      +5    -1630  -1.15
+50   Devoltorm                36.5%   518   898      82     48      -2    -1669  -1.18
+51   Bojji                    36.1%   512   904      62     55      +4    -1954  -1.38
+52   Shuka                    35.1%   498   921      67     53      +1    -1901  -1.34
+53   Diantha                  34.4%   489   930      80     49      -4    -1875  -1.32
+54   Rum                      34.2%   486   929      70     52      -2    -1701  -1.20
+55   Clown Marcus             33.2%   472   945      50     58      +3    -1938  -1.36
+56   Misty                    31.5%   447   973      73     51      -5    -2353  -1.66
+57   Aphelios                 30.1%   428   990      53     57      +0    -2401  -1.69
+58   King Bosse               28.3%   402  1018      55     56      -2    -2396  -1.69
+59   Mindfield                28.0%   397  1020      45     59      +0    -2588  -1.82
+60   Alton                    23.7%   337  1082      20     65      +5    -3277  -2.31
+61   Big Bryan                21.8%   310  1108      37     60      -1    -3423  -2.41
+62   Coco                     21.6%   307  1110      30     61      -1    -3586  -2.53
+63   Abota                    21.5%   305  1112      26     62      -1    -3494  -2.46
+64   Pudding                  17.6%   250  1169      21     64      +0    -3261  -2.30
+65   Solanum                  17.1%   243  1175       9     68      +3    -4122  -2.90
+66   Ophelia                  15.5%   220  1198      23     63      -3    -4375  -3.08
+67   Dulunga                  14.8%   210  1210      18     66      -1    -4482  -3.16
+68   Jason                    14.4%   204  1215       7     69      +1    -4709  -3.32
+69   President Rose           12.8%   182  1234      12     67      -2    -4996  -3.52
+70   Trasher                   8.5%   120  1300       5     70      +0    -5630  -3.96
+71   Goblin                    3.8%    54  1365       1     72      +1    -6713  -4.73
+72   Beatrice                  3.0%    42  1378       3     71      -1    -7022  -4.95
 
 
 Who has beaten the top two
@@ -100,25 +100,71 @@ Who has beaten the top two
 Every competitor who has taken a match off them, and how often.
 A short list here is what a runaway looks like.
 
-    Champion Marvin -- 699 wins, 11 losses, 0 draws
-        Emperor Marvuno          won 6 of their 10 meetings
-        Elowen                   won 1 of their 10 meetings
-        Jack the Ripper          won 1 of their 10 meetings
-        Yor Forger               won 1 of their 10 meetings
-        Lillie                   won 1 of their 10 meetings
-        Evonne                   won 1 of their 10 meetings
+    Champion Marvin -- 1368 wins, 52 losses, 0 draws
+        Emperor Marvuno          won 13 of their 20 meetings
+        Paul                     won 4 of their 20 meetings
+        Mivy Wenceslas           won 3 of their 20 meetings
+        Leon                     won 3 of their 20 meetings
+        Petra                    won 3 of their 20 meetings
+        Elias Ainsworth          won 2 of their 20 meetings
+        Lusamine                 won 2 of their 20 meetings
+        Makise Kurisu            won 2 of their 20 meetings
+        Expert Cynthia           won 1 of their 20 meetings
+        Animenz                  won 1 of their 20 meetings
+        Evonne                   won 1 of their 20 meetings
+        Faker                    won 1 of their 20 meetings
+        Lillie                   won 1 of their 20 meetings
+        Ash Ketchum              won 1 of their 20 meetings
+        Titan                    won 1 of their 20 meetings
+        Yor Forger               won 1 of their 20 meetings
+        Elowen                   won 1 of their 20 meetings
+        Albert Einstein          won 1 of their 20 meetings
+        Rudolf                   won 1 of their 20 meetings
+        Auraia                   won 1 of their 20 meetings
+        Berserker                won 1 of their 20 meetings
+        Therion                  won 1 of their 20 meetings
+        Devoltorm                won 1 of their 20 meetings
+        Mount                    won 1 of their 20 meetings
+        Rum                      won 1 of their 20 meetings
+        Takagi                   won 1 of their 20 meetings
+        Bojji                    won 1 of their 20 meetings
+        Big Bryan                won 1 of their 20 meetings
 
-    Emperor Marvuno -- 692 wins, 18 losses, 0 draws
-        Champion Marvin          won 4 of their 10 meetings
-        Lillie                   won 3 of their 10 meetings
-        Rudolf                   won 2 of their 10 meetings
-        King Bradley             won 2 of their 10 meetings
-        Demon Muzan              won 2 of their 10 meetings
-        Jack the Ripper          won 1 of their 10 meetings
-        Petra                    won 1 of their 10 meetings
-        Yor Forger               won 1 of their 10 meetings
-        Cristalla                won 1 of their 10 meetings
-        Ash Ketchum              won 1 of their 10 meetings
+    Emperor Marvuno -- 1335 wins, 85 losses, 0 draws
+        Vex                      won 16 of their 20 meetings
+        Champion Marvin          won 7 of their 20 meetings
+        Mivy Wenceslas           won 7 of their 20 meetings
+        Diantha                  won 6 of their 20 meetings
+        Demon Muzan              won 4 of their 20 meetings
+        Expert Cynthia           won 3 of their 20 meetings
+        Lillie                   won 3 of their 20 meetings
+        Yor Forger               won 3 of their 20 meetings
+        Elias Ainsworth          won 2 of their 20 meetings
+        Faker                    won 2 of their 20 meetings
+        Celeste                  won 2 of their 20 meetings
+        Titan                    won 2 of their 20 meetings
+        Violet Evergarden        won 2 of their 20 meetings
+        Lusamine                 won 2 of their 20 meetings
+        Albert Einstein          won 2 of their 20 meetings
+        Gin                      won 2 of their 20 meetings
+        Lance                    won 2 of their 20 meetings
+        Steven                   won 2 of their 20 meetings
+        Animenz                  won 1 of their 20 meetings
+        Magnus Carlsen           won 1 of their 20 meetings
+        Evonne                   won 1 of their 20 meetings
+        Cristalla                won 1 of their 20 meetings
+        Privy                    won 1 of their 20 meetings
+        Ginko                    won 1 of their 20 meetings
+        Leon                     won 1 of their 20 meetings
+        Elowen                   won 1 of their 20 meetings
+        Jack the Ripper          won 1 of their 20 meetings
+        Samantha                 won 1 of their 20 meetings
+        Sterling                 won 1 of their 20 meetings
+        Fae                      won 1 of their 20 meetings
+        Berserker                won 1 of their 20 meetings
+        Makise Kurisu            won 1 of their 20 meetings
+        Takagi                   won 1 of their 20 meetings
+        Goblin                   won 1 of their 20 meetings
 
 
 Where win rate and the Elo ladder disagree

@@ -1,25 +1,41 @@
+Pokemon Championship v1.2.7
+
+Custom Play
+- NEW MODE Custom Play, where players could pick any competitor and battle them
+
+AI
+- reworked the intelligent AI with enhanced decision-making; previous AI features a conditional scoring model and current AI uses turns as common currency in measuring move priority and score
+- opponent tiers now matter again - they are all using the same AI, but they have information asymmetry that affects their decision-making
+
+Rebalancing
+- NERF CHARACTER ABILITY Curse of Forest: flinch chance 20% -> 10%
+- NERF CHARACTER Alton: Psyduck IV 60 -> 50
+- NERF CHARACTER ABILITY Outliers: damage band 0.8x-1.5x -> 0.8x-1.4x
+- several characters' rating and ranking have been re-adjusted due to the AI changes, and their ability changes
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.2.6
 
 Pokemon & Characters
 - added new characters: Cristalla, Fae, Sterling, Libelle, Petra
-- removed characters (benched): Bondrewd, Bruno, Vardy, Bugsy, Monkey King
+- removed characters: Bondrewd, Bruno, Vardy, Bugsy, Monkey King
 - NEW CHARACTER ABILITY Groundwork: the battle begins with Stealth Rock already scattered on the opponent's side of the field
 - NEW CHARACTER ABILITY Reflection: her pokemon always has the higher base stats except HP among the pokemon on the field
 - NEW CHARACTER ABILITY Pixelate: starts with misty terrain, all normal-type moves become fairy-type moves, and her normal and fairy moves hit 1.2x harder
 - NEW CHARACTER ABILITY Cross Court: attacks choose the lower of Defense or Special Defense
 - NEW CHARACTER ABILITY Field Study: attacks grow 8% stronger for each different pokemon she has seen on the field, up to 40%. Two of the same species count once
 - NEW CHARACTER ABILITY Memento: when one of his pokemon faints, the opposing pokemon loses 2 stages of Attack and 2 stages of Special Attack
-- NEW CHARACTER ABILITY Outliers: his attacks deal anywhere from 0.8x to 1.5x their damage, at random
+- NEW CHARACTER ABILITY Outliers: his attacks deal anywhere from 0.7x to 1.35x their damage, at random
 - NEW CHARACTER ABILITY Quantum Roll: 3 of the 18 types cannot reach her pokemon for a turn, and the next turn's three are announced a turn ahead. Attacking moves only, from turn 2, and never every attack at once
-- REWORKED CHARACTER ABILITY Solanum: Telekinesis (increase evasion for Psychic Pokemon) -> Quantum Roll
-- REWORKED CHARACTER ABILITY Kurtosis: Outlier (grant Super Luck ability) -> Outliers
-- REWORKED ABILITY Rudolf: Ruthless -> Memento
-- BUFF CHARACTER ABILITY Serene Grace: any secondary effect her moves carry now lands 80% of the time outright, instead of merely being twice as likely
-- REMOVED CHARACTER ABILITY Outlier, Telekinesis, Mad Scientist, Experienced, Buggy
 
 Rebalancing
-- adjusted the characters' tier and ratings for game balancing
-- adjusted the splash art of several characters
+- REPLACED ABILITY Solanum: Telekinesis -> Quantum Roll
+- REPLACED ABILITY Kurtosis: Outlier -> Outliers
+- REBALANCED ABILITY Serene Grace: any secondary effect her moves carry now lands 80% of the time outright, instead of merely being twice as likely
+- REBALANCED ABILITY Outliers: damage band widened from 0.7x-1.35x to 0.8x-1.5x, so the swing still cuts both ways but the average now favours him
+- REMOVED unused character abilities: Outlier, Glacial Pace, Abdicate, Inheritance, Telekinesis, Mad Scientist, Experienced, Buggy
+- REPLACED ABILITY Rudolf: Ruthless, which he shared with Gin -> Memento
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -343,7 +359,6 @@ Added
 - added sudden death to shorten game time
 - now displays no. of world champion of the participant (and bold them)
 - new batch of original Pokemon, with some new moves and abilities
-
 
 Changed
 - added custom function for ability Illuminate

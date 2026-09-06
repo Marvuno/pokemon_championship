@@ -63,8 +63,17 @@ class Ground:
 
 
 # ------------------------------------------------- 1. the shared tie-break
-low = list_of_competitors['Mivy Wenceslas']      # 200
-high = list_of_competitors['Magnus Carlsen']     # 288
+# Derived, not named. This used to pin Mivy Wenceslas as the lower rated and
+# Magnus Carlsen as the higher, with `# 200` and `# 288` written beside them --
+# comments that were already four re-ratings out of date, and the pair
+# inverted the moment the Elite tier was reordered. The rule under test is
+# "the lower rated wins a draw"; which two competitors happen to sit either
+# side of it is not part of it.
+_pair = sorted((list_of_competitors['Mivy Wenceslas'],
+                list_of_competitors['Magnus Carlsen']),
+               key=lambda c: c.strength)
+low, high = _pair
+assert low.strength < high.strength, "pick two competitors rated differently"
 check("wins_a_draw picks the lower rated",
       W.wins_a_draw(high, low) is low, True)
 check("...whichever order they are given in",

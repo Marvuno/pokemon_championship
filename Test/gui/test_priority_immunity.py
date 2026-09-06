@@ -105,9 +105,11 @@ check("...and is ranked last", order[-1], BLOCKED)
 # The penalty has to stay wired to accuracy. Docking a single point was not
 # enough before: BLENDED prices one priority point at 25, so a priority move
 # scored 0 for damage still outranked everything that could actually land.
-source = open(os.path.join(ROOT, "Scripts", "Battle", "ai.py"),
+# Read from ai_scorer.py, which is where the shipped scorer lives now --
+# ai.py kept only the dispatcher and the shared estimators.
+source = open(os.path.join(ROOT, "Scripts", "Battle", "ai_scorer.py"),
               encoding="utf-8").read()
-check("ai.py penalises a move that cannot reach",
+check("ai_scorer.py penalises a move that cannot reach",
       "if move.accuracy <= 0:" in source
       and "UNUSABLE_MOVE_PENALTY" in source.split("if move.accuracy <= 0:")[1][:200],
       True)

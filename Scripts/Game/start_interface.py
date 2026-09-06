@@ -51,6 +51,156 @@ def history_screen(protagonist):
                 individual_records(op)
 
 
+#: Which round Custom Play borrows its size from. ROUND_LIMIT[3] is 6, so
+#: both sides field a full six -- the tournament's own late-round size, read
+#: from the same table the career reads rather than written down again here.
+CUSTOM_STAGE = 3
+
+#: What to call a player who has not started a career. Custom Play never
+#: touches a save, so there may be no name to use: the CSV ships the
+#: Protagonist's Nickname empty and NEW GAME is what fills it in.
+CUSTOM_DEFAULT_NAME = "Challenger"
+
+
+def custom_opponent_menu():
+    """The roster as a numbered menu, and the {number: name} to read it by.
+
+    Weakest first, because Data/competitors.csv is ordered that way and a
+    training menu wants the gentle end at the top. The rating and the tier sit
+    beside each name: those are what the battle is actually built from, so
+    they are the two things worth knowing before choosing.
+    """
+    menu = {}
+    for index, name in enumerate(name for name in list_of_competitors
+                                 if not list_of_competitors[name].main):
+        competitor = list_of_competitors[name]
+        menu[index + 1] = name
+        print("%3d: %s [%d] %s%s%s"
+              % (index + 1, competitor.nickname, competitor.strength,
+                 CGREY, competitor.level, CEND))
+    return menu
+
+
+def custom_teams(opponent_name):
+    """Both sides of a Custom Play battle, built to one recipe: theirs.
+
+    The point of the mode is to practise against a particular competitor, so
+    the player is dealt in *as* that competitor rather than as themselves.
+    Everything a team is built from comes from the opponent:
+
+        their rating   sets the IV floor every Pokemon is rolled with
+                       (constants.PLAYER_IV) and which shelf the random ones
+                       come off (Scripts/Data/tiers.py)
+        their aces     the Pokemon pinned in their Poke1-6 columns, with
+                       whatever ability, moveset and IV those cells pin
+
+    So the shape of the match follows from how much of a team the competitor
+    designs. Reaper Conan pins all six and both sides field the same six.
+    Magnus Carlsen pins two, so both sides get Chesiquen and Sworphin with
+    four Pokemon rolled at his rating around them -- rolled separately, so the
+    teams are alike without being identical.
+
+    Both competitors are deep copies. `team_generation` writes its results
+    back over `participant.team`, replacing the pinned Ace specifications with
+    built Pokemon, so running it against the roster's own objects would
+    consume the designed team for the rest of the process -- which is what
+    `savefile.restore_designed_teams` exists to undo after a career. Copying
+    first means Custom Play cannot mark the roster at all, and is why the mode
+    neither reads nor writes a save.
+    """
+    GameSystem.stage = CUSTOM_STAGE
+    designed = list_of_competitors[opponent_name]
+
+    opponent = deepcopy(designed)
+    player = deepcopy(list_of_competitors['Protagonist'])
+    player.nickname = (player.nickname or "").strip() or CUSTOM_DEFAULT_NAME
+    # dealt in as the opponent: same rating, same pinned aces, rolled apart
+    player.strength = opponent.strength
+    player.team = deepcopy(designed.team)
+    # ids so the result box has something to print, and stage 1 so its
+    # bracket column is the first rather than a negative index
+    player.id, opponent.id = 1, 2
+    player.stage = opponent.stage = 1
+    player.score = opponent.score = 0
+
+    opponent.team = team_generation(opponent)
+    player.team = team_generation(player)
+    return player, opponent
+
+
+def custom_play():
+    """Pick a competitor and fight them, once, right now.
+
+    A sandbox beside the career rather than a part of it. Nothing here is
+    loaded, saved, rated or recorded: both sides are copies, the tournament is
+    never drawn, and the title screen is returned to afterwards. That is what
+    makes it safe to reach with no save at all, which is the point -- it is
+    for practising against one opponent, not for making progress.
+    """
+    # Imported here rather than at the top, the same way
+    # `before_battle.career_history` reaches back into this module. Scripts/
+    # is full of `from x import *`, so a cycle is not an ImportError -- the
+    # importing module quietly gets a half-built namespace and the failure
+    # turns up later as a missing name.
+    from Scripts.Battle.battle_cycle import battle_setup
+
+    # `custom_teams` sets GameSystem.stage, because ROUND_LIMIT is read off
+    # it and that is how the rest of the game asks for a team size. It is a
+    # class attribute shared with the career, so it is put back on the way
+    # out -- otherwise choosing Custom Play and then CONTINUE would resume a
+    # saved run at whatever round this mode borrowed.
+    was_stage = GameSystem.stage
+    try:
+        _custom_play_loop(battle_setup)
+    finally:
+        GameSystem.stage = was_stage
+
+
+def _custom_play_loop(battle_setup):
+    """The menu-and-battle loop, so `custom_play` is only the bookkeeping."""
+    while True:
+        print("")
+        print(CBOLD + CYELLOW2 + "CUSTOM PLAY" + CEND)
+        print(CGREY + "One battle against whoever you choose. You are dealt a "
+                      "team built the way theirs is -- their rating, their "
+                      "aces -- so the match is about play rather than about "
+                      "who brought the better Pokemon. Nothing is saved."
+              + CEND)
+        print("")
+        menu = custom_opponent_menu()
+        print("  0: back")
+
+        choice = -1
+        while choice not in menu and choice != 0:
+            with suppress(ValueError):
+                choice = int(input("Who do you want to battle? "))
+        if choice == 0:
+            return
+
+        player, opponent = custom_teams(menu[choice])
+        print("")
+        print("%s%s%s [%d] VS %s [%d]%s"
+              % (CWHITE2, CBOLD, player.nickname, player.strength,
+                 opponent.nickname, opponent.strength, CEND))
+        print("%s%sThis is a %dvs%d battle.%s"
+              % (CWHITE2, CBOLD, ROUND_LIMIT[GameSystem.stage],
+                 ROUND_LIMIT[GameSystem.stage], CEND))
+        if opponent.quote:
+            print(CGREY + '"' + opponent.quote + '"' + CEND)
+
+        battleground = Battleground()
+        # played outside the bracket: no round is closed and no stage
+        # advances when it ends. See battle_win_condition.end_battle.
+        battleground.exhibition = True
+        battle_setup(player, opponent, player.team, opponent.team,
+                     battleground)
+
+        again = input("Another Custom Play battle? "
+                      "Enter 'Y' to choose again: ").upper()
+        if again != 'Y':
+            return
+
+
 def participant_list():
     """The numbered roster, and the {number: name} it is picked by."""
     char_dict = {}
@@ -222,18 +372,20 @@ def main_screen():
         # the original file is still there afterwards. Done here rather than
         # on import so it happens once the game is actually being played.
         savefile.adopt_single_save()
-        print(f"┏------------┓\n"
-              f"| 0 NEW GAME |\n"
-              f"|------------|\n"
-              f"| 1 CONTINUE |\n"
-              f"|------------|\n"
-              f"| 2 HISTORY  |\n"
-              f"|------------|\n"
-              f"| 3 AUTO RUN |\n"
-              f"┗------------┛")
+        print(f"┏---------------┓\n"
+              f"| 0 NEW GAME    |\n"
+              f"|---------------|\n"
+              f"| 1 CONTINUE    |\n"
+              f"|---------------|\n"
+              f"| 2 HISTORY     |\n"
+              f"|---------------|\n"
+              f"| 3 AUTO RUN    |\n"
+              f"|---------------|\n"
+              f"| 4 CUSTOM PLAY |\n"
+              f"┗---------------┛")
 
         option = -1
-        while not 0 <= option <= 3:
+        while not 0 <= option <= 4:
             with suppress(ValueError):
                 option = int(input(f"Your Option: "))
 
@@ -268,7 +420,15 @@ def main_screen():
                   f"run{'' if auto_run.state.total == 1 else 's'} queued.")
             break
 
-        # the one that comes back to this menu rather than starting a game
+        # One battle against a competitor of your choosing, then back here.
+        # Beside the career rather than in it: no save is read or written, no
+        # bracket is drawn, and both sides are copies -- so it is reachable
+        # with no save at all, which is the point of it. See custom_play().
+        if option == 4:
+            custom_play()
+            continue
+
+        # the ones that come back to this menu rather than starting a game
         if option == 2:
             slot = pick_slot("Whose history?", need_used=True)
             if slot is None:

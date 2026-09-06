@@ -116,8 +116,14 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
 
         input("Press any key to continue.")
         os.system('cls' if os.name == 'nt' else 'clear')
-        round_end(GameSystem.stage)
-        GameSystem.stage += 1
+        # An exhibition is one battle played outside the bracket, which is
+        # what Custom Play is. There is no round to close and no stage to
+        # advance -- and `round_end` walks all thirty-two seeded competitors,
+        # so on a field that was never drawn it raises IndexError rather than
+        # doing nothing.
+        if not battleground.exhibition:
+            round_end(GameSystem.stage)
+            GameSystem.stage += 1
 
 
 def choose_pokemon(protagonist, opponent, battleground):
