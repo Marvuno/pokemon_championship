@@ -28,19 +28,25 @@ from GUI import ansi, bridge as B, prompt_parser as P, theme as T
 # Read-only: a bool the window checks so it can clear its own gates
 # during an unattended run. See Scripts/Game/auto_run.py.
 from Scripts.Game import auto_run
-from GUI_qt import settings
 from GUI_qt.arena import ArenaBackdrop
 from GUI_qt.fonts import Fonts
 from GUI_qt.panels import (AppearanceDialog, CareerDialog, CompareDialog,
                            CreditsDialog,
                            HistoryDialog, OpponentInfoDialog, RosterDialog,
-                           SettingsDialog, StandingsDialog, StoryDialog)
+                           StandingsDialog, StoryDialog)
 from GUI_qt.pokedex import PokedexDialog
-from GUI_qt.sprites import (DIR_OPPONENT, DIR_PLAYER, animate_switch,
-                            current_frame, show_sprite, stop_switch)
+from GUI_qt.sprites import (ATTACK_FORCE, ATTACK_MS, BUFF_MS, DIR_OPPONENT,
+                            DIR_PLAYER,
+                            FAINT_MS, FLINCH_MS, HAZARD_MS, SWITCH_MS,
+                            VANISH_MS, animate_attack, animate_buff,
+                            animate_faint, animate_flinch, animate_hazard,
+                            animate_impact, animate_switch, animate_vanish,
+                            current_frame, release_hold, show_sprite,
+                            stop_fx, stop_switch)
 from GUI_qt.title import TitleView
 from GUI_qt import widgets as W
-from GUI_qt.widgets import (AbilityFlare, ActionButton, CombatantCard,
+from GUI_qt.widgets import (AbilityFlare, ActionButton, CoinPurse,
+                            CombatantCard,
                             ElidedLabel, FeedEntry, FeedRow, MoveCard,
                             ResultOverlay, RoundedPanel, ScoutCard,
                             TurnDivider, clear_layout, shadow)
@@ -76,8 +82,11 @@ class MainWindow(QWidget):
         self.root = project_root
         self.window_size = self._resolve_window_size()
         self.fonts = Fonts()
-        self.difficulty = settings.get_difficulty()
-        self.volume = 50            # session-only
+        #: Fixed. There is no difficulty control any more. The engine's
+        #: Beginner path still exists -- GUI/bridge.py holds every opponent
+        #: to the simple AI when this says "beginner" -- and nothing offers
+        #: it, which is one line to undo if it is ever wanted back.
+        self.difficulty = "normal"
         self.memory = P.PromptMemory()
         self.request = None
         self.game_state = {}
@@ -94,6 +103,13 @@ class MainWindow(QWidget):
         #: what the player chose on the compare screen, so the engine's two
         #: follow-up index questions can be answered without asking again
         self._reward_plan = None
+        #: which half of the reward the player chose on the one screen:
+        #: "pokemon", "ability", "decline" -- or None when no ability was on
+        #: offer and the Pokemon questions drive themselves as they always did
+        self._reward_branch = None
+        #: the last ability roll already reported, so a merged snapshot
+        #: cannot show the same outcome twice
+        self._last_ability_seq = None
         #: who was last on the field per side, for spotting a switch
         self._active_seen = {}
         self.credits_dialog = None     # built on first use; see _open_credits
@@ -113,6 +129,20 @@ class MainWindow(QWidget):
         self._last_reward_seq = None
         self._last_battle_seq = None
         self._last_auto_battle = False
+        #: animations waiting their turn, as (kind, side, payload).
+        #:
+        #: Played one at a time rather than as they arrive, because the
+        #: *order* is the whole point -- a Pokemon that came in, moved and
+        #: went down inside one turn used to be a single state change with
+        #: two of those three invisible. Two switches in one turn were worse
+        #: still: the second cut the first short (see stop_switch), so the
+        #: first never appeared at all.
+        #: who was standing on each side before the current switch
+        self._left_behind = {}
+        self._fx_queue = []
+        self._fx_timer = QTimer(self)
+        self._fx_timer.setSingleShot(True)
+        self._fx_timer.timeout.connect(self._fx_pump)
         self._last_leaderboard = None
         self._fainted_seen = {"player": set(), "opponent": set()}
         self._announced_switch = set()
@@ -289,10 +319,14 @@ class MainWindow(QWidget):
         # page past the story to reach it. Credits is not here at all -- it
         # is what you read before or after a run, so it lives on the title
         # screen with New Game and Continue.
+        #
+        # Settings used to sit here too. It only ever held a difficulty
+        # picker and a volume slider: the first is fixed at Normal now and
+        # the second is the operating system's job, which left a button
+        # opening an empty dialog.
         for caption, accent, handler in (
                 ("Background", T.ACCENT, self._open_background),
-                ("Tutorial", T.ACCENT, self._open_tutorial),
-                ("Settings", T.TEXT_DIM, self._open_settings)):
+                ("Tutorial", T.ACCENT, self._open_tutorial)):
             layout.addWidget(ActionButton(caption, self.fonts, accent=accent,
                                           on_click=handler, compact=True),
                              alignment=Qt.AlignVCenter)
@@ -327,17 +361,6 @@ class MainWindow(QWidget):
             "✕", self.fonts, accent=T.OPPONENT,
             on_click=self.close, compact=True), alignment=Qt.AlignVCenter)
         return bar
-
-    def _set_volume(self, value):
-        self.volume = value
-        self.bridge.set_volume(value / 100)
-
-    def _open_settings(self):
-        dialog = SettingsDialog(self.fonts, self.difficulty, self.volume,
-                                self)
-        dialog.on_difficulty_change = settings.set_difficulty
-        dialog.on_volume_change = self._set_volume
-        dialog.exec()
 
     def _open_credits(self):
         """The closing note and Documentation/credits.md, on request.
@@ -585,7 +608,9 @@ class MainWindow(QWidget):
             # updates arrive many times a second and every one of them lands
             # in this function, which is why the animation cannot simply hide
             # the label and trust it to stay hidden.
-            if getattr(label, "_switch_busy", False):
+            if (getattr(label, "_switch_busy", False)
+                    or getattr(label, "_fx_busy", False)
+                    or getattr(label, "_fx_hold", False)):
                 label.hide()
             else:
                 label.show()
@@ -912,7 +937,32 @@ class MainWindow(QWidget):
         # stretch added in _fit_actions is what pins content to the top.
         self.actions_scroll.setWidget(self.actions_body)
         self.actions_scroll.setFixedHeight(self.actions_height)
-        outer.addWidget(self.actions_scroll)
+
+        # The balance, bottom right -- as an overlay, so it costs the bar no
+        # height at all. This is the third attempt and the first correct one.
+        #
+        # `actions_height` is a budget: __init__ works the arena's height out
+        # as whatever is left after the chrome and this bar. Adding a row for
+        # the purse pushed the bar past its allowance and over the arena.
+        # Taking the height back out of the scroller instead fixed that and
+        # started clipping the action screens -- 43 of them in one
+        # playthrough, because several need every pixel of the budget.
+        #
+        # Sharing a grid cell with the scroller is what FieldStrip does over
+        # the arena for exactly this reason: the cell is as tall as its
+        # tallest occupant, which is the scroller's fixed height, so the
+        # purse adds nothing and floats in the corner of it.
+        holder = QWidget()
+        holder.setStyleSheet("background: transparent;")
+        stack = QGridLayout(holder)
+        stack.setContentsMargins(0, 0, 0, 0)
+        stack.setSpacing(0)
+        stack.addWidget(self.actions_scroll, 0, 0)
+        self.purse = CoinPurse(self.fonts, self.root)
+        self.purse.hide()
+        stack.addWidget(self.purse, 0, 0,
+                        Qt.AlignRight | Qt.AlignBottom)
+        outer.addWidget(holder)
 
         return bar
 
@@ -1019,7 +1069,25 @@ class MainWindow(QWidget):
         self.opponent_card.set_team(self._condition(state.get("opponent_team"),
                                                    in_battle))
 
+        # The balance rides on its own key rather than inside the battle
+        # snapshot, because it is spent at a pre-battle prompt where that
+        # snapshot is not republished. See bridge._publish_balance.
+        if "coins" in state:
+            self._sync_purse(state.get("coins"))
+
         if "player_roster" in state:
+            mine = state.get("player_side") or {}
+            self.roster_dialog.set_trainer_ability(mine.get("ability"),
+                                                   mine.get("ability_note"))
+            # The battle snapshot carries a copy of the balance, which is
+            # what fills the purse in when a career is *loaded* rather than
+            # earned. It is deliberately only a fallback: it is read when
+            # the battle state is snapshotted, so during a shop visit it is
+            # older than the number `spend` published -- and applying it
+            # here, after the block above, overwrote the fresh figure with a
+            # stale one on every purchase. That was the bug.
+            if "coins" not in state and "coins" in mine:
+                self._sync_purse(mine.get("coins"))
             self.roster_dialog.refresh(
                 state["player_roster"], state.get("opponent_roster"),
                 opponent_known=bool(state.get("opponent_known")))
@@ -1148,6 +1216,25 @@ class MainWindow(QWidget):
         # Cards first, so the knockout is already on screen underneath the
         # result plate before the gate below stops the pump.
         player, opponent = state.get("player"), state.get("opponent")
+
+        # An effect that is mid-play is acting with a picture of whoever was
+        # standing there. If that is about to stop being who is standing
+        # there, the effect has to go: Illusion wears a team-mate's face and
+        # drops it the instant a hit lands (ability_effects.illusion), so
+        # the sprite becomes a different Pokemon inside a turn -- and a
+        # ghost of the disguise moving about while the real one appears
+        # underneath is exactly what made that ability unreadable.
+        #
+        # Switches are not touched. Crossing from one Pokemon to another is
+        # what a recall and a send-out are *for*, and animate_switch is
+        # handed both pictures rather than reading either.
+        for snap, label in ((player, self.player_sprite),
+                            (opponent, self.opponent_sprite)):
+            if not snap:
+                continue
+            known = getattr(label, "_sprite_key", None)
+            if known is not None and known[0] != snap.get("sprite", ""):
+                stop_fx(label)
         if player:
             self.player_card.set_mon(player)
             show_sprite(self.player_sprite, player.get("sprite", ""),
@@ -1158,6 +1245,16 @@ class MainWindow(QWidget):
             show_sprite(self.opponent_sprite, opponent.get("sprite", ""),
                        DIR_OPPONENT, self.root,
                        target=self._sprite_target("opponent"))
+        # A hold belongs to a Pokemon that fainted. If the one standing
+        # there is alive, it must be on screen -- whatever set the hold was
+        # wrong about it, and a living sprite missing for the rest of the
+        # match is far worse than a knockout that fades a moment early.
+        # This runs on every publish, so no mis-attribution can outlive the
+        # turn it happened in.
+        for which, label in (("player", self.player_sprite),
+                             ("opponent", self.opponent_sprite)):
+            if not (state.get(which) or {}).get("fainted"):
+                release_hold(label)
         if player or opponent:
             self._place_sprites()
         # After the cards are filled, not before: set_mon writes the card's
@@ -1170,10 +1267,57 @@ class MainWindow(QWidget):
             self._last_reward_seq = reward.get("seq")
             self._announce_reward(reward)
 
+        attempt = state.get("ability_attempt")
+        if (attempt is not None
+                and attempt.get("seq") != self._last_ability_seq):
+            self._last_ability_seq = attempt.get("seq")
+            self._begin_ability_gate(attempt)
+
         result = state.get("battle_result")
         if result is not None and result.get("seq") != self._last_result_seq:
             self._last_result_seq = result.get("seq")
             self._begin_result_gate(result)
+
+    def _begin_ability_gate(self, attempt):
+        """Hold the screen and say whether the ability was copied.
+
+        The engine says it too, into the battle log. That is not enough for
+        this one: the player gave up the round's Pokemon on a roll they were
+        shown the odds for, and "did it work" cannot be something they have
+        to go and read. Same hold the end of a match uses, dismissed by a
+        real press rather than a timer.
+        """
+        if auto_run.unattended():
+            return
+        ok = bool(attempt.get("ok"))
+        ability = attempt.get("ability") or "their character ability"
+        replaced = attempt.get("replaced") or ""
+        chance = attempt.get("chance")
+        whose = attempt.get("nickname") or "your opponent"
+
+        self._gated = True
+        self._timer.stop()
+        if ok:
+            detail = ("%s is yours, replacing %s." % (ability, replaced)
+                      if replaced else "%s is yours." % ability)
+        else:
+            odds = "" if chance is None else " %d%%." % chance
+            detail = "%s stays with %s.%s No Pokemon either." % (
+                ability, whose, odds)
+        self.result_overlay.show_result(
+            ok, detail, headline="COPIED" if ok else "FAILED")
+
+        self.hotkeys = {}
+        self._clear_actions()
+        self.prompt_tag.setText("CHARACTER ABILITY")
+        self.question.setText("You copied %s." % ability if ok
+                              else "You failed to copy %s." % ability)
+        self.actions.addWidget(ActionButton(
+            "Continue", self.fonts,
+            accent=T.PLAYER if ok else T.OPPONENT, emphasis=True,
+            on_click=self._end_result_gate))
+        self.hotkeys["\r"] = self._end_result_gate
+        self._fit_actions()
 
     def _announce_reward(self, reward):
         """Say what the battle actually earned you, when it happens.
@@ -1270,6 +1414,7 @@ class MainWindow(QWidget):
         self._last_turn = None
         self._last_weather = None
         self._last_auto_battle = False   # per-match, like the engine's flag
+        self._fx_clear()
         self._fainted_seen = {"player": set(), "opponent": set()}
         # Per match, like the line above: an arrival claimed by a banner in
         # one match must not silence the same Pokemon arriving in the next.
@@ -1315,10 +1460,16 @@ class MainWindow(QWidget):
         """
         if state.get("phase") not in BATTLE_PHASES:
             if self._active_seen:
-                # leaving a match with a switch still playing: the arena is
+                # leaving a match with something still playing: the arena is
                 # about to be reused, so don't leave a ghost standing in it
-                stop_switch(self.player_sprite)
-                stop_switch(self.opponent_sprite)
+                # -- and drop whatever was still queued, which belongs to a
+                # match that is over.
+                self._fx_clear()
+                for label in (self.player_sprite, self.opponent_sprite):
+                    stop_switch(label)
+                    stop_fx(label)
+                    release_hold(label)
+                self._left_behind = {}
             self._active_seen = {}
             return []
         changed = []
@@ -1330,6 +1481,11 @@ class MainWindow(QWidget):
             self._active_seen[side] = name
             if before is None or before == name:
                 continue                     # first sight, or no change
+            # who left, so _announce_switches can tell a recall from a
+            # replacement: a Pokemon that fainted is not withdrawn, and
+            # playing the recall half over its corpse was what made a
+            # knockout and the switch after it read as one muddle
+            self._left_behind[side] = before
             changed.append(side)
         return changed
 
@@ -1378,7 +1534,180 @@ class MainWindow(QWidget):
                 self._beat(side, name, "%s came in." % name, tag="SWITCH")
             card.flash_switch()
             if not auto:
-                animate_switch(label, stills.get(side), self._place_sprites)
+                # Both pictures are taken now, not when this finally plays:
+                # by then a second switch may have moved the label on to a
+                # third Pokemon, and the animation would send out the wrong
+                # one. `stills` holds the Pokemon that left; the label is
+                # already showing the one arriving.
+                # No recall for a Pokemon that fainted: it is already
+                # down and holding the stage empty, and withdrawing it would
+                # show it standing again first. Passing no outgoing picture
+                # is what leaves animate_switch with the send-out alone.
+                went_down = (self._left_behind.get(side)
+                             in self._fainted_seen[side])
+                self._fx_enqueue("switch", side,
+                                 (None if went_down else stills.get(side),
+                                  current_frame(label)))
+
+    #: how many animations may be waiting before the oldest are dropped.
+    #: The engine has already resolved the turn and is waiting behind these,
+    #: so falling minutes behind to show every one of them would be worse
+    #: than missing a few.
+    FX_QUEUE_MAX = 8
+
+    def _sync_purse(self, coins):
+        """Show the balance. Takes the number, not the snapshot it came in.
+
+        Hidden until a career publishes one at all: a purse showing zero on
+        the title screen, before a game has started, is furniture. Zero is
+        worth showing once there *is* a career -- that is the difference
+        between "none yet" and "nothing to say".
+        """
+        if coins is None:
+            return
+        self.purse.set_coins(coins)
+        self.purse.setVisible(True)
+
+    def _fx_allowed(self):
+        """Whether to animate at all.
+
+        Only when a person is watching and playing. An unattended run is a
+        harness or a simulated career -- there may be no window at all --
+        and auto battle is the mode for watching a match play itself
+        quickly, where a second of animation per turn is exactly what the
+        player asked to be rid of.
+        """
+        if auto_run.unattended():
+            return False
+        field = self.game_state.get("field") or {}
+        return not bool(field.get("auto_battle"))
+
+    def _fx_clear(self):
+        """Drop anything queued -- a new match, or leaving the arena."""
+        self._fx_queue = []
+        self._fx_timer.stop()
+        for label in (self.player_sprite, self.opponent_sprite):
+            release_hold(label)
+
+    def _fx_enqueue(self, kind, side, payload=None):
+        if not self._fx_allowed() or side not in ("player", "opponent"):
+            return
+        self._fx_queue.append((kind, side, payload))
+        del self._fx_queue[:-self.FX_QUEUE_MAX]
+        if not self._fx_timer.isActive():
+            self._fx_pump()
+
+    def _fx_pump(self):
+        """Play the next one, and come back when it is done.
+
+        A loop rather than a recursive call: a queue full of animations that
+        all decline to play (no sprite laid out yet, art missing) would
+        otherwise recurse once per entry.
+        """
+        while self._fx_queue:
+            kind, side, payload = self._fx_queue.pop(0)
+            wait = self._fx_play(kind, side, payload)
+            if wait:
+                self._fx_timer.start(wait)
+                return
+
+    def _fx_play(self, kind, side, payload):
+        """Start one animation. Returns how long to wait, or 0 if it did not
+        play -- a Pokemon with no artwork has no picture to move."""
+        label = (self.player_sprite if side == "player"
+                 else self.opponent_sprite)
+        place = self._place_sprites
+        # Every one of these returns the animation it started, so the wait
+        # is read off the thing itself. A switch replacing a fainted Pokemon
+        # skips its recall half and is genuinely shorter, and a constant
+        # would have held the queue for time it was not using.
+        def took(animation):
+            return int(animation.duration()) if animation is not None else 0
+
+        if kind == "attack":
+            # `payload` is bridge.hit_shape's answer, or None when it could
+            # not be told -- a miss, or a move that dealt nothing.
+            force = ATTACK_FORCE.get(payload, 1.0)
+            lunge = took(animate_attack(label, side, place, force=force))
+            # ...and the target wears it, at the same time. Different label,
+            # so the two cannot fight, and an attack stays one beat in the
+            # queue however hard it landed.
+            other = "opponent" if side == "player" else "player"
+            struck = (self.player_sprite if other == "player"
+                      else self.opponent_sprite)
+            impact = took(animate_impact(struck, side, place, hit=payload))
+            return max(lunge, impact)
+        if kind == "buff":
+            return took(animate_buff(label, place))
+        if kind == "harm":
+            return took(animate_flinch(label, place))
+        if kind == "vanish":
+            return took(animate_vanish(label, place))
+        if kind == "faint":
+            # `payload` is the picture taken when this was queued.
+            # The hold keeps the stage empty afterwards, so it is only taken
+            # if the Pokemon standing there is actually down *now* -- by the
+            # time a queued knockout plays, its replacement may already be
+            # out, and holding then would hide the newcomer instead.
+            down = bool((self.game_state.get(side) or {}).get("fainted"))
+            return took(animate_faint(label, place, still=payload,
+                                      hold=down))
+        if kind == "switch":
+            going, coming = payload or (None, None)
+            return took(animate_switch(label, going, place, coming=coming))
+        if kind == "hazard":
+            # Laid on the ground, not on a Pokemon: the one standing there
+            # may be about to leave, and the hazard outlives it.
+            point = self.arena.platform_point(side)
+            size = getattr(label, "_sprite_size", None)
+            width = max(self.arena.width() // 4,
+                        size.width() if size is not None else 0)
+            return HAZARD_MS if animate_hazard(self.arena, point,
+                                               width) else 0
+        return 0
+
+    def _frame_of(self, side):
+        """A picture of whoever is standing on `side` right now, or None."""
+        if side not in ("player", "opponent"):
+            return None
+        label = (self.player_sprite if side == "player"
+                 else self.opponent_sprite)
+        return current_frame(label)
+
+    def _side_of_name(self, name):
+        """Which side `name` is on, or None when it cannot be told.
+
+        A knockout is reported by the engine with the Pokemon's name and no
+        side -- the narrator only knows who went down, not whose it was.
+
+        Whoever is *standing there* is asked first, because that is who just
+        fainted. This used to fall through to "any side with a Pokemon of
+        that name", which is a guess: both sides can field the same species,
+        and the guess ran before the publish that marks anyone fainted, so
+        it could name the living one. Returning None is the right answer
+        when it genuinely cannot be told -- a knockout that is not animated
+        is a far smaller fault than a healthy Pokemon held off the field.
+        """
+        if not name:
+            return None
+        # Anyone actually marked down, first: both sides can field the same
+        # species, and then "who is standing there" tells you nothing.
+        for side in ("player", "opponent"):
+            active = self.game_state.get(side) or {}
+            if active.get("name") == name and active.get("fainted"):
+                return side
+        for side, key in (("player", "player_team"),
+                          ("opponent", "opponent_team")):
+            for member in self.game_state.get(key) or []:
+                if member.get("name") == name and member.get("fainted"):
+                    return side
+        # Nobody is marked yet -- which is the usual case, since a knockout
+        # is announced during the move and the publish that records it comes
+        # after. Whoever is standing there is the one that just went down.
+        for side in ("player", "opponent"):
+            if (self.game_state.get(side) or {}).get("name") == name:
+                return side
+        return None
 
     def _beat(self, side, actor, text, tag="TURN"):
         """Say something briefly over the arena itself.
@@ -1427,6 +1756,9 @@ class MainWindow(QWidget):
                 # did, so unless you were reading the log you never saw it
                 # happen. The card flash is the same one a switch uses.
                 self._beat(side, name, text, tag="KNOCKED OUT")
+                # Only reached when no banner claimed it -- see the faint
+                # branch in _show_banner, which is the ordered path.
+                self._fx_enqueue("faint", side, self._frame_of(side))
 
     def _track_feed_worthy_changes(self, field, phase=None):
         """Turn dividers and weather-change lines, derived purely from
@@ -1535,25 +1867,27 @@ class MainWindow(QWidget):
     REWARD_STAGES = {
         B.REWARD_TAKE: {
             "headline": "You won — take one of theirs?",
-            "subline": "Your team is not full, so nothing has to be given up. "
-                       "This round is a straight pick: no swapping. Click a "
-                       "name on the right, then Take it.",
+            "subline": "Pick one of theirs. Nothing of yours is given up.",
             "asking": "opponent",
+            # nothing of yours is at stake, so nothing of yours is drawn
+            "show": ("opponent",),
             "proceed": "add the one on the right",
             "decline": "let the organiser pick",
             "verb": "Take it",
         },
         B.REWARD_SWAP: {
             "headline": "You won — swap one of yours for one of theirs?",
-            "subline": "Your team is full, so taking one of theirs means "
-                       "giving one of yours up. Click a name on each side, "
-                       "then Swap these two.",
+            "subline": "Your team is full. Pick one on each side.",
             "asking": "both",
             "proceed": "left one out, right one in",
             "decline": "keep my team as it is",
             "verb": "Swap these two",
         },
     }
+    # The ability offer has no entry of its own on purpose. It is the same
+    # screen as take or swap with a third button added, and which of those
+    # two it is depends on whether the team is full -- so it is built from
+    # one of them at the time rather than written out a third time here.
 
     def _drive_reward(self, request):
         """Answer the post-battle reward questions from the compare window.
@@ -1583,18 +1917,57 @@ class MainWindow(QWidget):
             self._answer(str(self._clamp_pick(request, wanted)))
             return True
 
-        stage = self.REWARD_STAGES[kind]
+        # The Pokemon half of the offer, already answered on the one screen.
+        # The engine asks it as a separate question; the player has no reason
+        # to see a second window to say what they already said.
+        if kind in (B.REWARD_TAKE, B.REWARD_SWAP) and self._reward_branch:
+            self._answer("Y" if self._reward_branch == "pokemon" else "N")
+            self._skip_next_continue = True
+            self._reward_branch = None
+            return True
+
+        labels = {}
+        if kind == B.REWARD_ABILITY:
+            # One screen for both halves: the teams as usual, plus what each
+            # side's character ability is and does. Which Pokemon offer sits
+            # behind the other button depends on whether the team is full,
+            # which the engine knows and publishes.
+            offer = state.get("reward_ability") or {}
+            mode = offer.get("pokemon_mode", "take")
+            base = self.REWARD_STAGES[B.REWARD_SWAP if mode == "swap"
+                                      else B.REWARD_TAKE]
+            stage = dict(base)
+            theirs = offer.get("theirs", "their ability")
+            mine, odds = offer.get("mine", ""), offer.get("chance")
+            what = ("swap %s for %s" % (mine, theirs) if mine
+                    else "learn %s" % theirs)
+            stage["headline"] = ("You won — a Pokemon, or their character "
+                                 "ability?")
+            stage["subline"] = "A win pays out once: a Pokemon, or their ability."
+            stage["abilities"] = [
+                ("YOURS", mine, offer.get("mine_text", ""), T.PLAYER),
+                ("THEIRS", theirs, offer.get("theirs_text", ""), T.OPPONENT)]
+            labels["alt"] = ("Copy %s  ·  %d%%" % (theirs, odds)
+                             if odds is not None else "Copy %s" % theirs)
+            if odds is not None:
+                labels["alt_hint"] = ("%s — %d%%. Nothing if it fails."
+                                      % (what.capitalize(), odds))
+        else:
+            stage = dict(self.REWARD_STAGES[kind])
+        self._reward_branch = None
         if self.compare_dialog is None:
             self.compare_dialog = CompareDialog(self.fonts, self.root, self)
             self.compare_dialog.proceed.connect(self._reward_proceed)
             self.compare_dialog.declined.connect(self._reward_declined)
+            self.compare_dialog.alternative.connect(self._reward_alternative)
         self._clear_actions()
         self.question.setText(stage["headline"])
+        labels.update({"proceed": stage["proceed"],
+                       "decline": stage["decline"],
+                       "verb": stage["verb"],
+                       "decline_verb": stage.get("decline_verb")})
         self.compare_dialog.open_for(stage, state.get("player_roster"),
-                                     state.get("opponent_roster"),
-                                     {"proceed": stage["proceed"],
-                                      "decline": stage["decline"],
-                                      "verb": stage["verb"]})
+                                     state.get("opponent_roster"), labels)
         return True
 
     def _clamp_pick(self, request, wanted):
@@ -1626,9 +1999,28 @@ class MainWindow(QWidget):
         picked = self.compare_dialog.picked
         self._reward_plan = {"mine": picked.get("player", 0),
                              "theirs": picked.get("opponent", 0)}
-        self._answer("Y")
+        # On the merged screen this button is the *Pokemon* half, and the
+        # question in front of it is P-or-A. Saying P sends the engine on to
+        # the take/swap question, which is answered from here without the
+        # window coming back.
+        kind = B.reward_prompt_kind(self.request.prompt)
+        if kind == B.REWARD_ABILITY:
+            self._reward_branch = "pokemon"
+            self._answer("P")
+        else:
+            self._answer("Y")
         # the swap is settled; the keypress the engine asks for afterwards is
         # a step between finishing it and seeing the next matchup
+        self._skip_next_continue = True
+        self.compare_dialog.hide()
+
+    def _reward_alternative(self):
+        """Copy their character ability, and take no Pokemon."""
+        if self.request is None or self.request.kind != "reward":
+            return
+        self._reward_plan = None
+        self._reward_branch = "ability"
+        self._answer("A")
         self._skip_next_continue = True
         self.compare_dialog.hide()
 
@@ -1640,8 +2032,18 @@ class MainWindow(QWidget):
             return
         self._reward_plan = None
         kind = B.reward_prompt_kind(self.request.prompt)
-        self._answer("9" if kind in (B.REWARD_PICK_THEIRS,
-                                     B.REWARD_PICK_MINE) else "N")
+        if kind == B.REWARD_ABILITY:
+            # Declining the whole offer still goes down the Pokemon branch --
+            # that is where "no thanks" means something (the organiser picks
+            # instead, or the team is left alone) -- and the question waiting
+            # there is answered with N from here.
+            self._reward_branch = "decline"
+            answer = "P"
+        elif kind in (B.REWARD_PICK_THEIRS, B.REWARD_PICK_MINE):
+            answer = "9"                        # the engine's "go back"
+        else:
+            answer = "N"
+        self._answer(answer)
         self._skip_next_continue = True
         self.compare_dialog.hide()
 
@@ -1889,6 +2291,9 @@ class MainWindow(QWidget):
         self.hotkeys["n"] = lambda: self._answer("N")
         self.hotkeys["\r"] = lambda: self._answer("Y")
 
+    #: a label longer than this makes its whole menu set itself a size down
+    DENSE_LABEL = 26
+
     def _render_choices(self, prompt):
         self.prompt_tag.setText("CHOOSE")
         grid = QGridLayout()
@@ -1899,6 +2304,15 @@ class MainWindow(QWidget):
         # else it happens.
         columns = 4 if len(prompt.choices) > 6 else \
             2 if len(prompt.choices) == 4 else 3
+        # A long label at the body size does not fit its share of the row,
+        # so the grid outgrows the action bar and the screen gets a
+        # scroller. The save slots are the screen this is for -- a nickname,
+        # a rating, a run count and a title count each. Dropped a size for
+        # every button in the grid rather than only the long ones: a row of
+        # mixed type sizes reads as a mistake.
+        widest = max((len(choice.label) for choice in prompt.choices),
+                     default=0)
+        dense = widest > self.DENSE_LABEL
         for index, choice in enumerate(prompt.choices):
             accent = T.ACCENT if choice.kind == "sentinel" else T.CYAN
             answer = (lambda value=choice.value:
@@ -1906,7 +2320,7 @@ class MainWindow(QWidget):
             button = ActionButton(
                 choice.label, self.fonts, accent=accent,
                 emphasis=(index == 0 and choice.kind == "option"),
-                on_click=answer)
+                on_click=answer, dense=dense)
             grid.addWidget(button, index // columns, index % columns)
             if len(choice.value) == 1:
                 self.hotkeys[choice.value] = answer
@@ -2232,9 +2646,32 @@ class MainWindow(QWidget):
             flare = self.flares.get(side)
             if flare is not None:
                 flare.flare(actor, text)
+        elif kind == "move":
+            # `shape` comes from the move's own data -- see bridge.move_shape.
+            # A debuff and a hazard land on the *other* side, so they play
+            # over there; an attack and a buff play on the user.
+            shape = event.get("shape")
+            other = "opponent" if side == "player" else "player"
+            if shape == "attack":
+                # how hard it landed rides along, so the lunge can say it
+                self._fx_enqueue(shape, side, event.get("hit"))
+            elif shape in ("buff", "vanish"):
+                self._fx_enqueue(shape, side)
+            elif shape in ("harm", "hazard"):
+                self._fx_enqueue(shape, other)
         # A switch gets the same on-field callout, raised from the banner so
         # it lands with the feed line rather than a publish later.
         elif kind == "faint" and actor:
+            # The knockout is animated from here rather than from the
+            # state-diff sweep, which is a publish later -- by then the
+            # replacement has already been sent out and a Pokemon would be
+            # seen going down after the one that replaced it arrived.
+            # The picture is taken now, not when this reaches the front of
+            # the queue: by then the replacement is often already on the
+            # label, and the animation would slump the newcomer instead of
+            # the Pokemon that actually went down.
+            down_side = self._side_of_name(actor)
+            self._fx_enqueue("faint", down_side, self._frame_of(down_side))
             # Claimed so the state-diff sweep below does not say it again a
             # publish later, underneath the replacement it caused.
             self._fainted_seen["player"].add(actor)
@@ -2309,10 +2746,19 @@ class MainWindow(QWidget):
         self.close()
 
     def _show_error(self, payload):
-        QMessageBox.critical(self, "Pokemon Champion", str(payload))
+        # Say where it was written down. bridge._park_crash appends every
+        # crash to this file with the last forty lines of the battle around
+        # it, which is the useful half -- and nothing told the player it
+        # existed, so it could only ever be found by accident.
+        report = os.path.join(self.root, "crash_report.txt")
+        QMessageBox.critical(
+            self, "Pokemon Champion",
+            "%s\n\nThe full detail has been written to:\n%s"
+            % (str(payload), report))
         # the run is over either way -- don't leave the window as a dead end
         self.prompt_tag.setText("RUN ENDED")
-        self.question.setText("Something went wrong and the run stopped.")
+        self.question.setText(
+            "Something went wrong. See crash_report.txt.")
         self._clear_actions()
         self.hotkeys = {}
         self._offer_replay()

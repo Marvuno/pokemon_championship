@@ -20,6 +20,8 @@ project folder is now just a file the game ignores.
 import json
 import os
 import re
+import shutil
+from contextlib import suppress
 from copy import deepcopy
 
 JSON_PATH = "savefile.json"
@@ -142,7 +144,9 @@ def describe(entry):
         return "Slot %d: unreadable" % entry["slot"]
     if entry.get("legacy"):
         return "Slot %d: an older save" % entry["slot"]
-    return ("Slot %d: %s -- rating %s, %s run(s), %s title(s)"
+    # Kept short on purpose: the interface turns each of these into a button
+    # and a long line pushed the slot list into a scroller.
+    return ("Slot %d: %s (%s) | Run: %s | Title: %s"
             % (entry["slot"], entry["nickname"], entry["rating"],
                entry["participation"], entry["championship"]))
 
@@ -286,6 +290,15 @@ def save(list_of_competitors, path=None, slot=None):
             # shows this portrait for the rest of the save
             "appearance": getattr(player, "appearance", "") or "",
             "rating": player.strength,
+            # A character ability copied off somebody they beat. Saved
+            # because save_game() runs every round, so anything living only
+            # in memory is gone by the next one -- and the Protagonist's own
+            # CSV row is blank, which is what an older save restores to.
+            "ability": str(getattr(player, "ability", "") or ""),
+            # Coins belong to one career in one slot, so they live here
+            # rather than anywhere shared. A save written before this
+            # feature restores to nothing, which is what a new game has.
+            "coins": max(0, int(getattr(player, "coins", 0) or 0)),
             "participation": player.participation,
             "championship": player.championship,
             "team": [_pokemon_out(p) for p in (player.team or [])],
@@ -329,9 +342,73 @@ def save(list_of_competitors, path=None, slot=None):
     folder = os.path.dirname(path)
     if folder and not os.path.isdir(folder):
         os.makedirs(folder, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(_compact(text, data))
+    _write_atomically(path, _compact(text, data))
     return path
+
+
+#: kept beside each save: the last version that was written whole
+BACKUP_SUFFIX = ".bak"
+#: where a save is built before it replaces the real one
+PENDING_SUFFIX = ".new"
+
+
+def _write_atomically(path, body):
+    """Replace `path` with `body`, or leave it exactly as it was.
+
+    `open(path, "w")` truncates immediately and only then writes -- so a
+    crash, a power cut or a killed process partway through leaves a
+    truncated file where a career used to be. There is no recovering from
+    that, and it is the only failure in this game a player cannot undo.
+    save() runs every round, so a career is exposed several times a run.
+
+    Built beside the real file and renamed over it instead. os.replace is
+    atomic on Windows and POSIX both, so a reader sees either the whole old
+    save or the whole new one, never half of either.
+
+    The previous save is kept as a `.bak` too. That covers what renaming
+    cannot: a save written perfectly that is nonetheless *unwanted*. It
+    costs one rename per round.
+    """
+    pending = path + PENDING_SUFFIX
+    with open(pending, "w", encoding="utf-8") as handle:
+        handle.write(body)
+        handle.flush()
+        os.fsync(handle.fileno())     # on the disk, not merely in the cache
+    if os.path.exists(path):
+        # Copied, not renamed. Renaming the save out of the way first left a
+        # window with no save at all -- and if the rename below then failed,
+        # the career existed only as a .bak nothing would look for. Copying
+        # means `path` always holds the old career right up to the instant
+        # it holds the new one.
+        #
+        # A failed backup must not stop the save: the rename below is what
+        # actually protects the career, and this is the extra.
+        with suppress(OSError):
+            shutil.copyfile(path, path + BACKUP_SUFFIX)
+    os.replace(pending, path)
+
+
+def backup_of(path=None, slot=None):
+    """The `.bak` beside a save, if there is one."""
+    candidate = _resolved(path, slot) + BACKUP_SUFFIX
+    return candidate if os.path.exists(candidate) else ""
+
+
+def recover(path=None, slot=None):
+    """Put the `.bak` back over the save. True if there was one.
+
+    The other half of keeping a backup: one nothing can restore is
+    decoration. This is what gives a slot that will not load an answer
+    other than "start again".
+    """
+    path = _resolved(path, slot)
+    backup = backup_of(path)
+    if not backup:
+        return False
+    with open(backup, encoding="utf-8") as handle:
+        body = handle.read()
+    _write_atomically(path, body)
+    return True
 
 
 #: an indented array or object with nothing nested inside it -- a set of IVs,
@@ -452,6 +529,10 @@ def _load_json(data, list_of_competitors, list_of_pokemon):
     player.nickname = saved.get("nickname", player.nickname)
     player.appearance = saved.get("appearance", "") or ""
     player.strength = int(saved.get("rating", player.strength))
+    player.coins = max(0, int(saved.get("coins", 0) or 0))
+    # "" for a save written before abilities could be copied, which is also
+    # exactly what a player who has not copied one has
+    player.ability = str(saved.get("ability", "") or "")
     player.participation = int(saved.get("participation", 0))
     player.championship = int(saved.get("championship", 0))
     player.team = _build_team(saved.get("team"), list_of_pokemon)

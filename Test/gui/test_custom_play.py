@@ -109,9 +109,13 @@ before_rating = L['Protagonist'].strength
 # nothing in the others -- which is what left the first version of this
 # harness hanging on a forced switch it never saw.
 #
+# Custom Play asks which game mode first, then who to fight -- so "1" is
+# 1 vs 1 and the second "1" is the first competitor on the list. "N" declines
+# another battle.
+#
 # Capped, so a prompt this does not anticipate fails the run in a second
 # instead of blocking it forever.
-script = ["1"] + ["0"] * 400 + ["N"]
+script = ["1", "1", "N"] + ["0"] * 400
 asked = []
 real_input = builtins.input
 
@@ -148,6 +152,32 @@ check("...at six a side", "6vs6" in text, True)
 check("...and reached a knockout", "fainted" in text.lower(), True)
 check("...and the player was named", "Challenger" in text or bool(
     L['Protagonist'].nickname), True)
+
+print("", file=out)
+print("-- and the Metronome mode --", file=out)
+# Mode 2 needs no opponent chosen: it deals six Gamblers to each side and
+# starts. Same script shape, one answer shorter.
+asked[:] = []
+script[:] = ["2", "N"] + ["0"] * 400
+log2 = io.StringIO()
+builtins.input = scripted
+try:
+    with redirect_stdout(log2):
+        with suppress(RecursionError, SystemExit):
+            SI.custom_play()
+finally:
+    builtins.input = real_input
+metro = log2.getvalue()
+
+check("a Metronome battle was played", " VS " in metro, True)
+check("...six a side", "6vs6" in metro, True)
+check("...against the house", "The House" in metro, True)
+check("...with Gamblers on the field", "Gambler" in metro, True)
+# No caption for the mode: the name says it, and a second line under every
+# screen was more to read than the choice needed.
+check("...and no quote is put in the mode's mouth",
+      "\"" not in metro.split(" VS ")[-1][:200], True)
+check("...and it reached a knockout", "fainted" in metro.lower(), True)
 
 print("", file=out)
 print("-- and the career is left exactly as it was --", file=out)

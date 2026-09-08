@@ -349,8 +349,9 @@ THEIRS = [mon("Dragapult", [88, 120, 75, 100, 75, 142],
           mon("Ferrothorn", [74, 94, 131, 54, 116, 20], [5, 8, 9, 3, 7, 2],
               ("Stealth Rock",))]
 
-# only two stages have a screen now -- the engine's two index questions are
-# answered from what was selected, so they never reach the player
+# Two stages have a screen. The engine's two *index* questions are answered
+# from what was selected, and the ability offer is one of these two with a
+# third button on it, so none of the three needs an entry of its own.
 TAKE = MW.MainWindow.REWARD_STAGES[B.REWARD_TAKE]
 SWAP = MW.MainWindow.REWARD_STAGES[B.REWARD_SWAP]
 check("the pick questions have no screen of their own",
@@ -379,10 +380,10 @@ check("the buttons are named for what they do",
               if t in ("Fast Comparison", "Take it", "Swap these two",
                        "No thanks", "Proceed", "Not Proceed")}),
       ["Fast Comparison", "No thanks", "Take it"])
-check("the take stage says this round needs no swapping",
-      "no swapping" in cmp_dialog.subline.text().lower())
-check("the swap stage says the opposite",
-      "giving one of yours up" in SWAP["subline"])
+check("taking says nothing of yours is given up",
+      "given up" in cmp_dialog.subline.text().lower())
+check("...and swapping says the team is full",
+      "full" in SWAP["subline"].lower())
 
 # Fast Comparison: my weakest against their strongest
 cmp_dialog.fast_comparison()

@@ -18,7 +18,6 @@ from PySide6.QtWidgets import (QDialog, QGridLayout, QHBoxLayout, QLabel,
                                QTabWidget, QVBoxLayout, QWidget)
 
 from GUI import theme as T
-from GUI_qt.settings import DIFFICULTIES
 from GUI_qt.sprites import DIR_OPPONENT, DIR_PLAYER, show_sprite
 from GUI_qt.widgets import (ActionButton, Chip, ElidedLabel, MoveCard,
                             RoundedPanel, StatBar, clear_layout)
@@ -199,6 +198,27 @@ class RosterDialog(QDialog):
         outer.setContentsMargins(14, 12, 14, 14)
         outer.setSpacing(10)
 
+        # Your own character ability, which is otherwise readable nowhere.
+        # Every opponent's is in the Pokedex and always has been; the
+        # player's was not, because until now they could never hold one.
+        # This window is the closest thing the game has to "about me", and
+        # it is on the top bar for the whole of a career.
+        self.trainer_panel = RoundedPanel(self, bg=T.PANEL, radius=T.RADIUS_MD)
+        trainer_box = QVBoxLayout(self.trainer_panel)
+        trainer_box.setContentsMargins(12, 8, 12, 8)
+        trainer_box.setSpacing(2)
+        trainer_head = QHBoxLayout()
+        trainer_head.setSpacing(8)
+        trainer_head.addWidget(_eyebrow("your character ability", fonts,
+                                        T.PLAYER))
+        self.trainer_ability = _label("none yet", fonts.body_bold, T.TEXT)
+        trainer_head.addWidget(self.trainer_ability)
+        trainer_head.addStretch(1)
+        trainer_box.addLayout(trainer_head)
+        self.trainer_note = _label("", fonts.small, T.TEXT_DIM, wrap=True)
+        trainer_box.addWidget(self.trainer_note)
+        outer.addWidget(self.trainer_panel)
+
         # One list, not two tabs. Both teams share the rail -- yours, then
         # theirs underneath -- because flipping a tab to compare two Pokemon
         # means holding one of them in your head. Theirs stay unclickable
@@ -257,6 +277,16 @@ class RosterDialog(QDialog):
         footer.addStretch(1)
         footer.addWidget(ActionButton("Close", fonts, on_click=self.close))
         outer.addLayout(footer)
+
+    #: what the panel says when nothing has been copied yet
+    NO_ABILITY = "Win a battle to copy an opponent's."
+
+    def set_trainer_ability(self, name, note):
+        """Show the player's own character ability, or say they have none."""
+        name = str(name or "").strip()
+        self.trainer_ability.setText(name or "none yet")
+        self.trainer_note.setText(str(note or "") if name
+                                  else self.NO_ABILITY)
 
     # -- which side is on show ---------------------------------------------
     @property
@@ -592,8 +622,8 @@ class OpponentInfoDialog(QDialog):
         else:
             body_layout.addWidget(_eyebrow("scouting report", fonts, T.PLAYER))
             body_layout.addWidget(_label(
-                "Their whole team is now visible in Your Team, on the "
-                "Opponent Team tab.", fonts.small, T.PLAYER, wrap=True))
+                "Their team is visible in Your Team.",
+                fonts.small, T.PLAYER, wrap=True))
 
         if info["strategy_revealed"] and info.get("strategy"):
             body_layout.addWidget(_eyebrow("their strategy", fonts, T.VIOLET))
@@ -634,73 +664,6 @@ class OpponentInfoDialog(QDialog):
         if self._lightbox is None:
             self._lightbox = ArtLightbox(self.window())
         return self._lightbox.show_picture(self._art_path)
-
-
-class SettingsDialog(QDialog):
-    """Difficulty (next-launch) and volume.
-
-    Volume used to live in the always-visible scoreboard header, but that
-    bar's natural width (title, five score columns, a toggle, a slider,
-    three buttons, all in one non-wrapping row) came out to roughly 1900px --
-    comfortably wider than a lot of laptop screens. Folding it in here is
-    what let the header, and so the whole window, actually fit.
-    """
-
-    def __init__(self, fonts, current_difficulty, volume, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Settings")
-        self.setStyleSheet("background: %s;" % T.BG)
-        self.resize(460, 300)
-        self.on_difficulty_change = None      # set by caller
-        self.on_volume_change = None
-
-        panel = RoundedPanel(self, bg=T.PANEL, radius=T.RADIUS_LG)
-        outer = QVBoxLayout(self)
-        outer.addWidget(panel)
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(22, 20, 22, 20)
-        layout.setSpacing(14)
-
-        layout.addWidget(_eyebrow("difficulty", fonts))
-        layout.addWidget(_label(
-            "Beginner holds every opponent to the simple battle AI, however "
-            "highly rated they are.", fonts.small, T.TEXT_DIM, wrap=True))
-
-        row = QHBoxLayout()
-        for value, label, blurb in DIFFICULTIES:
-            button = ActionButton(
-                label, fonts, sub=blurb, accent=T.ACCENT,
-                emphasis=(value == current_difficulty),
-                on_click=lambda v=value: self._pick_difficulty(v))
-            row.addWidget(button)
-        layout.addLayout(row)
-
-        self.difficulty_note = _label(
-            "Takes effect next time you start the game.", fonts.small,
-            T.TEXT_FAINT, wrap=True)
-        layout.addWidget(self.difficulty_note)
-
-        layout.addWidget(_eyebrow("sound", fonts))
-        volume_row = QHBoxLayout()
-        volume_row.addWidget(_label("Volume", fonts.body_bold, T.TEXT))
-        volume_slider = QSlider(Qt.Horizontal)
-        volume_slider.setRange(0, 100)
-        volume_slider.setValue(volume)
-        volume_slider.valueChanged.connect(self._pick_volume)
-        volume_row.addWidget(volume_slider, 1)
-        layout.addLayout(volume_row)
-        layout.addStretch(1)
-
-    def _pick_difficulty(self, value):
-        if self.on_difficulty_change:
-            self.on_difficulty_change(value)
-        self.difficulty_note.setText(
-            "Set to %s. Takes effect next time you start the game."
-            % next(l for v, l, _ in DIFFICULTIES if v == value))
-
-    def _pick_volume(self, value):
-        if self.on_volume_change:
-            self.on_volume_change(value)
 
 
 class HistoryDialog(QDialog):
@@ -929,6 +892,8 @@ class CompareDialog(QDialog):
     proceed = Signal(int)
     #: Not Proceed
     declined = Signal()
+    #: the other reward entirely -- copy their character ability
+    alternative = Signal()
 
     def __init__(self, fonts, project_root=".", parent=None):
         super().__init__(parent)
@@ -1014,9 +979,20 @@ class CompareDialog(QDialog):
             scroll.setWidget(holder)
             box.addWidget(scroll, 1)
             self.columns[side] = {"chips": chips, "detail": detail,
-                                  "accent": accent, "heading": heading}
+                                  "accent": accent, "heading": heading,
+                                  "panel": panel}
             split.addWidget(panel, 1)
         outer.addLayout(split, 1)
+
+        # What each side's character ability is and does. Hidden unless the
+        # screen is offering one -- most reward screens are about Pokemon.
+        self.ability_panel = RoundedPanel(self, bg=T.PANEL,
+                                          radius=T.RADIUS_MD)
+        self.ability_box = QVBoxLayout(self.ability_panel)
+        self.ability_box.setContentsMargins(12, 8, 12, 8)
+        self.ability_box.setSpacing(4)
+        self.ability_panel.hide()
+        outer.addWidget(self.ability_panel)
 
         self.note = _label("", fonts.small, T.TEXT_FAINT, wrap=True)
         self.note.setMinimumWidth(220)
@@ -1035,6 +1011,14 @@ class CompareDialog(QDialog):
         self.asking = stage.get("asking")
         self.rosters["player"] = list(player_roster or [])
         self.rosters["opponent"] = list(opponent_roster or [])
+        # Only the sides actually at stake. Taking one of theirs when your
+        # team is not full gives nothing up, so your own half was a column
+        # of information about a trade that is not being made -- and it took
+        # half the window to say it.
+        showing = stage.get("show") or ("player", "opponent")
+        for side, _, _ in self.SIDES:
+            self.columns[side]["panel"].setVisible(side in showing)
+        self._build_abilities(stage.get("abilities"))
         for side, _, _ in self.SIDES:
             if not (0 <= self.picked.get(side, 0)
                     < len(self.rosters[side])):
@@ -1110,6 +1094,34 @@ class CompareDialog(QDialog):
         self._answering = False
         super().hideEvent(event)
 
+    def _build_abilities(self, entries):
+        """Both character abilities, named and explained.
+
+        The player had no way to read their own anywhere in the game, and no
+        way at all to find out what the one they were being offered did --
+        which made the choice between it and a Pokemon a guess.
+        """
+        clear_layout(self.ability_box)
+        if not entries:
+            self.ability_panel.hide()
+            return
+        for title, name, text, accent in entries:
+            row = QHBoxLayout()
+            row.setSpacing(8)
+            row.addWidget(_label(title, self.fonts.small_bold, accent))
+            row.addWidget(_label(name or "none yet", self.fonts.body_bold,
+                                 T.TEXT if name else T.TEXT_FAINT))
+            row.addStretch(1)
+            self.ability_box.addLayout(row)
+            if text:
+                self.ability_box.addWidget(
+                    _label(text, self.fonts.small, T.TEXT_DIM, wrap=True))
+            elif name:
+                self.ability_box.addWidget(_label(
+                    "No description.", self.fonts.small, T.TEXT_FAINT,
+                    wrap=True))
+        self.ability_panel.show()
+
     def _build_buttons(self, labels):
         """Named for what they do, not "Proceed" and "Not Proceed".
 
@@ -1118,20 +1130,35 @@ class CompareDialog(QDialog):
         these two" and "Keep my team" say it outright, and there is only one of
         each.
         """
+        # No sub-captions on this screen. Each button already says what it
+        # does, and a second line under every one of four buttons was more
+        # to read than the choice itself needed.
         clear_layout(self.buttons)
         self.buttons.addWidget(ActionButton(
             "Fast Comparison", self.fonts,
-            sub="your weakest against their strongest",
             accent=T.CYAN, on_click=self.fast_comparison))
         self.buttons.addStretch(1)
         if labels.get("proceed"):
-            self.buttons.addWidget(ActionButton(
+            go = ActionButton(
                 labels.get("verb") or "Proceed", self.fonts,
-                sub=labels.get("proceed"), accent=T.PLAYER, emphasis=True,
-                on_click=self._on_proceed))
+                accent=T.PLAYER, emphasis=True,
+                on_click=self._on_proceed)
+            # The odds live on the button's own sub-label as well as here:
+            # a number you have to hover to discover is a poor basis for a
+            # decision you cannot take back.
+            if labels.get("hint"):
+                go.setToolTip(labels["hint"])
+            self.buttons.addWidget(go)
+        if labels.get("alt"):
+            other = ActionButton(
+                labels["alt"], self.fonts,
+                accent=T.ACCENT, emphasis=True, on_click=self._on_alternative)
+            if labels.get("alt_hint"):
+                other.setToolTip(labels["alt_hint"])
+            self.buttons.addWidget(other)
         if labels.get("decline"):
             self.buttons.addWidget(ActionButton(
-                "No thanks", self.fonts, sub=labels.get("decline"),
+                labels.get("decline_verb") or "No thanks", self.fonts,
                 accent=T.OPPONENT, on_click=self._on_decline))
 
     def _on_proceed(self):
@@ -1142,6 +1169,9 @@ class CompareDialog(QDialog):
 
     def _on_decline(self):
         self.declined.emit()
+
+    def _on_alternative(self):
+        self.alternative.emit()
 
     def fast_comparison(self):
         """Your weakest beside their strongest.

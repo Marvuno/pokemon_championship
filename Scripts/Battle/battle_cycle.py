@@ -40,7 +40,13 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
     # turn -- how often weather happens, and which weathers are possible --
     # are then separate. Adding a sixth weather no longer changes how often
     # weather happens at all.
-    if random.random() < OPENING_WEATHER_CHANCE:
+    # `bare_arena` opts out of both rolls below. Set by the Metronome mode,
+    # whose whole point is that the two sides are identical -- an opening
+    # weather or a terrain is drawn per battle and would hand one of them an
+    # advantage nobody chose. Nothing else sets it, so every ordinary battle
+    # rolls exactly as it always has.
+    bare = bool(getattr(battleground, "bare_arena", False))
+    if not bare and random.random() < OPENING_WEATHER_CHANCE:
         battleground.starting_weather_effect = random.choice(OPENING_WEATHERS)
     else:
         battleground.starting_weather_effect = 'Clear'
@@ -49,7 +55,7 @@ def battle_setup(protagonist, competitor, player_team, opponent_team, battlegrou
     # and the ground it happens to be fought on, rolled the same way and at
     # the same odds. Ten turns rather than a move's five -- see
     # Scripts/Battle/terrain.py.
-    opened_on = terrain.roll_natural(battleground)
+    opened_on = None if bare else terrain.roll_natural(battleground)
     if opened_on:
         narrator.say(opened_on, "field", terrain=battleground.terrain)
 

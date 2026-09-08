@@ -1,3 +1,22 @@
+Pokemon Championship v1.2.8
+
+Custom Play
+- NEW MODE Metronome, where players battle against AI using 6 Gamblers, who only have metronome
+- renamed gamemode Custom Play into 1VS1
+
+Gameplay
+- opponent character abilities could now be copied / taken upon victory, but the chance depends on rating, and is not always guaranteed
+- Auto Run will never attempt to copy character abilities
+- added Shop and Coins, where coins are earned depending on Kill Score. Coins could be used in Shop, which allows re-rolling Pokemon IV and swapping Pokemon at the same tier
+- added simple animation during battle, such as attacking moves, status moves, switching and fainted animations
+- removed Settings, where players no longer could adjust difficulty or adjust volume in the game
+
+Miscellaneous
+- fine-tuned the game for risk control, and improve efficiency
+- trim captions that are redundant, resulting in cleaner interface
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.2.7
 
 Custom Play

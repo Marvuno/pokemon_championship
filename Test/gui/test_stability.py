@@ -14,7 +14,6 @@ from PySide6.QtWidgets import QApplication                          # noqa: E402
 from GUI import bridge as B                                         # noqa: E402
 B.Bridge.start = lambda self: None
 
-from GUI_qt import settings                                         # noqa: E402
 from GUI_qt.main_window import MainWindow                           # noqa: E402
 
 app = QApplication.instance() or QApplication([])
@@ -68,8 +67,9 @@ SCREENS = [
     ("confirm", Req("Input Y if you want to swap, and N otherwise. ")),
 ]
 
-for size in settings.DIFFICULTIES:
-    settings.set_difficulty(size[0])
+# The difficulty this looped over is no longer a window setting, so the
+# passes were identical. One is what it was always measuring.
+for size in (("normal", "Normal", ""),):
     w = MainWindow(ROOT)
     w.show()
     w._apply_state({
@@ -116,7 +116,6 @@ for size in settings.DIFFICULTIES:
     w.grab().save(os.path.join(OUT, "stable_%s.png" % size[0]))
     w.close()
 
-settings.set_difficulty(settings.NORMAL)
 print("\n%s" % ("ALL PASS" if not failures
                 else "%d FAILURES: %s" % (len(failures), failures)))
 sys.exit(1 if failures else 0)

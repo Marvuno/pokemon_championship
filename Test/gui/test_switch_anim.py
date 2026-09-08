@@ -79,6 +79,29 @@ def live_hidden(side):
     return not label.isVisible()
 
 
+def play_next():
+    """Hand the stage to the next *waiting* animation at once.
+
+    The window paces animations on a timer, so a turn's events are seen in
+    the order they actually happened. A test does not want to sit through
+    SWITCH_MS of wall clock between each one, so it ends the current one
+    early and pumps the queue by hand -- exactly what the timer does.
+
+    A no-op when nothing is waiting, which matters: an animation that
+    started the moment its state was applied (the queue was empty and the
+    timer idle) would otherwise be stopped here and nothing would replace
+    it.
+    """
+    if not w._fx_queue:
+        return
+    for label in (w.player_sprite, w.opponent_sprite):
+        S.stop_switch(label)
+        S.stop_fx(label)
+    w._fx_timer.stop()
+    w._fx_pump()
+    app.processEvents()
+
+
 def sent_out():
     return [l.text() for l in w.feed_scroll.findChildren(QLabel)
             if "sent out " in l.text() and l.text().endswith(".")]
@@ -125,6 +148,7 @@ check("...and releases both ghosts",
 # ----------------------------------------------------------- your switch
 w._apply_state(state("Milotic", "Milotic"))
 app.processEvents()
+play_next()
 check("your own switch animates too", running("player"))
 check("...and is announced",
       any("You sent out Milotic." == t for t in sent_out()))
@@ -133,14 +157,20 @@ S.stop_switch(w.player_sprite)
 # ------------------------------------------------- faster than it animates
 w._apply_state(state("Milotic", "Skarmory"))
 app.processEvents()
+play_next()
 first = ghost("opponent")
 w._apply_state(state("Milotic", "Zapdos"))
 app.processEvents()
-second = ghost("opponent")
-check("a second switch mid-animation replaces the first",
-      second is not None and second is not first)
+# A second switch used to cut the first short, which is why a turn holding
+# two of them only ever showed the second one. It queues instead now.
+check("a second switch does not replace the one playing",
+      ghost("opponent") is first)
+check("...it waits its turn instead", len(w._fx_queue), 1)
 check("...leaving exactly one animation on that label",
       sum(1 for _ in [running("opponent")] if _), 1)
+play_next()
+check("...and plays once the first is out of the way",
+      ghost("opponent") is not None and ghost("opponent") is not first)
 check("...and all three switches are recorded", len(sent_out()), 4)
 S.stop_switch(w.opponent_sprite)
 
@@ -155,6 +185,7 @@ check("...and still flashes the card", w.opponent_card.border_width, 3)
 # ------------------------------------------------ leaving the match tidies up
 w._apply_state(state("Milotic", "Sandaconda"))
 app.processEvents()
+play_next()
 check("a switch is playing before we leave", running("opponent"))
 w._apply_state(state("Garchomp", "Metagross", phase="prebattle"))
 app.processEvents()
@@ -181,6 +212,7 @@ def settle(ms):
 
 w._apply_state(state("Garchomp", "Perrserker"))
 app.processEvents()
+play_next()
 check("a switch is running", running("opponent"))
 widths = []
 for _ in range(9):

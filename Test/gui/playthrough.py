@@ -169,7 +169,7 @@ def answer_for(prompt, request):
 #: team screen came from. Class names rather than the classes themselves so
 #: this list stays readable and does not need the imports.
 ALLOWED_WINDOWS = {
-    "MainWindow", "RosterDialog", "OpponentInfoDialog", "SettingsDialog",
+    "MainWindow", "RosterDialog", "OpponentInfoDialog",
     "HistoryDialog", "CareerDialog", "StandingsDialog", "StoryDialog",
     "CreditsDialog", "CompareDialog", "ArtLightbox", "PokedexDialog",
     # who you are, at the start of a new career -- a real screen the player

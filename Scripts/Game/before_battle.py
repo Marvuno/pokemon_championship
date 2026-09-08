@@ -4,6 +4,7 @@ from contextlib import suppress
 from copy import deepcopy
 
 from Scripts.Game.game_procedure import *
+from Scripts.Game import shop
 from Scripts.Art.text_color import *
 from Scripts.Data.competitors import *
 from Scripts.Battle.constants import *
@@ -19,7 +20,17 @@ MENU = ((0, "proceed_to_battle", "Battle"),
         (2, "switch_order", "Switch Pokemon Order"),
         (3, "about_opponent", "Scout Opponent"),
         (4, "check_history", "Check History"),
-        (5, "career_history", "Career History"))
+        (5, "career_history", "Career History"),
+        (6, "visit_shop", "Shop"))
+
+
+def visit_shop(protagonist, opponent):
+    """Spend the round's winnings. See Scripts/Game/shop.py.
+
+    Takes the opponent it does not use, because every handler on this menu
+    has the same signature -- the menu dispatches by name.
+    """
+    shop.shop(protagonist)
 
 
 def before_battle_option(protagonist, opponent):

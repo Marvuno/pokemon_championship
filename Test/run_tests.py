@@ -31,9 +31,17 @@ OUT = os.path.join(SUITES, "_out")
 #: that slot 1 was migrated from. A harness starting a new game now picks a
 #: slot, so leaving Save/ out of this would let a test run write into the real
 #: save -- which is exactly the accident this whole mechanism exists to stop.
-SAVES = ("savefile.json", "savefile.dat") + tuple(
+#: ...and the files savefile._write_atomically leaves beside each of them.
+#: A `.bak` holds the *previous* career, so a harness run that wrote one
+#: would leave a test career sitting next to the real save, ready for
+#: savefile.recover() to put back over it. A `.new` is only ever a save
+#: interrupted mid-write, which is exactly what a killed suite produces.
+_SAVE_SIDECARS = (".bak", ".new")
+_SAVE_FILES = ("savefile.json", "savefile.dat") + tuple(
     os.path.join("Save", "savefile%d.json" % number)
     for number in range(1, 5))
+SAVES = _SAVE_FILES + tuple(
+    name + suffix for name in _SAVE_FILES for suffix in _SAVE_SIDECARS)
 #: playthrough.py plays a whole run and wants a name for its player
 EXTRA = {"playthrough": ["harness"]}
 

@@ -15,7 +15,8 @@ from PySide6.QtGui import QFont, QFontDatabase
 
 from GUI import theme as T
 
-#: the four sizes exposed in Settings (see GUI_qt/settings.py, Phase 5)
+#: the four sizes. They were once exposed in a Settings dialog, which is
+#: gone -- these are the values the interface is built to.
 SCALE_STEPS = {"90%": 0.9, "100%": 1.0, "115%": 1.15, "130%": 1.3}
 
 

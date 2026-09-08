@@ -128,6 +128,67 @@ def custom_teams(opponent_name):
     return player, opponent
 
 
+#: the Pokemon the Metronome mode is played with, and how many a side
+METRONOME_POKEMON = "Gambler"
+METRONOME_TEAM = 6
+#: every IV at its ceiling. Pinned as both ends of the roll, which is how
+#: Data/competitors.csv pins one (see team_generation).
+METRONOME_IV = 31
+
+
+def metronome_teams():
+    """Six Gamblers a side, maxed, with nothing to choose between them.
+
+    Built here rather than through `team_generation` because there is
+    nothing to generate: no rating decides the shelf, no ace is pinned, and
+    every Pokemon on the field is the same Pokemon. Going through the tier
+    machinery would only be a longer way of writing this, and it would let a
+    rating change quietly alter a mode whose whole point is that both sides
+    are identical.
+
+    Character abilities are cleared on both sides. Everything else about the
+    mode is symmetrical, and leaving one trainer holding Quantum Roll while
+    the other holds nothing would be the one thing that is not.
+    """
+    def army():
+        built = []
+        for _ in range(METRONOME_TEAM):
+            mon = deepcopy(list_of_pokemon[METRONOME_POKEMON])
+            mon.iv = [METRONOME_IV] * 6
+            mon.total_iv = sum(mon.iv)
+            mon.nominal_base_stats = [base + iv for base, iv
+                                      in zip(mon.base_stats, mon.iv)]
+            mon.total_base_stats = sum(mon.base_stats)
+            mon.ability = [mon.ability[0]] if mon.ability else []
+            # Its movepool is one move, and that move is the mode.
+            mon.moveset = ["Metronome"]
+            built.append(mon)
+        return built
+
+    # Named `_side` because these are trainers, not Pokemon. In this
+    # codebase `player` and `opponent` usually mean the Pokemon on the
+    # field, and a trainer's `ability` is a *string* (their character
+    # ability's name) where a Pokemon's is a list -- which is exactly the
+    # distinction test_engine_integrity walks the AST for.
+    player_side = deepcopy(list_of_competitors['Protagonist'])
+    player_side.nickname = ((player_side.nickname or "").strip()
+                            or CUSTOM_DEFAULT_NAME)
+    opponent_side = deepcopy(list_of_competitors['Protagonist'])
+    opponent_side.nickname = "The House"
+    # ...and not the player, or the engine would ask them for both sides'
+    # moves. A deepcopy of the Protagonist carries main=True.
+    opponent_side.main = False
+    # A rating is still read in a few places (the result box, a draw), so
+    # both are given the same one rather than none.
+    player_side.strength = opponent_side.strength = 100
+    player_side.ability = opponent_side.ability = ""
+    player_side.id, opponent_side.id = 1, 2
+    player_side.stage = opponent_side.stage = 1
+    player_side.score = opponent_side.score = 0
+    player_side.team, opponent_side.team = army(), army()
+    return player_side, opponent_side
+
+
 def custom_play():
     """Pick a competitor and fight them, once, right now.
 
@@ -168,37 +229,52 @@ def _custom_play_loop(battle_setup):
     while True:
         print("")
         print(CBOLD + CYELLOW2 + "CUSTOM PLAY" + CEND)
-        print(CGREY + "One battle against whoever you choose. You are dealt a "
-                      "team built the way theirs is -- their rating, their "
-                      "aces -- so the match is about play rather than about "
-                      "who brought the better Pokemon. Nothing is saved."
-              + CEND)
+        print(CGREY + "One battle. Nothing is saved." + CEND)
         print("")
-        menu = custom_opponent_menu()
+        print("  1: 1 VS 1")
+        print("  2: Metronome")
         print("  0: back")
-
-        choice = -1
-        while choice not in menu and choice != 0:
+        mode = -1
+        while mode not in (0, 1, 2):
             with suppress(ValueError):
-                choice = int(input("Who do you want to battle? "))
-        if choice == 0:
+                mode = int(input("Which game mode? "))
+        if mode == 0:
             return
 
-        player, opponent = custom_teams(menu[choice])
+        if mode == 2:
+            player, opponent = metronome_teams()
+        else:
+            menu = custom_opponent_menu()
+            print("  0: back")
+
+            choice = -1
+            while choice not in menu and choice != 0:
+                with suppress(ValueError):
+                    choice = int(input("Who do you want to battle? "))
+            if choice == 0:
+                continue
+
+            player, opponent = custom_teams(menu[choice])
         print("")
         print("%s%s%s [%d] VS %s [%d]%s"
               % (CWHITE2, CBOLD, player.nickname, player.strength,
                  opponent.nickname, opponent.strength, CEND))
+        held = (METRONOME_TEAM if mode == 2
+                else ROUND_LIMIT[GameSystem.stage])
         print("%s%sThis is a %dvs%d battle.%s"
-              % (CWHITE2, CBOLD, ROUND_LIMIT[GameSystem.stage],
-                 ROUND_LIMIT[GameSystem.stage], CEND))
-        if opponent.quote:
+              % (CWHITE2, CBOLD, held, held, CEND))
+        if mode != 2 and opponent.quote:
             print(CGREY + '"' + opponent.quote + '"' + CEND)
 
         battleground = Battleground()
         # played outside the bracket: no round is closed and no stage
         # advances when it ends. See battle_win_condition.end_battle.
         battleground.exhibition = True
+        # Metronome is fought on nothing: no opening weather, no terrain.
+        # Both are rolled per battle and would hand one identical side an
+        # advantage the player did not choose. Sudden Death is untouched --
+        # it arms on turn 50 here as anywhere else.
+        battleground.bare_arena = (mode == 2)
         battle_setup(player, opponent, player.team, opponent.team,
                      battleground)
 

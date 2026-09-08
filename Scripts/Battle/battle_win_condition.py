@@ -14,6 +14,7 @@ from Scripts.Game.game_system import *
 from Scripts.Game.single_elimination_bracket import *
 from Scripts.Art import narrator
 from Scripts.Data import tiers
+from Scripts.Game import shop
 
 
 def wins_a_draw(one, two):
@@ -58,6 +59,23 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         competitor.result = sum(1 for pokemon in player_team if pokemon.status == "Fainted")
         protagonist.score += protagonist.result - competitor.result
         competitor.score += competitor.result - protagonist.result
+        # Coins, off the same two numbers the score is: the knockouts you
+        # took less the ones you gave up, floored at nothing.
+        #
+        # Only for the player, and only in a real round. `main` is what
+        # tells the Protagonist from a competitor: an AI-vs-AI battle has a
+        # competitor in this slot, whose coins nothing ever reads -- and
+        # paying them anyway put a line into every simulated battle's
+        # transcript, which is 13 of the 40 fingerprint battles' worth of
+        # noise for nothing. An exhibition is outside the career and pays
+        # nothing either; see start_interface.custom_play.
+        if (getattr(protagonist, "main", False)
+                and not getattr(battleground, "exhibition", False)):
+            earned = shop.award(protagonist, competitor)
+            if earned:
+                narrator.say(f"{CYELLOW2}{CBOLD}You earned {earned} coin(s). "
+                             f"You now have {shop.balance(protagonist)}."
+                             f"{CEND}")
         choose_pokemon(protagonist, competitor, battleground)
         end_battle(protagonist, competitor, player_team, opponent_team, battleground)
 
@@ -124,6 +142,74 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         if not getattr(battleground, "exhibition", False):
             round_end(GameSystem.stage)
             GameSystem.stage += 1
+
+
+#: The odds of copying a character ability, floored and capped.
+#:
+#: The shape is the one `before_battle.scout_chance` already uses -- your
+#: rating against theirs -- so the two "can you get something off this
+#: opponent" rolls in the game read the same way.
+#:
+#: Both ends are clamped, and that is not decoration. Scouting multiplies the
+#: same fraction by up to 100 for a Pressure Pokemon and never clamps it,
+#: which switches that subsystem off entirely for anyone carrying one. A
+#: floor keeps the early rounds from being hopeless (the player starts rated
+#: 5 against a field reaching into the hundreds, where the raw fraction is
+#: nearly zero); a ceiling keeps the last ones from being a formality.
+ABILITY_STEAL_FLOOR = 0.15
+ABILITY_STEAL_CEILING = 0.85
+
+
+def ability_steal_chance(protagonist, opponent):
+    """How likely copying `opponent`'s character ability is, as 0..1."""
+    mine = max(1, int(getattr(protagonist, "strength", 0) or 0))
+    theirs = max(1, int(getattr(opponent, "strength", 0) or 0))
+    raw = mine / float(mine + theirs)
+    return min(ABILITY_STEAL_CEILING, max(ABILITY_STEAL_FLOOR, raw))
+
+
+def ability_on_offer(protagonist, opponent):
+    """The ability this victory puts on the table, or "" if none does.
+
+    An opponent with no character ability of their own has nothing to copy --
+    the Protagonist's own row in Data/competitors.csv is the empty one, so
+    this is not hypothetical in a mirror match.
+    """
+    return str(getattr(opponent, "ability", "") or "").strip()
+
+
+def copy_character_ability(protagonist, opponent):
+    """Roll for the opponent's ability. True if the offer was taken up.
+
+    Copied, not stolen: the opponent keeps theirs. And only ever one at a
+    time -- taking a second replaces the first, which is what stops five
+    wins from turning into five stacked rules the engine was never built to
+    run at once.
+    """
+    ability = ability_on_offer(protagonist, opponent)
+    if not ability:
+        return False
+    chance = ability_steal_chance(protagonist, opponent)
+    held = str(getattr(protagonist, "ability", "") or "").strip()
+    if random.random() <= chance:
+        protagonist.ability = ability
+        if held:
+            narrator.say(f"{CGREEN2}{CBOLD}You copied {opponent.nickname}'s "
+                         f"character ability: {ability}. It replaces "
+                         f"{held}.{CEND}")
+        else:
+            narrator.say(f"{CGREEN2}{CBOLD}You copied {opponent.nickname}'s "
+                         f"character ability: {ability}.{CEND}")
+        narrator.say(f"{CGREY}{opponent.nickname} keeps theirs -- you have "
+                     f"learned it, not taken it.{CEND}")
+    else:
+        narrator.say(f"{CRED2}{CBOLD}You failed to copy "
+                     f"{opponent.nickname}'s character ability "
+                     f"({ability}).{CEND}")
+        narrator.say(f"{CGREY}The chance was {round(chance * 100)}%. No "
+                     f"Pokemon is taken this round either -- that was the "
+                     f"trade.{CEND}")
+    return True
 
 
 def choose_pokemon(protagonist, opponent, battleground):
@@ -197,6 +283,24 @@ def choose_pokemon(protagonist, opponent, battleground):
     if protagonist.stage > opponent.stage:
         narrator.say(f"{protagonist.side_color}Your Team: {[pokemon.name for pokemon in protagonist.team]}\n"
               f"{opponent.side_color}Opponent Team: {[pokemon.name for pokemon in opponent.team]}{CEND}")
+        # A win pays out once: a Pokemon, or a shot at their character
+        # ability. Asked before the Pokemon questions so that answering it
+        # ends the reward -- taking both would be worth far more than the
+        # round is meant to pay.
+        offered = ability_on_offer(protagonist, opponent)
+        if offered:
+            odds = round(ability_steal_chance(protagonist, opponent) * 100)
+            held = str(getattr(protagonist, "ability", "") or "").strip()
+            what = f"swap {held} for {offered}" if held else f"learn {offered}"
+            pick = None
+            while pick not in ("P", "A"):
+                pick = input(
+                    f"Input P to take a Pokemon, or A to copy their "
+                    f"character ability ({what}, {odds}% chance -- and "
+                    f"nothing at all if it fails). ").strip().upper()
+            if pick == "A":
+                copy_character_ability(protagonist, opponent)
+                return
         # not yet full team, can get extra pokemon
         if len(protagonist.team + protagonist.unused_team) < MAX_POKEMON:
             while choice != "Y" and choice != "N":

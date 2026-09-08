@@ -117,8 +117,8 @@ check("both columns are marked as selected",
        and "selected" in d.columns["opponent"]["heading"].text()), True)
 check("the note spells out the actual trade",
       "Swapping would give up" in d.note.text(), True)
-check("a full team is told it must give one up",
-      "giving one of yours up" in d.subline.text(), True)
+check("a full team is told its team is full",
+      "full" in d.subline.text().lower(), True)
 
 # one press answers the yes/no *and* remembers both picks
 d._pick("player", 2)
@@ -179,8 +179,8 @@ w._show_request(req)
 app.processEvents()
 labels = [c.text() for c in w.compare_dialog.findChildren(QLabel) if c.text()]
 check("the take offer says Take it", "Take it" in labels, True)
-check("...and says no swapping is needed",
-      "no swapping" in w.compare_dialog.subline.text().lower(), True)
+check("...and taking says nothing of yours goes",
+      "given up" in w.compare_dialog.subline.text().lower(), True)
 check("...and only their column is marked",
       ("selected" in w.compare_dialog.columns["opponent"]["heading"].text()
        and "selected" not in

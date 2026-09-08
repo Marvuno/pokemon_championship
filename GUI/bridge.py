@@ -201,7 +201,10 @@ REWARD_TAKE = "take"          # team not full: theirs, or the organiser's
 REWARD_SWAP = "swap"          # team full: one of yours for one of theirs
 REWARD_PICK_THEIRS = "pick_theirs"
 REWARD_PICK_MINE = "pick_mine"
+REWARD_ABILITY = "ability"    # a Pokemon, or a shot at their character ability
 REWARD_PROMPTS = (
+    # first, and the most distinctive wording of the five
+    ("to copy their character ability", REWARD_ABILITY),
     ("may take one pokemon from the opponent", REWARD_PICK_THEIRS),
     ("take the pokemon you want on the other team", REWARD_PICK_THEIRS),
     ("don't want on your team", REWARD_PICK_MINE),
@@ -229,6 +232,37 @@ def appearance_prompt_kind(text):
         if marker in lowered:
             return kind
     return None
+
+
+#: a full team, past which the reward becomes a swap rather than a pick
+try:
+    from Scripts.Battle.constants import MAX_POKEMON
+except Exception:                       # pragma: no cover - engine not built
+    MAX_POKEMON = 6
+
+
+def ability_description(name):
+    """What a character ability does, in the words of whoever owns it.
+
+    `competitors.ability_text` reads a *competitor's* own Strategy cell, which
+    is no use for an ability the player has copied -- the Protagonist's cell
+    is blank. Whoever it actually belongs to is asked instead, so the wording
+    still comes from the one place the designer maintains.
+    """
+    wanted = str(name or "").strip()
+    if not wanted:
+        return ""
+    try:
+        from Scripts.Data.competitors import (ability_text,
+                                              list_of_competitors)
+    except Exception:
+        return ""
+    for competitor in list_of_competitors.values():
+        if str(getattr(competitor, "ability", "") or "").strip() == wanted:
+            text = ability_text(competitor)
+            if text:
+                return text
+    return ""
 
 
 def reward_prompt_kind(text):
@@ -868,10 +902,19 @@ def snap_team(team, active_mon=None, in_battle=True):
 def snap_side(participant):
     if participant is None:
         return {}
+    # The trainer's character ability, with what it does. The Pokedex has
+    # always published every opponent's; this is what lets the player read
+    # their own, which they can now acquire.
+    ability = str(_g(participant, "ability", "") or "").strip()
     return {
         "nickname": str(_g(participant, "nickname", "?")),
         "strength": _g(participant, "strength", 0),
         "level": str(_g(participant, "level", "")),
+        "ability": ability,
+        "ability_note": ability_description(ability),
+        # only the player ever has any, but publishing it per side keeps
+        # this one snapshot rather than two
+        "coins": max(0, int(_g(participant, "coins", 0) or 0)),
         "hazards": {k: v for k, v in (_g(participant, "entry_hazard", {})
                                       or {}).items() if v},
         "buffs": {k: v for k, v in (_g(participant, "in_battle_effects", {})
@@ -987,6 +1030,79 @@ def patch_everywhere(name, original, replacement):
         except Exception:
             continue
     return count
+
+
+#: Which of the six animations a move should play, by the move's own data.
+#:
+#: Read off `attack_type`, `effect_type` and `charging` rather than parsed
+#: back out of the narration: the text is written for a person and changes
+#: whenever the wording is improved, while these three columns are what the
+#: engine itself branches on. Data/moves.csv is the single source for both.
+#:
+#: `effect_type` is pipe-separated and prefixed by who it lands on --
+#: `self_*`/`user_*` against `target_*`/`opponent_*` -- which is the whole
+#: distinction between a buff and a debuff and needs no table of move names.
+MOVE_SHAPE_AGAINST = ("target_", "opponent_", "cursing")
+
+
+#: How hard a hit landed. Separate from move_shape, which says what *kind*
+#: of thing the move was -- this says how it went.
+HIT_SUPER, HIT_RESIST, HIT_NEUTRAL = "super", "resist", "neutral"
+
+
+def hit_shape(move):
+    """"super", "resist", "neutral" -- or None when it cannot be told.
+
+    None covers a miss, a status move, and anything that dealt no damage,
+    all of which get the ordinary animation.
+
+    Deliberately gated on damage. `move.type_effectiveness` lives on the
+    shared Move and is not cleared between uses, so a move that missed still
+    reports the multiplier from whoever it last hit. Damage having been
+    dealt is what proves damage_calculation ran *this* time.
+    """
+    if move is None or isinstance(move, str):
+        return None
+    if (_g(move, "damage", 0) or 0) <= 0:
+        return None
+    multiplier = _g(move, "type_effectiveness", None)
+    if multiplier is None:
+        return None
+    # A critical hit reads as harder however the chart felt about it.
+    if multiplier >= 2 or _g(move, "critical_hit", False):
+        return HIT_SUPER
+    if multiplier <= 0.5:
+        return HIT_RESIST
+    return HIT_NEUTRAL
+
+
+def move_shape(move):
+    """"attack", "buff", "harm", "vanish", "hazard" -- or None.
+
+    None means "nothing to play": a move the interface has no picture for,
+    which is better than guessing at one.
+    """
+    if move is None or isinstance(move, str):
+        return None
+    # A semi-invulnerable move takes the user off the field, and that is the
+    # most important thing about it -- worth showing over the hit itself,
+    # which lands a turn later anyway.
+    if str(getattr(move, "charging", "") or "") == "Semi-invulnerable":
+        return "vanish"
+    effects = str(getattr(move, "effect_type", "") or "")
+    parts = [part.strip() for part in effects.split("|") if part.strip()]
+    if any(part == "apply_entry_hazard" for part in parts):
+        return "hazard"
+    kind = str(getattr(move, "attack_type", "") or "")
+    if kind in ("Physical", "Special"):
+        return "attack"
+    if kind != "Status":
+        return None
+    # a status move either does something to them or something for itself
+    if any(part.startswith(MOVE_SHAPE_AGAINST) or part in MOVE_SHAPE_AGAINST
+           for part in parts):
+        return "harm"
+    return "buff"
 
 
 def install_hooks(bridge, game_main):
@@ -1310,9 +1426,14 @@ def install_hooks(bridge, game_main):
         # The outer capture already holds the nested move's text, in the
         # order it happened, so only the outermost call announces.
         if outermost and text.strip():
+            # `shape` is what the arena animates on. Worked out here because
+            # this is the only place holding the move object itself -- the
+            # interface sees text and would have to guess.
             bridge.emit_banner("move", text,
                                side=side_of(turn.user.trainer),
-                               actor=_g(turn.user.active, "name", ""))
+                               actor=_g(turn.user.active, "name", ""),
+                               shape=move_shape(move),
+                               hit=hit_shape(move))
         if outermost:
             # A U-turn's switch was held back so it could not be announced
             # above the move that caused it. The move has spoken; let it go.
@@ -1963,6 +2084,53 @@ def install_hooks(bridge, game_main):
 
         patch_everywhere(func_name, original, make())
 
+    # -- the balance, the moment it changes -------------------------------
+    # Coins are spent at a pre-battle prompt, where the battle snapshot is
+    # not republished -- so publishing them as part of it (behind
+    # `player_roster`) meant the number on screen only caught up when the
+    # next battle started. `spend` and `award` are the only two things that
+    # ever move it, so they are where it is published from.
+    from Scripts.Game import shop as shop_module
+
+    def _publish_balance(protagonist):
+        if _g(protagonist, "main", False):
+            bridge.publish(coins=shop_module.balance(protagonist))
+
+    original_spend = shop_module.spend
+
+    def spend(protagonist, cost, *a, **kw):
+        paid = original_spend(protagonist, cost, *a, **kw)
+        if paid:
+            _publish_balance(protagonist)
+        return paid
+
+    patch_everywhere("spend", original_spend, spend)
+
+    original_award = shop_module.award
+
+    def award(protagonist, competitor, *a, **kw):
+        earned = original_award(protagonist, competitor, *a, **kw)
+        _publish_balance(protagonist)
+        return earned
+
+    patch_everywhere("award", original_award, award)
+
+    # ...and the team itself, when the shop changes it. `refresh` is the
+    # heavy full snapshot that `refresh_before_input` deliberately avoids
+    # doing on every prompt -- but a purchase happens once, so it can have
+    # it, and without it Your Team went on showing the Pokemon that was
+    # swapped away.
+    def shop_changed(protagonist):
+        if not _g(protagonist, "main", False):
+            return
+        try:
+            refresh()
+        except Exception:
+            pass
+        _publish_balance(protagonist)
+
+    shop_module.changed = shop_changed
+
     # -- what you walked away with ----------------------------------------
     # choose_pokemon() hands out the end-of-battle reward: one taken from the
     # opponent, a random one from the organiser, a swap, or a consolation
@@ -1970,6 +2138,58 @@ def install_hooks(bridge, game_main):
     # don't, and all of it lands in the raw log, so the usual way to find out
     # what you'd been given was to go and look at your team. Diffing the team
     # around the call catches every path without relying on that text.
+    def _ability_offer(protagonist, opponent):
+        """What copying their character ability would cost and be worth.
+
+        None when there is nothing to copy -- an opponent with an empty
+        Ability column, which the Protagonist's own row is.
+
+        `pokemon_mode` is what the *other* branch of the same offer would be,
+        so the one screen can present both: a full team means giving one up,
+        an unfilled one is a straight pick.
+        """
+        theirs = str(_g(opponent, "ability", "") or "").strip()
+        if not theirs:
+            return None
+        mine = str(_g(protagonist, "ability", "") or "").strip()
+        held = list(_g(protagonist, "team", []) or [])
+        held += list(_g(protagonist, "unused_team", []) or [])
+        return {"theirs": theirs,
+                "theirs_text": ability_description(theirs),
+                "mine": mine,
+                "mine_text": ability_description(mine) if mine else "",
+                "chance": round(win.ability_steal_chance(protagonist,
+                                                         opponent) * 100),
+                "nickname": str(_g(opponent, "nickname", "") or ""),
+                "pokemon_mode": ("swap" if len(held) >= MAX_POKEMON
+                                 else "take")}
+
+    # -- did the ability copy land? ---------------------------------------
+    # Read off the function that rolls for it rather than diffed around
+    # choose_pokemon, because a diff cannot tell a failed roll from a player
+    # who simply took the Pokemon instead: both leave the ability unchanged.
+    original_copy = win.copy_character_ability
+
+    def copy_character_ability(protagonist, opponent, *a, **kw):
+        before = str(_g(protagonist, "ability", "") or "").strip()
+        wanted = str(_g(opponent, "ability", "") or "").strip()
+        chance = round(win.ability_steal_chance(protagonist, opponent) * 100)
+        attempted = original_copy(protagonist, opponent, *a, **kw)
+        if not attempted:
+            return attempted        # nothing was on offer; nothing was rolled
+        after = str(_g(protagonist, "ability", "") or "").strip()
+        bridge.publish(ability_attempt={
+            "ok": bool(wanted) and after == wanted,
+            "ability": wanted,
+            "replaced": before,
+            "chance": chance,
+            "nickname": str(_g(opponent, "nickname", "") or ""),
+            "seq": time.time()})
+        return attempted
+
+    patch_everywhere("copy_character_ability", original_copy,
+                     copy_character_ability)
+
     original_choose = win.choose_pokemon
 
     def choose_pokemon(protagonist, opponent, battleground, *a, **kw):
@@ -1984,6 +2204,11 @@ def install_hooks(bridge, game_main):
             bridge.publish(opponent_known=True,
                            opponent_roster=snap_roster(_g(opponent, "team",
                                                           [])))
+            # ...and what the other half of the reward is worth. The odds
+            # are the whole basis of the choice, so they go on screen rather
+            # than being left for the player to infer from two ratings.
+            bridge.publish(reward_ability=_ability_offer(protagonist,
+                                                         opponent))
         was = names(_g(protagonist, "team", []))
         result = original_choose(protagonist, opponent, battleground, *a, **kw)
         now = names(_g(protagonist, "team", []))

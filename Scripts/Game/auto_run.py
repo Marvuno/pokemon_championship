@@ -51,7 +51,7 @@ import re
 from Scripts.Art import music
 
 #: The most careers one Auto Run may be asked for.
-MAX_RUNS = 1000
+MAX_RUNS = 100
 
 #: Entered at the move prompt to turn auto battle on. `select_move` reads it
 #: and says the turn still needs a move, which is why the reply after it is
@@ -356,6 +356,16 @@ def answer(prompt):
             state.battle_armed = True
             return AUTO_BATTLE_CODE
         return FIRST_MOVE
+
+    # -- a Pokemon, or a roll for their character ability ------------------
+    # Always the Pokemon. An Auto Run exists to measure how a career plays
+    # out, and a gamble taken twenty times over would add variance to every
+    # simulated run for a reward the simulation cannot then use -- the
+    # ability would sit on a player nobody is steering. Answering P also
+    # keeps these runs comparable with the ones recorded before a victory
+    # offered anything else.
+    if "to copy their character ability" in text:
+        return "P"
 
     # -- a forced switch ---------------------------------------------------
     # 8 views the team and 9 goes back, so neither is an answer. The first

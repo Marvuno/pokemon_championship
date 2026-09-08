@@ -12,6 +12,7 @@ the app is a one-place edit.
 """
 
 import math
+import os
 
 from PySide6.QtCore import (Property, QEasingCurve, QPropertyAnimation,
                             QSize,
@@ -396,7 +397,7 @@ class ActionButton(RoundedPanel):
 
     def __init__(self, title, fonts, sub=None, accent=T.CYAN, emphasis=False,
                 parent=None, hotkey=None, disabled=False, on_click=None,
-                compact=False):
+                compact=False, dense=False):
         base_bg = T.mix(T.PANEL_RAISED, accent, 0.14) if emphasis else T.PANEL_RAISED
         base_border = accent if emphasis else T.LINE_SOFT
         super().__init__(parent, bg=base_bg, border=base_border,
@@ -428,7 +429,12 @@ class ActionButton(RoundedPanel):
 
         head = QHBoxLayout()
         name = QLabel(title)
-        name.setFont(fonts.body_bold)
+        # `dense` drops the title a size. It is for a menu whose labels
+        # are long enough that the grid would otherwise outgrow the
+        # action bar and earn a scrollbar -- the save slots, which carry
+        # a nickname, a rating, a run count and a title count each.
+        # Smaller type that fits beats the right size behind a scroller.
+        name.setFont(fonts.small_bold if dense else fonts.body_bold)
         name.setStyleSheet("color: %s; background: transparent;"
                            % (T.TEXT_FAINT if disabled else T.TEXT))
         self._labels.append(name)
@@ -1754,10 +1760,17 @@ class ResultOverlay(RoundedPanel):
                                   % T.TEXT)
         layout.addWidget(self.detail)
 
-    def show_result(self, won, detail):
+    def show_result(self, won, detail, headline=None):
+        """`headline` overrides VICTORY/DEFEAT.
+
+        The plate is not only for the end of a match any more -- copying a
+        character ability is a one-shot roll the player has spent their whole
+        reward on, and it earns the same unmissable hold. `won` still chooses
+        the colour, which is the part that reads at a glance.
+        """
         accent = T.PLAYER if won else T.OPPONENT
         self.set_style(bg=T.mix(T.PANEL, accent, 0.22), border=accent)
-        self.headline.setText("VICTORY" if won else "DEFEAT")
+        self.headline.setText(headline or ("VICTORY" if won else "DEFEAT"))
         self.headline.setStyleSheet("color: %s; background: transparent;"
                                     % accent)
         self.detail.setText(detail)
@@ -2071,3 +2084,75 @@ class ElidedLabel(QLabel):
         metrics = painter.fontMetrics()
         text = metrics.elidedText(self._full, Qt.ElideRight, self.width())
         painter.drawText(self.rect(), int(self.alignment()), text)
+
+
+#: where the coin picture lives, if it is there at all
+COIN_ART = ("Assets", "generated", "coin.png")
+#: what the drawn stand-in uses, when it is not
+COIN_FACE = "#ffc233"
+COIN_RIM = "#f7a10b"
+
+
+class CoinPurse(QWidget):
+    """How many coins the player has, with the coin itself beside it.
+
+    The picture is Assets/generated/coin.png when that file is there and a
+    drawn disc when it is not -- the same bargain `field_emblem` strikes for
+    the weather emblems. An asset is better if it exists, and a missing file
+    must leave something rather than a blank.
+
+    Drawn at the device pixel ratio and told about it, so the coin is as
+    crisp as the sprites are on a scaled display.
+    """
+
+    ICON = 22
+
+    def __init__(self, fonts, project_root=".", parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(6)
+
+        self.icon = QLabel(self)
+        self.icon.setFixedSize(self.ICON, self.ICON)
+        self.icon.setScaledContents(True)
+        self.icon.setPixmap(self._face(project_root))
+        row.addWidget(self.icon, alignment=Qt.AlignVCenter)
+
+        self.amount = QLabel("0", self)
+        self.amount.setFont(fonts.body_bold)
+        self.amount.setStyleSheet("color: %s; background: transparent;"
+                                  % T.ACCENT)
+        row.addWidget(self.amount, alignment=Qt.AlignVCenter)
+        self.setToolTip("Coins — spend them in the Shop.")
+
+    def _face(self, project_root):
+        ratio = max(1.0, float(self.devicePixelRatioF()))
+        edge = int(self.ICON * ratio)
+        path = os.path.join(project_root, *COIN_ART)
+        if os.path.exists(path):
+            picture = QPixmap(path)
+            if not picture.isNull():
+                picture = picture.scaled(edge, edge, Qt.KeepAspectRatio,
+                                         Qt.SmoothTransformation)
+                picture.setDevicePixelRatio(ratio)
+                return picture
+        return self._drawn(edge, ratio)
+
+    @staticmethod
+    def _drawn(edge, ratio):
+        """A plain gold disc, for when the artwork is not there."""
+        picture = QPixmap(edge, edge)
+        picture.fill(Qt.transparent)
+        painter = QPainter(picture)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.setBrush(QColor(COIN_FACE))
+        painter.setPen(QPen(QColor(COIN_RIM), max(1.0, edge * 0.09)))
+        inset = max(1, int(edge * 0.08))
+        painter.drawEllipse(inset, inset, edge - 2 * inset, edge - 2 * inset)
+        painter.end()
+        picture.setDevicePixelRatio(ratio)
+        return picture
+
+    def set_coins(self, amount):
+        self.amount.setText(str(max(0, int(amount or 0))))

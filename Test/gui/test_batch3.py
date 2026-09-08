@@ -14,7 +14,6 @@ from PySide6.QtWidgets import QApplication, QLabel                  # noqa: E402
 from GUI import bridge as B                                         # noqa: E402
 B.Bridge.start = lambda self: None
 
-from GUI_qt import settings                                         # noqa: E402
 from GUI_qt.main_window import MainWindow                           # noqa: E402
 from GUI_qt.panels import OpponentInfoDialog                        # noqa: E402
 from GUI_qt.widgets import ActionButton                             # noqa: E402
@@ -68,8 +67,10 @@ def labelled(window):
     return found
 
 
-for mode in (settings.NORMAL, settings.BEGINNER):
-    settings.set_difficulty(mode)
+# Once run twice, once per difficulty. The window no longer has a
+# difficulty -- it is fixed at Normal and there is no control for it -- so
+# the two passes were the same pass.
+for mode in ("normal",):
     w = MainWindow(ROOT)
     w.show()
     print("\n== %s (%dx%d) ==" % (mode, w.width(), w.height()))
@@ -133,7 +134,6 @@ for mode in (settings.NORMAL, settings.BEGINNER):
         w.grab().save(os.path.join(OUT, "rows_%s.png" % mode))
     w.close()
 
-settings.set_difficulty(settings.NORMAL)
 
 # ---------------------------------------- 3. the artwork fills its column
 info = {"nickname": "Aphelios", "tier": "Intermediate",

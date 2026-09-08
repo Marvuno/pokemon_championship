@@ -37,6 +37,9 @@ class Battleground:
         self.encore_running = False
         self.reality = True
         self.sudden_death = False
+        #: skip the opening weather and terrain rolls -- see battle_setup.
+        #: Only the Metronome game mode sets this.
+        self.bare_arena = False
         # stackable
         self.field_effect = {
             "Trick Room": 0,

@@ -69,7 +69,7 @@ w._show_error = lambda payload: (errors.append("EV_ERROR: %s" % payload),
                                  _orig_error(payload))
 
 ALLOWED_WINDOWS = {
-    "MainWindow", "RosterDialog", "OpponentInfoDialog", "SettingsDialog",
+    "MainWindow", "RosterDialog", "OpponentInfoDialog",
     "HistoryDialog", "CareerDialog", "StandingsDialog", "StoryDialog",
     "CreditsDialog", "CompareDialog", "ArtLightbox", "PokedexDialog",
     "QMenu", "QToolTip", "QComboBoxPrivateContainer",
@@ -197,17 +197,6 @@ def label_of(widget):
     return (text() if callable(text) else "") or type(widget).__name__
 
 
-def open_settings_without_blocking():
-    """The settings window, built exactly as the game builds it, shown
-    non-modally so the harness keeps ticking."""
-    from GUI_qt.panels import SettingsDialog
-    from GUI_qt import settings as settings_mod
-    dialog = SettingsDialog(w.fonts, w.difficulty, w.volume, w)
-    dialog.on_difficulty_change = settings_mod.set_difficulty
-    dialog.on_volume_change = w._set_volume
-    dialog.show()
-
-
 def sweep_windows():
     """Open each window the player can open, press what is inside, close it.
 
@@ -218,11 +207,9 @@ def sweep_windows():
         ("roster-player", lambda: w.roster_dialog.show_side("player")),
         ("roster-opponent", lambda: w.roster_dialog.show_side("opponent")),
         ("standings", w._open_standings),
-        # _open_settings ends in dialog.exec(), which is modal -- it spins its
-        # own event loop and does not come back until the dialog closes, so
-        # calling it from this timer wedged the whole harness. The dialog is
-        # built and shown the same way, without the blocking call.
-        ("settings", open_settings_without_blocking),
+        # Settings used to be swept here too, built by hand because
+        # _open_settings ended in a modal dialog.exec() that wedged this
+        # timer. The dialog held only difficulty and volume and is gone.
         ("history", w.history_dialog.show),
         ("career", w.career_dialog.show),
         ("story", w._open_story),
