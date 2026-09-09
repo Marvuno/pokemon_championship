@@ -44,6 +44,27 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         player_side, opponent_side = (winner is competitor,
                                       winner is protagonist)
 
+    # The retry is offered here and nowhere later, because everything below
+    # this point commits: the winner's stage advances, both scorelines are
+    # set, the coins are paid, the reward is handed out and `end_battle`
+    # closes the round by resolving all thirty-two competitors. Undoing that
+    # afterwards means unpicking five things in order; declining to start it
+    # is one branch.
+    #
+    # `main` tells a real player from a competitor -- an AI-vs-AI battle has
+    # a competitor in this slot -- and an exhibition is outside the bracket.
+    if (player_side and getattr(protagonist, "main", False)
+            and not getattr(battleground, "exhibition", False)
+            and shop.retry_available(protagonist)):
+        answer = ""
+        while answer not in ("Y", "N"):
+            answer = input("You have lost. Use your one Retry for this run "
+                           "and play the round again? Y/N ").strip().upper()
+        if answer == "Y":
+            shop.spend_retry(protagonist)
+            narrator.say(f"{CYELLOW2}{CBOLD}Replaying the round.{CEND}")
+            raise shop.RoundRetry()
+
     if player_side:
         battleground.battle_continuation = False
         narrator.say("Opponent emerges victorious. You have lost.")
@@ -60,7 +81,8 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         protagonist.score += protagonist.result - competitor.result
         competitor.score += competitor.result - protagonist.result
         # Coins, off the same two numbers the score is: the knockouts you
-        # took less the ones you gave up, floored at nothing.
+        # took less the ones you gave up. It settles both ways -- a bad
+        # round costs coins -- and the balance stops at nothing.
         #
         # Only for the player, and only in a real round. `main` is what
         # tells the Protagonist from a competitor: an AI-vs-AI battle has a
@@ -71,11 +93,10 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
         # nothing either; see start_interface.custom_play.
         if (getattr(protagonist, "main", False)
                 and not getattr(battleground, "exhibition", False)):
-            earned = shop.award(protagonist, competitor)
-            if earned:
-                narrator.say(f"{CYELLOW2}{CBOLD}You earned {earned} coin(s). "
-                             f"You now have {shop.balance(protagonist)}."
-                             f"{CEND}")
+            moved = shop.award(protagonist, competitor)
+            if moved:
+                narrator.say(f"{CYELLOW2}{CBOLD}{moved:+d} Coins "
+                             f"({shop.balance(protagonist)} total).{CEND}")
         choose_pokemon(protagonist, competitor, battleground)
         end_battle(protagonist, competitor, player_team, opponent_team, battleground)
 
@@ -142,6 +163,42 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         if not getattr(battleground, "exhibition", False):
             round_end(GameSystem.stage)
             GameSystem.stage += 1
+
+
+def seeded_win(protagonist, competitor, battleground):
+    """Close a round as a win without playing it. See shop.SEEDED.
+
+    The player always wins it -- that is what the upgrade buys -- but how
+    comfortably is drawn flat, so 4-0 is as likely as 4-3.
+
+    It used to borrow `result_announcement`'s rating-weighted shape, and at
+    level ratings in round 1 that came out 4-3 every single time: four times
+    a half is two, times uniform(1.25, 1.75) is 2.5 to 3.5, which rounds to
+    3 or 4 and is then clamped to limit - 1. The clamp ate the whole spread.
+
+    `choose_pokemon` is deliberately not called. A round you did not play
+    pays no Pokemon and no character ability, which is the whole cost of the
+    upgrade and the reason it is a trade rather than a free ride.
+    """
+    limit = ROUND_LIMIT[GameSystem.stage]
+    # How many of yours they take with them: anywhere from none to all but
+    # one, flat. A seeded round is not played, so there is nothing for a
+    # rating to describe -- and weighting it only narrowed the spread.
+    taken = random.randint(0, limit - 1)
+
+    battleground.battle_continuation = False
+    protagonist.stage += 1
+    protagonist.result, competitor.result = limit, taken
+    protagonist.score += protagonist.result - competitor.result
+    competitor.score += competitor.result - protagonist.result
+    narrator.say(f"{CGREEN2}{CBOLD}Seeded: round {GameSystem.stage} is "
+                 f"yours, {limit}-{taken}.{CEND}")
+    moved = shop.award(protagonist, competitor)
+    if moved:
+        narrator.say(f"{CYELLOW2}{CBOLD}{moved:+d} Coins "
+                     f"({shop.balance(protagonist)} total).{CEND}")
+    end_battle(protagonist, competitor, protagonist.team, competitor.team,
+               battleground)
 
 
 #: The odds of copying a character ability, floored and capped.

@@ -1,3 +1,10 @@
+Pokemon Championship v1.2.9
+
+Shop
+- expanded Shop to now include permanent upgrades
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Pokemon Championship v1.2.8
 
 Custom Play

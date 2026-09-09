@@ -4,6 +4,7 @@ import random
 from copy import deepcopy
 
 from Scripts.Game import *
+from Scripts.Game import shop
 from Scripts.Data.pokemon import *
 from Scripts.Data.moves import *
 from Scripts.Data.battlefield import *
@@ -72,10 +73,41 @@ def play_career():
             break
 
         opponent = next_battle()
-        before_battle_option(list_of_competitors['Protagonist'], opponent)
-        list_of_competitors['Protagonist'].team = team_selection(list_of_competitors['Protagonist'])
-        battleground = Battleground()
-        battle_setup(list_of_competitors['Protagonist'], opponent, list_of_competitors['Protagonist'].team, opponent.team, battleground)
+        protagonist = list_of_competitors['Protagonist']
+        if GameSystem.stage == 1:
+            # The retry is one per *run*, not one per career.
+            shop.begin_run(protagonist)
+
+        # Seeded: the first two rounds are won without being played. The
+        # round still closes normally -- the field resolves, the scoreline
+        # is drawn and the coins are paid -- but there is no reward, so the
+        # upgrade costs two Pokemon or two ability rolls.
+        if (shop.owns(protagonist, shop.SEEDED)
+                and GameSystem.stage <= shop.SEEDED_ROUNDS):
+            seeded_win(protagonist, opponent, Battleground())
+            continue
+
+        before_battle_option(protagonist, opponent)
+        protagonist.team = team_selection(protagonist)
+
+        # Both teams as they stood before the battle, in case the round is
+        # replayed. Taken here rather than restored afterwards because
+        # `battle_setup` writes all over them -- HP, battle stats, the
+        # default name/type/ability it restores from, and a "Switching" it
+        # prepends to every moveset, which a second call would prepend
+        # again.
+        kept = (deepcopy(protagonist.team), deepcopy(opponent.team),
+                deepcopy(protagonist.unused_team))
+        while True:
+            battleground = Battleground()
+            try:
+                battle_setup(protagonist, opponent, protagonist.team,
+                             opponent.team, battleground)
+                break
+            except shop.RoundRetry:
+                protagonist.team = deepcopy(kept[0])
+                opponent.team = deepcopy(kept[1])
+                protagonist.unused_team = deepcopy(kept[2])
 
     scoreboard()
     elo_rating()

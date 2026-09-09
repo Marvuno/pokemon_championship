@@ -1,9 +1,10 @@
 """Coins, and what they buy.
 
-Coins are earned by *winning Pokemon down* rather than by winning: a round
-pays the knockouts you took off the opponent less the ones they took off you,
-and never less than nothing. So a close win pays little and a rout pays well,
-and a loss pays nothing rather than costing you.
+Coins follow the kill score, both ways: a round settles on the knockouts you
+took off the opponent less the ones they took off you. A rout pays well, a
+scrape pays a little, and losing more than you took costs you coins. The
+balance stops at nothing -- it never goes negative -- so a bad round can
+empty the purse but not put you in debt.
 
 They belong to one career in one save slot. A new game starts at zero -- the
 Protagonist's row in Data/competitors.csv says nothing about coins, which is
@@ -30,6 +31,90 @@ from Scripts.Art.text_color import *
 #: what each thing costs
 COST_REFRESH_IV = 2
 COST_SWAP_POKEMON = 5
+
+# ------------------------------------------------------- permanent upgrades
+#: name -> (cost, one line). Bought once, owned for the whole career.
+#:
+#: Deliberately all *meta*: what a round pays, what you know going in, and
+#: how many rounds you play. None of them changes a rule on the field, and
+#: none touches the IV curve or the tier shelf -- so every rating in
+#: Data/competitors.csv still describes the game it was measured against.
+#:
+#: They are also all things whose value holds up as a career matures. An
+#: upgrade that mostly helps a *bad* team is worth little by the time 200
+#: coins have been saved, which is what ruled out the earlier candidates.
+DOUBLE_PAY = "Double Pay"
+AUTO_SCOUT = "Auto Scout"
+RETRY = "Retry"
+SEEDED = "Seeded"
+
+UPGRADES = (
+    (DOUBLE_PAY, 80, "Kill score pays double, up and down."),
+    (AUTO_SCOUT, 120, "Opponents are always fully scouted."),
+    (RETRY, 200, "Once a run, replay a round you lost."),
+    (SEEDED, 400, "The first two rounds are won for you."),
+)
+UPGRADE_COST = {name: cost for name, cost, _line in UPGRADES}
+
+#: how many opening rounds Seeded wins for you
+SEEDED_ROUNDS = 2
+
+
+class RoundRetry(Exception):
+    """Raised to abandon a lost round so it can be played again.
+
+    Thrown from `check_win_or_lose` before it commits anything and caught by
+    the career loop in main.py. An exception rather than a return value
+    because the turn loop is deep mutual recursion -- `move_selection` and
+    `end_of_turn` call each other about five frames a turn -- and there is no
+    single place to hand a "stop, we are replaying this" answer back through.
+    """
+
+
+def retry_available(protagonist):
+    """Whether the retry is owned and still unspent this run.
+
+    Deliberately says nothing about who is answering. An unattended run
+    declines the offer in `auto_run.answer`, which is the one place that
+    knows how to reply to a prompt with nobody watching -- putting a second
+    rule here as well would mean two mechanisms for one decision, and the
+    next person would have to find both.
+    """
+    return (owns(protagonist, RETRY)
+            and not getattr(protagonist, "retry_used", False))
+
+
+def begin_run(protagonist):
+    """Called once as a run starts: the retry is per run, not per career."""
+    protagonist.retry_used = False
+
+
+def spend_retry(protagonist):
+    protagonist.retry_used = True
+
+
+def owned(protagonist):
+    """The upgrade names this career holds, as a set."""
+    held = getattr(protagonist, "upgrades", None)
+    if not isinstance(held, (set, list, tuple)):
+        return set()
+    return {str(name) for name in held}
+
+
+def owns(protagonist, name):
+    return str(name) in owned(protagonist)
+
+
+def buy_upgrade(protagonist, name):
+    """Pay for an upgrade and record it. False if it cannot be bought."""
+    cost = UPGRADE_COST.get(str(name))
+    if cost is None or owns(protagonist, name):
+        return False
+    if not spend(protagonist, cost):
+        return False
+    protagonist.upgrades = sorted(owned(protagonist) | {str(name)})
+    return True
+
 
 #: Set by the interface: called after anything here changes the team.
 #:
@@ -61,17 +146,26 @@ IV_SWING = 30
 UNSWAPPABLE_TIERS = ("Boss",)
 
 
-def coins_earned(protagonist, competitor):
-    """What a finished round pays, never below zero.
+def coins_change(protagonist, competitor):
+    """What a finished round does to the balance. Signed.
 
     `result` is how many of the other side went down, and it is set on both
     competitors by check_win_or_lose before this is called. The difference is
-    what makes a rout worth more than a scrape -- and the floor is what stops
-    a bad round taking coins away, which would punish the same loss twice.
+    the whole rule: a rout pays well, a scrape pays a little, and a round
+    where you lost more than you took *costs* you.
+
+    Nothing is floored here. The floor belongs to the balance -- see
+    `award` -- because a player holding one coin who loses by four can only
+    lose the one they have.
     """
     mine = int(getattr(protagonist, "result", 0) or 0)
     theirs = int(getattr(competitor, "result", 0) or 0)
-    return max(0, mine - theirs)
+    change = mine - theirs
+    # Double Pay doubles the *settlement*, not the income: a bad round costs
+    # twice as much too. Doubling only the gains would change the risk you
+    # are running rather than the rate you are paid, which is not what the
+    # name says and is a good deal stronger than it sounds.
+    return change * 2 if owns(protagonist, DOUBLE_PAY) else change
 
 
 def balance(protagonist):
@@ -79,10 +173,16 @@ def balance(protagonist):
 
 
 def award(protagonist, competitor):
-    """Pay out the round. Returns what was added."""
-    earned = coins_earned(protagonist, competitor)
-    protagonist.coins = balance(protagonist) + earned
-    return earned
+    """Settle the round. Returns what actually moved, which may be negative.
+
+    Clamped at nothing and no further: a balance never goes below zero, so
+    a deduction bigger than the purse takes only what is in it. The figure
+    returned is what *left* rather than what was owed, so whatever reports
+    it cannot disagree with the number on screen.
+    """
+    was = balance(protagonist)
+    protagonist.coins = max(0, was + coins_change(protagonist, competitor))
+    return balance(protagonist) - was
 
 
 def can_afford(protagonist, cost):
@@ -235,14 +335,39 @@ def shop(protagonist):
               f"{CBOLD}{balance(protagonist)} Coins{CEND}")
         for value, label, cost, _blurb in SHOP_ITEMS:
             print(f"  {value}: {label}: {cost} Coins")
+        # Permanent upgrades, numbered after the consumables. One purchase
+        # each and then they are furniture -- shown as OWNED rather than
+        # hidden, so the list is a stable thing to learn.
+        for offset, (name, cost, line) in enumerate(UPGRADES):
+            slot = len(SHOP_ITEMS) + 1 + offset
+            if owns(protagonist, name):
+                print(f"{CGREY}  -: {name}: OWNED{CEND}")
+            else:
+                print(f"  {slot}: {name}: {cost} Coins")
+                print(f"{CGREY}     {line}{CEND}")
         print("  0: leave")
 
+        buyable = {len(SHOP_ITEMS) + 1 + offset: name
+                   for offset, (name, _c, _l) in enumerate(UPGRADES)
+                   if not owns(protagonist, name)}
         choice = -1
-        while choice not in [value for value, _l, _c, _b in SHOP_ITEMS] + [0]:
+        allowed = ([value for value, _l, _c, _b in SHOP_ITEMS]
+                   + list(buyable) + [0])
+        while choice not in allowed:
             with suppress(ValueError):
                 choice = int(input("What do you want? "))
         if choice == 0:
             return
+
+        if choice in buyable:
+            name = buyable[choice]
+            if not buy_upgrade(protagonist, name):
+                print(f"{CGREY}Not enough Coins.{CEND}")
+                continue
+            narrator.say(f"{CBOLD}{name} unlocked, for the rest of your "
+                         f"career.{CEND}")
+            _changed(protagonist)
+            continue
 
         cost = dict((value, cost) for value, _l, cost, _b in SHOP_ITEMS)[choice]
         if not can_afford(protagonist, cost):

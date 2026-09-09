@@ -149,6 +149,11 @@ def scout_result(protagonist, opponent):
     opponent, tagged with the round it belongs to so the next match rolls
     fresh.
     """
+    # Auto Scout, bought once and owned for the career: every scout lands,
+    # and the roll is not taken at all.
+    if shop.owns(protagonist, shop.AUTO_SCOUT):
+        opponent.scouted = (GameSystem.stage, True)
+        return True
     stamp = getattr(opponent, "scouted", None)
     if isinstance(stamp, tuple) and stamp[0] == GameSystem.stage:
         return stamp[1]

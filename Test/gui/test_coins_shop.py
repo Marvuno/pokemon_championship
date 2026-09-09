@@ -60,20 +60,33 @@ def build(species, ivs=None):
 
 
 # =============================================================== the payout
-print("-- what a round pays --")
-for mine, theirs, want in ((6, 0, 6), (6, 5, 1), (3, 3, 0), (0, 6, 0),
-                           (1, 0, 1), (2, 4, 0)):
-    check("  you KO %d, they KO %d -> %d" % (mine, theirs, want),
-          shop.coins_earned(Trainer(result=mine), Trainer(result=theirs)),
+print("-- what a round settles, both ways --")
+for mine, theirs, want in ((6, 0, 6), (6, 5, 1), (3, 3, 0), (0, 6, -6),
+                           (1, 0, 1), (2, 4, -2)):
+    check("  you KO %d, they KO %d -> %+d" % (mine, theirs, want),
+          shop.coins_change(Trainer(result=mine), Trainer(result=theirs)),
           want)
 
 purse = Trainer(coins=3, result=5)
-check("a payout adds to what you had",
+check("a good round adds to what you had",
       shop.award(purse, Trainer(result=1)), 4)
 check("...and the balance follows", shop.balance(purse), 7)
-check("a losing round pays nothing rather than taking any",
-      shop.award(purse, Trainer(result=99)), 0)
-check("...leaving the balance alone", shop.balance(purse), 7)
+purse.result = 1
+check("a bad round takes coins off",
+      shop.award(purse, Trainer(result=4)), -3)
+check("...leaving the balance lower", shop.balance(purse), 4)
+
+# The floor is on the balance, not the deduction: a purse with one coin in
+# it can only lose the one it has, and what is *reported* is what actually
+# left -- or the log would disagree with the number on screen.
+thin = Trainer(coins=1, result=0)
+check("a deduction bigger than the purse takes only what is there",
+      shop.award(thin, Trainer(result=6)), -1)
+check("...bottoming out at nothing", shop.balance(thin), 0)
+empty = Trainer(coins=0, result=0)
+check("...and an empty purse loses nothing at all",
+      shop.award(empty, Trainer(result=6)), 0)
+check("...staying at nothing", shop.balance(empty), 0)
 check("a balance is never negative", shop.balance(Trainer(coins=-5)), 0)
 
 check("you cannot spend what you do not have",

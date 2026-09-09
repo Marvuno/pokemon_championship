@@ -299,6 +299,11 @@ def save(list_of_competitors, path=None, slot=None):
             # rather than anywhere shared. A save written before this
             # feature restores to nothing, which is what a new game has.
             "coins": max(0, int(getattr(player, "coins", 0) or 0)),
+            # Permanent upgrades, owned for the whole career -- every run in
+            # this slot. NEW GAME clears them without help: start_fresh
+            # restores the competitors from the CSVs, which have none.
+            "upgrades": sorted(str(name) for name
+                               in (getattr(player, "upgrades", None) or [])),
             "participation": player.participation,
             "championship": player.championship,
             "team": [_pokemon_out(p) for p in (player.team or [])],
@@ -530,6 +535,8 @@ def _load_json(data, list_of_competitors, list_of_pokemon):
     player.appearance = saved.get("appearance", "") or ""
     player.strength = int(saved.get("rating", player.strength))
     player.coins = max(0, int(saved.get("coins", 0) or 0))
+    player.upgrades = sorted(str(name) for name
+                             in (saved.get("upgrades") or []))
     # "" for a save written before abilities could be copied, which is also
     # exactly what a player who has not copied one has
     player.ability = str(saved.get("ability", "") or "")

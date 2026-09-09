@@ -338,6 +338,15 @@ def answer(prompt):
         return None
     text = str(prompt or "")
 
+    # -- the Retry upgrade: never spend it ---------------------------------
+    # An Auto Run accepts its defeats. The retry is one per run and worth
+    # more to a player who can judge which loss mattered, so a simulation
+    # declines rather than burning it on whichever round it happened to
+    # drop first -- and a career simulated with retries on would not be
+    # measuring the same thing as one played.
+    if "Retry" in text:
+        return "N"
+
     # -- the pre-battle menu: play, never the information screens ----------
     if "What do you want to do?" in text:
         # a new battle, so auto battle has to be switched on again -- and the
