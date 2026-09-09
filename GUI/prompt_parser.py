@@ -48,6 +48,10 @@ RE_SENTINEL_2 = re.compile(r"\b(\d{1,3})\s+to\s+([^.,;:!\n]{2,60})", re.I)
 RE_ANY_KEY = re.compile(r"(?:press|enter|hit)\s+any\s+key|any\s+key\s+to\s+"
                         r"(?:proceed|continue)", re.I)
 RE_YES = re.compile(r"(?:enter|press|input|type)\s+['\"]?Y['\"]?(?:\b|$)", re.I)
+# the other way a yes/no question gets asked: a bare "Y/N" in it. The
+# confirm branch below requires that nothing numbered was found, so a
+# real menu that happens to mention Y/N is still a menu.
+RE_YES_NO = re.compile(r"\bY\s*/\s*N\b", re.I)
 RE_NAME = re.compile(r"what\s+is\s+your\s+name", re.I)
 
 # Move-select prints this; it is a toggle rather than a move.
@@ -118,6 +122,9 @@ def _question_text(prompt):
     text = " ".join(keep)
     text = re.sub(r"\s*\[\(.*?\)\]\s*", " ", text)      # drop tuple lists
     text = re.sub(r"\s*-->\s*$", "", text)
+    # A trailing "Y/N" is instructions for a terminal. Beside a Yes and a No
+    # button it is noise, and the buttons say it better.
+    text = re.sub(r"\s*\bY\s*/\s*N\b\s*[.:!]?\s*$", "", text, flags=re.I)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
@@ -213,7 +220,7 @@ def parse(prompt, recent_output=""):
         for m in rx.finditer(prompt):
             _add(choices, seen, m.group(1), m.group(2), kind="sentinel")
 
-    if RE_YES.search(prompt) and not choices:
+    if (RE_YES.search(prompt) or RE_YES_NO.search(prompt)) and not choices:
         return Prompt(raw, MODE_CONFIRM, question=question)
 
     if choices:

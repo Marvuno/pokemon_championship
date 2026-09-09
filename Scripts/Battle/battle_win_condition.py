@@ -58,8 +58,7 @@ def check_win_or_lose(protagonist, competitor, player_team, opponent_team, battl
             and shop.retry_available(protagonist)):
         answer = ""
         while answer not in ("Y", "N"):
-            answer = input("You have lost. Use your one Retry for this run "
-                           "and play the round again? Y/N ").strip().upper()
+            answer = input(RETRY_QUESTION).strip().upper()
         if answer == "Y":
             shop.spend_retry(protagonist)
             narrator.say(f"{CYELLOW2}{CBOLD}Replaying the round.{CEND}")
@@ -163,6 +162,15 @@ def end_battle(protagonist, competitor, player_team, opponent_team, battleground
         if not getattr(battleground, "exhibition", False):
             round_end(GameSystem.stage)
             GameSystem.stage += 1
+
+
+#: The retry offer. A constant because two suites check it and the engine
+#: asks it, and rewording it once left the suites checking a sentence the
+#: game no longer says. The bare "Y/N" is what the terminal build needs;
+#: GUI/prompt_parser reads it as a yes/no question and draws two buttons,
+#: trimming the "Y/N" out of the question it shows. `auto_run.answer`
+#: recognises it by the word "Retry", so that word has to stay in it.
+RETRY_QUESTION = "You lost. Use your one Retry and replay this round? Y/N "
 
 
 def seeded_win(protagonist, competitor, battleground):

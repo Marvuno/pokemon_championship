@@ -116,6 +116,41 @@ check("a sentinel in prose joins a list above it",
       ["0", "1", "2", "10"])
 
 print()
+print("-- yes/no questions --")
+# Two shapes, both real. The game asked for confirmation as "Enter 'Y'"
+# everywhere until the Retry offer, which ended in a bare "Y/N" and so
+# matched nothing and fell through to a text box -- a question with exactly
+# two answers, asking the player to type a letter.
+from GUI.prompt_parser import MODE_CHOICES, MODE_CONFIRM, parse  # noqa: E402
+
+
+def mode(prompt, recent=""):
+    return parse(prompt, recent).mode
+
+
+check("a bare Y/N is a yes/no question",
+      mode("You lost. Use your one Retry and replay this round? Y/N "),
+      MODE_CONFIRM)
+check("...and the question drops the Y/N the buttons replace",
+      parse("You lost. Use your one Retry and replay this round? Y/N "
+            ).question,
+      "You lost. Use your one Retry and replay this round?")
+check("...and so is the house style it was the exception to",
+      mode("\nWanna read the stats of a selected character? (Very Long) "
+           "Enter 'Y' to confirm: "), MODE_CONFIRM)
+check("...and the first-timer question",
+      mode("Are you a first-timer? Please enter 'Y' if you are new to the "
+           "game (backstory, rules and tutorial): "), MODE_CONFIRM)
+# A menu is a menu even when the prose in it mentions Y/N: the confirm
+# branch only fires when nothing numbered was found.
+check("a numbered menu mentioning Y/N is still a menu",
+      mode("Pick one. Y/N does not apply here. ",
+           "  0: leave\n  1: Refresh Pokemon IVs: 2 Coins\n"), MODE_CHOICES)
+check("and a name is still typed",
+      mode("What is your name? "), "text")
+
+
+print()
 print("-- the rule itself --")
 # disjoint: kept. overlapping: dropped whole, not merged around.
 check("an overlapping block is dropped entirely, not merged",

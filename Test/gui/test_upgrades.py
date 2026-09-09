@@ -264,8 +264,7 @@ check("never offered in an exhibition -- Custom Play has no round to replay",
 # missing rule here would stall the run at the first round it lost.
 from Scripts.Game import auto_run                                # noqa: E402
 
-RETRY_PROMPT = ("You have lost. Use your one Retry for this run and play the "
-                "round again? Y/N ")
+RETRY_PROMPT = WIN.RETRY_QUESTION
 auto_run.state.active = True
 try:
     check("an Auto Run answers the retry prompt",
@@ -427,6 +426,104 @@ save_src = io.open("Scripts/Game/savefile.py", encoding="utf-8").read()
 check("a new game is not given any (nothing in the CSVs grants one)",
       "upgrades" not in
       io.open("Data/competitors.csv", encoding="ISO-8859-1").read().lower())
+
+# ======================================================== the shop's buttons
+print()
+print("-- the menu the interface reads --")
+# The bug this guards was invisible to every check above, because the shop's
+# *logic* was right: a player owning all four upgrades could no longer click
+# Refresh or Swap. The interface builds its buttons by walking back from the
+# prompt through what was printed and stopping after two consecutive lines
+# that are not options (GUI/prompt_parser._tail_block, which is what stops a
+# previous screen's menu leaking into this one). Four "OWNED" lines printed
+# among the numbered ones are four such lines, so the walk broke off above
+# them and the two consumables were never seen.
+#
+# So this drives the real shop and parses what it really printed, in every
+# ownership state. A reconstruction of the menu would have agreed with
+# whatever the test author believed it printed.
+import itertools                                                 # noqa: E402
+
+from GUI import prompt_parser                                    # noqa: E402
+from Scripts.Game.game_procedure import team_generation          # noqa: E402
+
+shopper = list_of_competitors["Protagonist"]
+held_up, held_coins = list(getattr(shopper, "upgrades", None) or []), \
+    getattr(shopper, "coins", 0)
+held_team, held_bench = list(shopper.team), list(shopper.unused_team or [])
+UPGRADE_NAMES = [name for name, _c, _l in shop.UPGRADES]
+
+
+def printed_menu(owned):
+    """The shop's real menu, captured at the moment it asks its question."""
+    shopper.upgrades = list(owned)
+    buffer = io.StringIO()
+    real, seen = builtins.input, []
+
+    def spy(prompt=""):
+        # the log as it stands when the question is asked, which is exactly
+        # what the interface has to read its buttons out of
+        seen.append((str(prompt), buffer.getvalue()))
+        return "0"
+
+    builtins.input = spy
+    try:
+        with redirect_stdout(buffer):
+            shop.shop(shopper)
+    finally:
+        builtins.input = real
+    return seen[0]
+
+
+try:
+    shopper.coins = 1000
+    shopper.team = team_generation(shopper)
+    shopper.unused_team = []
+    broken = []
+    for size in range(len(UPGRADE_NAMES) + 1):
+        for owned in itertools.combinations(UPGRADE_NAMES, size):
+            prompt, log = printed_menu(owned)
+            got = prompt_parser.parse(prompt, log)
+            values = sorted(int(c.value) for c in got.choices)
+            want = sorted([0] + [v for v, _l, _c, _b in shop.SHOP_ITEMS]
+                          + [len(shop.SHOP_ITEMS) + 1 + index
+                             for index, name in enumerate(UPGRADE_NAMES)
+                             if name not in owned])
+            if got.mode != prompt_parser.MODE_CHOICES or values != want:
+                broken.append((owned, got.mode, values, want))
+    check("every option is clickable in all %d ownership states"
+          % 2 ** len(UPGRADE_NAMES), broken, [])
+
+    # the case that broke, named on its own so a regression says which
+    prompt, log = printed_menu(UPGRADE_NAMES)
+    values = sorted(int(c.value)
+                    for c in prompt_parser.parse(prompt, log).choices)
+    check("...including owning all four, which lost the consumables",
+          values, sorted([0] + [v for v, _l, _c, _b in shop.SHOP_ITEMS]))
+    check("an owned upgrade is shown, without a number to click",
+          all(("%s" % name) in log for name in UPGRADE_NAMES))
+    check("...and marked as owned", "OWNED" in log)
+
+    # why it is safe: the numbered lines are one unbroken run
+    numbered = [index for index, line in enumerate(log.splitlines())
+                if line.strip()[:1].isdigit()]
+    check("the numbered lines are contiguous, so no gap rule can cut them",
+          numbered == list(range(min(numbered), max(numbered) + 1)))
+finally:
+    shopper.upgrades = held_up
+    shopper.coins = held_coins
+    shopper.team = held_team
+    shopper.unused_team = held_bench
+
+# and the retry offer is answered by clicking, not by typing
+check("the retry offer is a yes/no question, not a text box",
+      prompt_parser.parse(WIN.RETRY_QUESTION).mode,
+      prompt_parser.MODE_CONFIRM)
+check("...and the buttons say Y/N, so the question does not",
+      "Y/N" in prompt_parser.parse(WIN.RETRY_QUESTION).question, False)
+check("...while auto_run still recognises it",
+      "Retry" in WIN.RETRY_QUESTION)
+
 
 print()
 print("ALL PASS" if not fails else "%d FAILURES: %s" % (len(fails), fails))

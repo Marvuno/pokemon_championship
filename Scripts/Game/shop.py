@@ -333,18 +333,35 @@ def shop(protagonist):
         print("")
         print(f"{CBOLD}{CYELLOW2}SHOP{CEND}  "
               f"{CBOLD}{balance(protagonist)} Coins{CEND}")
+        # The upgrade catalogue, above the menu and never inside it. Every
+        # upgrade is listed whether or not it is owned, so the list is a
+        # stable thing to learn, and an owned one is greyed out with no
+        # number beside it -- bought once, and furniture afterwards.
+        #
+        # It sits above the numbered lines rather than among them because
+        # the interface reads its buttons off the printed block, walking
+        # back from the prompt and stopping after two consecutive lines that
+        # are not options (GUI/prompt_parser._tail_block, which is what
+        # stops a previous screen's menu leaking into this one). Four OWNED
+        # lines in the middle of the menu are four such lines, so a player
+        # who had bought everything lost the two *consumables* -- Refresh
+        # and Swap became unclickable, because the walk broke off before
+        # reaching them. Anything added here has to keep the numbered lines
+        # in one unbroken run.
+        width = max(len(name) for name, _c, _l in UPGRADES)
+        for name, _cost, line in UPGRADES:
+            if owns(protagonist, name):
+                print(f"{CGREY}  {name:<{width}}  OWNED{CEND}")
+            else:
+                print(f"  {CBOLD}{name:<{width}}{CEND}  {CGREY}{line}{CEND}")
+        print("")
+
         for value, label, cost, _blurb in SHOP_ITEMS:
             print(f"  {value}: {label}: {cost} Coins")
-        # Permanent upgrades, numbered after the consumables. One purchase
-        # each and then they are furniture -- shown as OWNED rather than
-        # hidden, so the list is a stable thing to learn.
-        for offset, (name, cost, line) in enumerate(UPGRADES):
-            slot = len(SHOP_ITEMS) + 1 + offset
-            if owns(protagonist, name):
-                print(f"{CGREY}  -: {name}: OWNED{CEND}")
-            else:
+        for offset, (name, cost, _line) in enumerate(UPGRADES):
+            if not owns(protagonist, name):
+                slot = len(SHOP_ITEMS) + 1 + offset
                 print(f"  {slot}: {name}: {cost} Coins")
-                print(f"{CGREY}     {line}{CEND}")
         print("  0: leave")
 
         buyable = {len(SHOP_ITEMS) + 1 + offset: name
